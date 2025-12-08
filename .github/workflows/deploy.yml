@@ -50,32 +50,61 @@ jobs:
             sudo cp /opt/minecraft/bot/systemd/discord-bot.service /etc/systemd/system/discord-bot.service
             sudo chmod 644 /etc/systemd/system/discord-bot.service
             sudo systemctl daemon-reload
-            sudo systemctl enable --now discord-bot
+            sudo systemctl enable discord-bot
           fi
         EOF
 
-    # 4. 依存関係の更新とサービス再起動
-    - name: Install dependencies & Restart Service
+    # 4. 依存関係の更新
+    - name: Install dependencies
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
           cd /opt/minecraft/bot
           ./venv/bin/pip install -r requirements.txt
-          sudo systemctl daemon-reload || true
-          sudo systemctl restart discord-bot || sudo systemctl start discord-bot
         EOF
 
-    # 5. デプロイ成功通知
+    # 5. サービス再起動とエラーログ確認
+    - name: Restart Service and Check Logs
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          echo "=== Stopping service if running ==="
+          sudo systemctl stop discord-bot || true
+
+          echo "=== Checking bot.py exists ==="
+          ls -la /opt/minecraft/bot/bot.py
+
+          echo "=== Checking .env file ==="
+          ls -la /opt/minecraft/bot/.env || echo ".env file not found"
+
+          echo "=== Testing bot manually (first 5 seconds) ==="
+          cd /opt/minecraft/bot
+          timeout 5 ./venv/bin/python3 bot.py || echo "Manual test completed"
+
+          echo "=== Starting service ==="
+          sudo systemctl daemon-reload
+          sudo systemctl start discord-bot
+
+          echo "=== Waiting 3 seconds ==="
+          sleep 3
+
+          echo "=== Service status ==="
+          sudo systemctl status discord-bot --no-pager || true
+
+          echo "=== Recent logs ==="
+          sudo journalctl -u discord-bot -n 50 --no-pager
+        EOF
+
+    # 6. デプロイ成功通知
     - name: Notify Discord on Success
       if: success()
       run: |
         curl -H "Content-Type: application/json" \
-          -d '{"embeds":[{"title":"デプロイ成功","color":3066993}]}' \
+          -d '{"embeds":[{"title":"✅ デプロイ成功","color":3066993}]}' \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-    # 6. デプロイ失敗通知
+    # 7. デプロイ失敗通知
     - name: Notify Discord on Failure
       if: failure()
       run: |
         curl -H "Content-Type: application/json" \
-          -d '{"embeds":[{"title":"デプロイ失敗","color":15158332}]}' \
+          -d '{"embeds":[{"title":"❌ デプロイ失敗","color":15158332}]}' \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
