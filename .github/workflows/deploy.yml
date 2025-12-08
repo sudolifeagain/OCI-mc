@@ -1,0 +1,51 @@
+name: Deploy Bot to OCI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    # 1. SSH鍵のセットアップ
+    - name: Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.OCI_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
+
+    # 2. ファイル転送 (rsync)
+    - name: Sync files to OCI
+      run: |
+        rsync -avz --delete --exclude '.git' --exclude '.env' --exclude 'venv' --exclude 'systemd' \
+        -e "ssh -i ~/.ssh/id_rsa" \
+       ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
+
+    # 3. 依存関係の更新とサービス再起動
+    - name: Install dependencies & Restart Service
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          cd /opt/minecraft/bot
+         ./venv/bin/pip install -r requirements.txt
+          sudo systemctl restart minecraft-bot
+        EOF
+
+    # 4. デプロイ成功通知 (Embed形式)
+    - name: Notify Discord on Success
+      if: success()
+      run: |
+        curl -H "Content-Type: application/json" \
+        -d '{"embeds":}]}' \
+        ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    # 5. デプロイ失敗通知 (Embed形式)
+    - name: Notify Discord on Failure
+      if: failure()
+      run: |
+        curl -H "Content-Type: application/json" \
+        -d '{"embeds":}' \
+        ${{ secrets.DISCORD_WEBHOOK_URL }}

@@ -1,0 +1,6 @@
+ssh.md
+.env
+pycache/ *.pyc
+venv/ env/
+*.log
+.DS_Store
