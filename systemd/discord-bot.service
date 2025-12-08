@@ -2,14 +2,12 @@
 Description=Minecraft Discord Bot
 After=network.target
 
-
+[Service]
 Type=simple
 User=ubuntu
 WorkingDirectory=/opt/minecraft/bot
-# 仮想環境のPythonを使用するパス指定
 ExecStart=/opt/minecraft/bot/venv/bin/python3 bot.py
 Restart=always
-# 環境変数をファイルから読み込む
 EnvironmentFile=/opt/minecraft/bot/.env
 
 [Install]
