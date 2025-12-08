@@ -16,36 +16,43 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.OCI_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
+        # StrictHostKeyCheckingを無効化(初回接続時)
+        ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts || true
 
     # 2. ファイル転送 (rsync)
     - name: Sync files to OCI
       run: |
-        rsync -avz --delete --exclude '.git' --exclude '.env' --exclude 'venv' --exclude 'systemd' \
-        -e "ssh -i ~/.ssh/id_rsa" \
-        ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
+        rsync -avz --delete \
+          --exclude '.git' \
+          --exclude '.env' \
+          --exclude 'venv' \
+          --exclude 'systemd' \
+          --exclude '__pycache__' \
+          --exclude '*.pyc' \
+          -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+          ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
 
     # 3. 依存関係の更新とサービス再起動
-    - name: "Install dependencies & Restart Service"
+    - name: Install dependencies & Restart Service
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
           cd /opt/minecraft/bot
           ./venv/bin/pip install -r requirements.txt
           sudo systemctl restart minecraft-bot
         EOF
 
-    # 4. デプロイ成功通知 (Embed形式)
+    # 4. デプロイ成功通知
     - name: Notify Discord on Success
-      if: ${{ success() }}
+      if: success()
       run: |
         curl -H "Content-Type: application/json" \
-        -d '{"embeds":[{"title":"デプロイ成功","color":3066993}]}' \
+        -d "{\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"Commit: ${{ github.sha }}\",\"color\":3066993}]}" \
         ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-    # 5. デプロイ失敗通知 (Embed形式)
+    # 5. デプロイ失敗通知
     - name: Notify Discord on Failure
-      if: ${{ failure() }}
+      if: failure()
       run: |
         curl -H "Content-Type: application/json" \
-        -d '{"embeds":[{"title":"デプロイ失敗","color":15158332}]}' \
+        -d "{\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"Commit: ${{ github.sha }}\",\"color\":15158332}]}" \
         ${{ secrets.DISCORD_WEBHOOK_URL }}
