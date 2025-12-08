@@ -10,6 +10,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # 0. rsyncのインストール
+    - name: Install rsync
+      run: sudo apt-get update && sudo apt-get install -y rsync
+
     # 1. SSH鍵のセットアップ
     - name: Setup SSH Key
       run: |
