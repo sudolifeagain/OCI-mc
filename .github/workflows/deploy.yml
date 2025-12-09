@@ -98,11 +98,12 @@ jobs:
       if: success()
       env:
         COMMIT_MSG: ${{ github.event.head_commit.message }}
+        COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
       run: |
         # エスケープ処理（簡易的）
         ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
         curl -H "Content-Type: application/json" \
-          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"$ESCAPED_MSG\",\"color\":3066993}]}" \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"[$ESCAPED_MSG]($COMMIT_URL)\",\"color\":3066993}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
 
     # 7. デプロイ失敗通知
@@ -110,8 +111,9 @@ jobs:
       if: failure()
       env:
         COMMIT_MSG: ${{ github.event.head_commit.message }}
+        COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
       run: |
         ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
         curl -H "Content-Type: application/json" \
-          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"$ESCAPED_MSG\",\"color\":15158332}]}" \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"[$ESCAPED_MSG]($COMMIT_URL)\",\"color\":15158332}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
