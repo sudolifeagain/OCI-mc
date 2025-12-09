@@ -253,6 +253,13 @@ async def shell(ctx, *, command_str):
             chunk = out_text[:1900]
             out_text = out_text[1900:]
             await ctx.send(f"```{chunk}```")
+        # Audit log the command
+        try:
+            audit_path = '/opt/minecraft/owner_commands.log'
+            with open(audit_path, 'a', encoding='utf-8') as af:
+                af.write(f"{datetime.now().isoformat()} | user={ctx.author} ({ctx.author.id}) | cmd={command_str}\n")
+        except Exception as e:
+            logging.error(f"Failed to write audit log: {e}")
     except Exception as e:
         logging.error(f"shell command exec error: {e}")
         await ctx.send(f"実行中にエラーが発生しました: {e}")
