@@ -28,7 +28,7 @@ def upload_to_notion(file_path):
     print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
     init_payload = {
         "filename": filename,
-        "content_type": "application/gzip",
+        "content_type": "application/zip",
         "mode": mode
     }
 

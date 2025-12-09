@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 import logging
+import psutil
 from settings import CONFIG
 
 class ServerManager:
@@ -9,7 +10,7 @@ class ServerManager:
         self.log_queue = asyncio.Queue()
 
     async def start_server(self):
-        if self.process and self.process.returncode is None:
+        if self.is_running():
             return False # Already running
 
         mem = CONFIG["java_memory"]
@@ -29,10 +30,36 @@ class ServerManager:
         return True
 
     async def stop_server(self):
+        # Force terminate any existing java processes with this jar
+        stopped_something = False
+        
         if self.process and self.process.returncode is None:
             if self.process.stdin:
-                self.process.stdin.write(b"stop\n")
-                await self.process.stdin.drain()
+                try:
+                    self.process.stdin.write(b"stop\n")
+                    await self.process.stdin.drain()
+                    stopped_something = True
+                except Exception:
+                    pass
+        
+        # Also check via psutil for any orphan processes
+        jar_name = CONFIG["minecraft_server_jar"]
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = proc.info['cmdline']
+                if cmdline and 'java' in proc.info['name'] and jar_name in cmdline:
+                     # Send SIGTERM (or input 'stop' if possible, but difficult to attach stdin here)
+                     # For simplicity, we assume if self.process was None, we might not be able to send 'stop' elegantly.
+                     # But most MC servers handle SIGTERM gracefully-ish or we can try to find the one we started.
+                     # If we can't write to stdin, we might have to kill it.
+                     # Ideally, we should try to attach or just kill.
+                     # Given the user wants to ensure it stops:
+                     proc.terminate()
+                     stopped_something = True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+                
+        if stopped_something:
             return True
         return False
 
@@ -56,8 +83,25 @@ class ServerManager:
             await self.log_queue.put(line.decode('utf-8', errors='ignore'))
             
     def is_running(self):
-        return self.process is not None and self.process.returncode is None
+        if self.process is not None and self.process.returncode is None:
+            return True
+        
+        # Check via psutil for any java process running the specific jar
+        jar_name = CONFIG["minecraft_server_jar"]
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = proc.info['cmdline']
+                if cmdline and 'java' in proc.info['name'] and jar_name in cmdline:
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return False
         
     async def wait_for_exit(self):
         if self.process:
             await self.process.wait()
+        
+        # Also wait for psutil processes to clear if necessary
+        # (Polling)
+        while self.is_running():
+            await asyncio.sleep(1)

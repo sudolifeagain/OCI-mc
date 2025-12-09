@@ -1,6 +1,6 @@
 import os
 import shutil
-import tarfile
+import zipfile
 import asyncio
 import logging
 import discord
@@ -29,18 +29,25 @@ class BackupSystem(commands.Cog):
                 await self.server_manager.stop_server()
                 await self.server_manager.wait_for_exit()
 
-            # 2. 圧縮
+            # 2. 圧縮 (ZIP)
             if channel: await channel.send("ワールドデータを圧縮中...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-            zip_name = f"backup_{timestamp}.tar.gz"
+            zip_name = f"backup_{timestamp}.zip"
 
             original_cwd = os.getcwd()
             try:
                 os.chdir("/opt/minecraft")
-                with tarfile.open(zip_name, "w:gz") as tar:
+                with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     for d in CONFIG["backup"]["target_dirs"]:
                         if os.path.exists(d):
-                            tar.add(d)
+                            if os.path.isdir(d):
+                                for root, dirs, files in os.walk(d):
+                                    for file in files:
+                                        file_path = os.path.join(root, file)
+                                        # arcname is relative to /opt/minecraft (cwd)
+                                        zipf.write(file_path, os.path.relpath(file_path, "."))
+                            else:
+                                zipf.write(d, os.path.basename(d))
 
                 size_mb = os.path.getsize(zip_name) / (1024 * 1024)
 
@@ -77,8 +84,6 @@ class BackupSystem(commands.Cog):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
         
         await interaction.response.send_message("バックアップ処理を開始します...")
-        # perform_backup uses send(), so we pass the channel.
-        # Note: interaction.channel might be None in some contexts, but usually OK in guilds.
         await self.perform_backup(interaction.channel)
 
     @app_commands.command(name="backups", description="Notionにある最新のバックアップリストを表示します")
@@ -113,7 +118,7 @@ class BackupSystem(commands.Cog):
     async def rollback(self, interaction: discord.Interaction, index: int):
         """指定した番号のバックアップにロールバックする"""
         if not check_role(interaction, 'backup'):
-            return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True) # メッセージは調整
+            return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True)
 
         await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。")
         status_msg = await interaction.original_response()
@@ -166,14 +171,17 @@ class BackupSystem(commands.Cog):
                 # --- 4. 解凍 ---
                 await status_msg.edit(content="📦 バックアップを展開中...")
 
-                if filename.endswith("tar.gz"):
+                if filename.endswith(".zip"):
+                    def unzip_safe():
+                        with zipfile.ZipFile(filename, 'r') as zipf:
+                            zipf.extractall()
+                    await loop.run_in_executor(None, unzip_safe)
+                elif filename.endswith("tar.gz"):
                     def untar_safe():
                         with tarfile.open(filename, "r:gz") as tar:
                             tar.extractall()
                     await loop.run_in_executor(None, untar_safe)
-                else:
-                    pass
-
+                
                 os.remove(filename)
 
             finally:
