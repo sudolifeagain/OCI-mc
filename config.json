@@ -1,20 +1,41 @@
 {
 	"roles": {
- 	  "admin": null,
- 	  "mod": null,
- 	  "owner": null
+		"admin": null,
+		"mod": null,
+		"owner": null
 	},
 	"permissions": {
-	  "start": ["admin", "mod"],
-	  "stop": ["admin"],
-	  "restart": ["admin", "mod"],
-	  "command": ["admin"],
-	  "backup": ["admin"]
+		"start": [
+			"admin",
+			"mod"
+		],
+		"stop": [
+			"admin"
+		],
+		"restart": [
+			"admin",
+			"mod"
+		],
+		"command": [
+			"admin"
+		],
+		"backup": [
+			"admin"
+		],
+		"whitelist_add": [
+			"admin",
+			"mod",
+			"user"
+		]
 	},
 	"backup": {
-	  "target_dirs": ["world", "world_nether", "world_the_end"],
-	  "schedule_time": "04:00"
+		"target_dirs": [
+			"world",
+			"world_nether",
+			"world_the_end"
+		],
+		"schedule_time": "04:00"
 	},
 	"minecraft_server_jar": "paper.jar",
 	"java_memory": "18G"
-  }
+}

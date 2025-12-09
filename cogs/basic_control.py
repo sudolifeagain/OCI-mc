@@ -52,6 +52,19 @@ class BasicControl(commands.Cog):
         else:
              await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
 
+    @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
+    @app_commands.describe(player_name="追加するプレイヤー名")
+    async def whitelist_add(self, interaction: discord.Interaction, player_name: str):
+        if not check_role(interaction, 'whitelist_add'):
+             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        if not self.server_manager.is_running():
+             return await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
+        
+        cmd = f"whitelist add {player_name.strip()}"
+        await self.server_manager.write_stdin(cmd)
+        await interaction.response.send_message(f"ホワイトリスト追加コマンドを送信しました: `{cmd}`", silent=True)
+
     @app_commands.command(name="shell", description="ホストOSでシェルコマンドを実行します(Ownerのみ)")
     @app_commands.describe(command_str="実行するシェルコマンド")
     async def shell(self, interaction: discord.Interaction, command_str: str):
