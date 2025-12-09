@@ -21,8 +21,8 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
         "Content-Type": "application/json"
     }
 
-    # 50MB以上のファイルはmulti_partアップロードとする
-    UPLOAD_THRESHOLD = 50 * 1024 * 1024
+    # 20MB以上のファイルはmulti_partアップロードとする (API制限)
+    UPLOAD_THRESHOLD = 20 * 1024 * 1024
     is_multi_part = file_size > UPLOAD_THRESHOLD
     mode = "multi_part" if is_multi_part else "single_part"
 
@@ -34,8 +34,8 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     }
 
     if is_multi_part:
-        # 100MB単位で分割
-        chunk_size = 100 * 1024 * 1024
+        # 10MB単位で分割 (Notion API推奨: 5-20MB)
+        chunk_size = 10 * 1024 * 1024
         init_payload["number_of_parts"] = (file_size // chunk_size) + (1 if file_size % chunk_size else 0)
 
     res = requests.post("https://api.notion.com/v1/file_uploads", headers=headers, json=init_payload)
