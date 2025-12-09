@@ -152,9 +152,17 @@ class BackupSystem(commands.Cog):
             
             # Use absolute path for saving
             save_path = os.path.join(self.MC_DIR, filename)
+            logging.info(f"[Rollback] Downloading backup from {download_url} to {save_path}")
 
             try:
                 await loop.run_in_executor(None, download_file, download_url, save_path)
+                if os.path.exists(save_path):
+                    size_mb = os.path.getsize(save_path) / (1024 * 1024)
+                    logging.info(f"[Rollback] Download complete. File size: {size_mb:.2f}MB")
+                else:
+                    logging.error(f"[Rollback] File not found after download: {save_path}")
+                    return await status_msg.edit(content="❌ ダウンロード後にファイルが見つかりません。")
+
             except Exception as e:
                 logging.error(f"Download failed: {e}")
                 return await status_msg.edit(content=f"❌ ダウンロードに失敗しました: {e}")
@@ -162,10 +170,12 @@ class BackupSystem(commands.Cog):
             try:
                 # --- 3. 既存データの削除 ---
                 await status_msg.edit(content="🗑️ 既存のワールドデータを削除中...")
+                logging.info("[Rollback] Removing existing world data...")
 
                 for d in CONFIG["backup"]["target_dirs"]:
                     full_target_path = os.path.join(self.MC_DIR, d)
                     if os.path.exists(full_target_path):
+                        logging.info(f"[Rollback] Deleting: {full_target_path}")
                         try:
                             if os.path.isdir(full_target_path):
                                 shutil.rmtree(full_target_path)
@@ -174,15 +184,19 @@ class BackupSystem(commands.Cog):
                         except Exception as e:
                             logging.error(f"Failed to remove {full_target_path}: {e}")
                             return await status_msg.edit(content=f"既存データの削除中にエラーが発生しました: {e}")
+                    else:
+                        logging.info(f"[Rollback] Target not found (skipping): {full_target_path}")
 
                 # --- 4. 解凍 ---
-                await status_msg.edit(content="📦 バックアップを展開中...")
+                await status_msg.edit(content=f"📦 バックアップを展開中... (File: {filename})")
+                logging.info(f"[Rollback] Extracting {save_path} to {self.MC_DIR}")
 
                 if filename.endswith(".zip"):
                     def unzip_safe():
                         with zipfile.ZipFile(save_path, 'r') as zipf:
                             # extractall with path argument
                             zipf.extractall(path=self.MC_DIR)
+                            logging.info(f"[Rollback] Unzipped {len(zipf.namelist())} files.")
                     await loop.run_in_executor(None, unzip_safe)
                 elif filename.endswith("tar.gz"):
                     def untar_safe():
@@ -190,10 +204,14 @@ class BackupSystem(commands.Cog):
                         import tarfile
                         with tarfile.open(save_path, "r:gz") as tar:
                             tar.extractall(path=self.MC_DIR)
+                            logging.info(f"[Rollback] Untarred files.")
                     await loop.run_in_executor(None, untar_safe)
                 
+                logging.info("[Rollback] Extraction complete. Cleaning up zip file.")
                 if os.path.exists(save_path):
                     os.remove(save_path)
+                
+                logging.info("[Rollback] Rollback process finished successfully.")
 
             except Exception as e:
                 logging.error(f"Rollback file operation failed: {e}")
