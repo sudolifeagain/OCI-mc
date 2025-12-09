@@ -9,15 +9,15 @@ OCI-mc allows you to control your Minecraft server directly from Discord. You ca
 ## Features
 
 - **Server Management**:
-  - **Start/Stop**: Turn the server on or off with simple commands (`!start`, `!stop`).
-  - **Console Commands**: Send commands directly to the Minecraft server console (`!cmd`).
+  - **Start/Stop**: Turn the server on or off with simple slash commands (`/start`, `/stop`).
+  - **Console Commands**: Send commands directly to the Minecraft server console (`/cmd`).
   - **Live Logging**: Streams Minecraft server logs to a specified Discord channel in real-time.
 
 - **Advanced Backup System**:
-  - **Notion Integration**: Automatically uploads compressed backup files (`.tar.gz`) to Notion.
+  - **Notion Integration**: Automatically uploads backup files to Notion. Supports large files via smart multipart upload (files > 20MB are chunked).
   - **Scheduled Backups**: Configurable automated backup schedule.
-  - **Manual Backups**: Trigger backups on demand (`!backup`).
-  - **Easy Rollback**: List available backups (`!backups`) and restore the server to a previous state with a single command (`!rollback`).
+  - **Manual Backups**: Trigger backups on demand (`/backup`).
+  - **Easy Rollback**: List available backups (`/backups`) and restore the server to a previous state with a single command (`/rollback`).
 
 - **Permission Control**:
   - Role-based access control for commands (supports `start`, `stop`, `command`, `backup` roles).
