@@ -16,9 +16,10 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NOTION_TOKEN = os.getenv('NOTION_TOKEN')
 NOTION_DB_ID = os.getenv('NOTION_DB_ID')
-CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
-DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID'))
-DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID'))
+# 環境変数が読み込めない場合の対策としてデフォルト値0を設定
+CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID', 0))
+DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
+DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
 
 # 設定読み込み
 with open('config.json', 'r') as f:
@@ -157,7 +158,8 @@ async def run_server():
     mem = CONFIG["java_memory"]
     jar = CONFIG["minecraft_server_jar"]
 
-    cmd =
+    # 修正: 起動コマンドリストを作成
+    cmd = ['java', f'-Xmx{mem}', f'-Xms{mem}', '-jar', jar, 'nogui']
 
     server_process = await asyncio.create_subprocess_exec(
         *cmd,
@@ -181,7 +183,7 @@ async def read_stdout(stream):
 @tasks.loop(seconds=2.0)
 async def discord_log_sender():
     """Queueに溜まったログをまとめてDiscordに送信"""
-    messages =
+    messages = [] # 修正: リストを初期化
     while not log_queue.empty():
         messages.append(await log_queue.get())
 
@@ -202,7 +204,7 @@ async def discord_log_sender():
 
 # --- Commands ---
 def check_role(ctx, action):
-    allowed_role_names = CONFIG['permissions'].get(action,)
+    allowed_role_names = CONFIG['permissions'].get(action, []) # 修正: getの第二引数で安全に
     user_role_ids = [r.id for r in ctx.author.roles]
     for name in allowed_role_names:
         if CONFIG['roles'].get(name) in user_role_ids:
@@ -294,9 +296,11 @@ async def perform_backup(channel):
 @tasks.loop(minutes=1)
 async def scheduler():
     now = datetime.now().strftime("%H:%M")
-    if now == CONFIG['backup']['schedule_time']:
-        channel = bot.get_channel(CHANNEL_ID)
-        await perform_backup(channel)
+    # 設定ファイルにバックアップスケジュールがある場合のみ実行
+    if 'backup' in CONFIG and 'schedule_time' in CONFIG['backup']:
+        if now == CONFIG['backup']['schedule_time']:
+            channel = bot.get_channel(CHANNEL_ID)
+            await perform_backup(channel)
 
 # --- Main ---
 @bot.event
