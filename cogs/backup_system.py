@@ -25,12 +25,12 @@ class BackupSystem(commands.Cog):
             was_running = False
             if self.server_manager.is_running():
                 was_running = True
-                if channel: await channel.send("サーバーを停止してデータを保存します...")
+                if channel: await channel.send("サーバーを停止してデータを保存します...", silent=True)
                 await self.server_manager.stop_server()
                 await self.server_manager.wait_for_exit()
 
             # 2. 圧縮 (ZIP)
-            if channel: await channel.send("ワールドデータを圧縮中...")
+            if channel: await channel.send("ワールドデータを圧縮中...", silent=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             zip_name = f"backup_{timestamp}.zip"
 
@@ -52,7 +52,7 @@ class BackupSystem(commands.Cog):
                 size_mb = os.path.getsize(zip_name) / (1024 * 1024)
 
                 # 3. Notion Upload
-                if channel: await channel.send(f"Notionへアップロード中... ({size_mb:.1f}MB)")
+                if channel: await channel.send(f"Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
                 # 非同期実行のためにExecutorを使用
                 loop = asyncio.get_event_loop()
@@ -61,7 +61,7 @@ class BackupSystem(commands.Cog):
                 # DB登録
                 await loop.run_in_executor(None, register_to_database, file_id, zip_name, f"{size_mb:.1f}MB")
 
-                if channel: await channel.send("✅ バックアップ完了！")
+                if channel: await channel.send("✅ バックアップ完了！", silent=True)
 
                 # 4. 一時ファイル削除
                 os.remove(zip_name)
@@ -71,11 +71,11 @@ class BackupSystem(commands.Cog):
 
             # 5. 再起動
             if was_running:
-                if channel: await channel.send("サーバーを再起動します。")
+                if channel: await channel.send("サーバーを再起動します。", silent=True)
                 await self.server_manager.start_server()
 
         except Exception as e:
-            if channel: await channel.send(f"❌ バックアップエラー: {str(e)}")
+            if channel: await channel.send(f"❌ バックアップエラー: {str(e)}", silent=True)
             logging.error(e)
 
     @app_commands.command(name="backup", description="手動バックアップを実行します")
@@ -83,7 +83,7 @@ class BackupSystem(commands.Cog):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
         
-        await interaction.response.send_message("バックアップ処理を開始します...")
+        await interaction.response.send_message("バックアップ処理を開始します...", silent=True)
         await self.perform_backup(interaction.channel)
 
     @app_commands.command(name="backups", description="Notionにある最新のバックアップリストを表示します")
@@ -92,7 +92,7 @@ class BackupSystem(commands.Cog):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
-        await interaction.response.send_message("Notionからバックアップリストを取得中...")
+        await interaction.response.send_message("Notionからバックアップリストを取得中...", silent=True)
         msg = await interaction.original_response()
 
         try:
@@ -120,7 +120,7 @@ class BackupSystem(commands.Cog):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True)
 
-        await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。")
+        await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。", silent=True)
         status_msg = await interaction.original_response()
 
         try:

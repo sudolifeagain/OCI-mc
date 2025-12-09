@@ -23,7 +23,7 @@ class BasicControl(commands.Cog):
         if self.server_manager.is_running():
             return await interaction.response.send_message("サーバーは既に起動しています。", ephemeral=True)
             
-        await interaction.response.send_message("起動コマンドを送信しました。")
+        await interaction.response.send_message("起動コマンドを送信しました。", silent=True)
         await self.server_manager.start_server()
 
     @app_commands.command(name="stop", description="Minecraftサーバーを停止します")
@@ -33,7 +33,7 @@ class BasicControl(commands.Cog):
         
         if self.server_manager.is_running():
             await self.server_manager.stop_server()
-            await interaction.response.send_message("停止コマンドを送信しました。")
+            await interaction.response.send_message("停止コマンドを送信しました。", silent=True)
         else:
             await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
 
@@ -48,7 +48,7 @@ class BasicControl(commands.Cog):
 
         if self.server_manager.is_running():
             await self.server_manager.write_stdin(command_str)
-            await interaction.response.send_message(f"コマンド送信: `{command_str}`")
+            await interaction.response.send_message(f"コマンド送信: `{command_str}`", silent=True)
         else:
              await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
 
@@ -60,7 +60,7 @@ class BasicControl(commands.Cog):
             return await interaction.response.send_message("権限がありません。Ownerのみが使用できます。", ephemeral=True)
 
         logging.info(f"Owner {interaction.user} ({interaction.user.id}) executed shell: {command_str}")
-        await interaction.response.send_message(f"実行中: `{command_str}`")
+        await interaction.response.send_message(f"実行中: `{command_str}`", silent=True)
 
         try:
             proc = await asyncio.create_subprocess_shell(
@@ -73,21 +73,22 @@ class BasicControl(commands.Cog):
                 stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=60)
             except asyncio.TimeoutError:
                 proc.kill()
-                await interaction.followup.send("コマンドがタイムアウトしました（60秒）")
+                await interaction.followup.send("コマンドがタイムアウトしました（60秒）", silent=True)
                 return
             out_text = stdout.decode('utf-8', errors='ignore')
             if not out_text:
-                await interaction.followup.send("(出力なし)")
+                await interaction.followup.send("(出力なし)", silent=True)
                 return
 
             while out_text:
                 chunk = out_text[:1900]
                 out_text = out_text[1900:]
-                await interaction.followup.send(f"```{chunk}```")
+                # Here we use silent=True for logs/output too
+                await interaction.followup.send(f"```{chunk}```", silent=True)
 
         except Exception as e:
             logging.error(f"shell command exec error: {e}")
-            await interaction.followup.send(f"実行中にエラーが発生しました: {e}")
+            await interaction.followup.send(f"実行中にエラーが発生しました: {e}", silent=True)
 
     @tasks.loop(seconds=2.0)
     async def discord_log_sender(self):
@@ -108,7 +109,7 @@ class BasicControl(commands.Cog):
                 chunk = full_text[:1900]
                 full_text = full_text[1900:]
                 try:
-                    await channel.send(f"```{chunk}```")
+                    await channel.send(f"```{chunk}```", silent=True)
                 except Exception as e:
                     print(f"Log send error: {e}")
             
