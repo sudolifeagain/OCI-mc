@@ -4,31 +4,40 @@ from discord.ext import commands
 from settings import DISCORD_TOKEN
 from utils.server_manager import ServerManager
 
+# Bot Class Definition
+class MyBot(commands.Bot):
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(command_prefix='!', intents=intents)
+        self.server_manager = ServerManager()
+
+    async def setup_hook(self):
+        # Load Extensions
+        initial_extensions = [
+            'cogs.basic_control',
+            'cogs.backup_system'
+        ]
+        
+        for extension in initial_extensions:
+            await self.load_extension(extension)
+            
+        # Sync Slash Commands
+        # Note: In production, it's better to sync to a specific guild for faster updates during dev,
+        # or use a command to sync globally. For now, we sync globally on startup.
+        print("Syncing commands...")
+        await self.tree.sync()
+        print("Commands synced.")
+
+    async def on_ready(self):
+        print(f'Logged in as {self.user}')
+
 # Bot Setup
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-# Server Manager Instance
-server_manager = ServerManager()
-# Attach to bot so cogs can access it if needed (though we inject it)
-bot.server_manager = server_manager
-
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user}')
+bot = MyBot()
 
 async def main():
-    # Load Extensions
-    initial_extensions = [
-        'cogs.basic_control',
-        'cogs.backup_system'
-    ]
-
-    for extension in initial_extensions:
-        await bot.load_extension(extension)
-
-    await bot.start(DISCORD_TOKEN)
+    async with bot:
+        await bot.start(DISCORD_TOKEN)
 
 if __name__ == "__main__":
     try:

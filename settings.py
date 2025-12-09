@@ -36,16 +36,24 @@ CONFIG['roles']['user'] = DISCORD_USER_ID # 新規追加
 # ロギング設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
-def check_role(ctx, action):
+def check_role(ctx_or_interaction, action):
     """
     指定されたアクションに対して権限があるかチェックする
     Ownerは常に許可
+    Context と Interaction の両方に対応
     """
-    if DISCORD_OWNER_ID and ctx.author.id == DISCORD_OWNER_ID:
+    # ユーザーオブジェクトの取得
+    user = getattr(ctx_or_interaction, 'author', getattr(ctx_or_interaction, 'user', None))
+    
+    if not user:
+        return False
+
+    if DISCORD_OWNER_ID and user.id == DISCORD_OWNER_ID:
         return True
     
     allowed_role_names = CONFIG['permissions'].get(action, [])
-    user_role_ids = [r.id for r in ctx.author.roles]
+    # user.roles は Member オブジェクトの場合のみ存在 (DMなどでは注意が必要だが、今回はサーバー前提)
+    user_role_ids = [r.id for r in getattr(user, 'roles', [])]
     
     for name in allowed_role_names:
         role_id = CONFIG['roles'].get(name)
@@ -54,17 +62,23 @@ def check_role(ctx, action):
             
     return False
 
-def check_whitelist_add_permission(ctx, command_str):
+def check_whitelist_add_permission(ctx_or_interaction, command_str):
     """
     'user' ロールが 'whitelist add' コマンドを実行する場合のみ許可する特例チェック
+    Context と Interaction の両方に対応
     """
     # 既存の権限(admin/mod/owner)がある場合はOK
-    if check_role(ctx, 'command'):
+    if check_role(ctx_or_interaction, 'command'):
         return True
+
+    # ユーザーオブジェクトの取得
+    user = getattr(ctx_or_interaction, 'author', getattr(ctx_or_interaction, 'user', None))
+    if not user:
+        return False
 
     # userロールを持っているか確認
     user_role_id = CONFIG['roles'].get('user')
-    user_role_ids = [r.id for r in ctx.author.roles]
+    user_role_ids = [r.id for r in getattr(user, 'roles', [])]
     
     if user_role_id and user_role_id in user_role_ids:
         # コマンド内容をチェック

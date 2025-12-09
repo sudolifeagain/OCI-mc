@@ -3,6 +3,8 @@ import shutil
 import tarfile
 import asyncio
 import logging
+import discord
+from discord import app_commands
 from datetime import datetime
 from discord.ext import commands, tasks
 from settings import CONFIG, CHANNEL_ID, check_role
@@ -32,12 +34,6 @@ class BackupSystem(commands.Cog):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             zip_name = f"backup_{timestamp}.tar.gz"
 
-            # 実行パスは /opt/minecraft を想定
-            # Note: 実際にcwdを変更するのは非同期環境で副作用がある場合があるが、
-            # 元のコードを踏襲。ただし server_manager は cwd を指定して起動している。
-            # ここでは os.chdir を使うとプロセス全体のパスが変わることに注意。
-            # 安全のため try-finally で戻すか、絶対パスを使用するのが良いが、
-            # 元コードに合わせて /opt/minecraft に移動する。
             original_cwd = os.getcwd()
             try:
                 os.chdir("/opt/minecraft")
@@ -75,18 +71,24 @@ class BackupSystem(commands.Cog):
             if channel: await channel.send(f"❌ バックアップエラー: {str(e)}")
             logging.error(e)
 
-    @commands.command()
-    async def backup(self, ctx):
-        if not check_role(ctx, 'backup'): return await ctx.send("権限がありません。")
-        await ctx.send("バックアップ処理を開始します...")
-        await self.perform_backup(ctx.channel)
+    @app_commands.command(name="backup", description="手動バックアップを実行します")
+    async def backup(self, interaction: discord.Interaction):
+        if not check_role(interaction, 'backup'):
+            return await interaction.response.send_message("権限がありません。", ephemeral=True)
+        
+        await interaction.response.send_message("バックアップ処理を開始します...")
+        # perform_backup uses send(), so we pass the channel.
+        # Note: interaction.channel might be None in some contexts, but usually OK in guilds.
+        await self.perform_backup(interaction.channel)
 
-    @commands.command()
-    async def backups(self, ctx):
+    @app_commands.command(name="backups", description="Notionにある最新のバックアップリストを表示します")
+    async def backups(self, interaction: discord.Interaction):
         """Notionにある最新のバックアップリストを表示"""
-        if not check_role(ctx, 'backup'): return await ctx.send("権限がありません。")
+        if not check_role(interaction, 'backup'):
+            return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
-        msg = await ctx.send("Notionからバックアップリストを取得中...")
+        await interaction.response.send_message("Notionからバックアップリストを取得中...")
+        msg = await interaction.original_response()
 
         try:
             loop = asyncio.get_event_loop()
@@ -106,13 +108,15 @@ class BackupSystem(commands.Cog):
         except Exception as e:
             await msg.edit(content=f"エラーが発生しました: {e}")
 
-    @commands.command()
-    async def rollback(self, ctx, index: int):
+    @app_commands.command(name="rollback", description="指定したバックアップにロールバックします")
+    @app_commands.describe(index="バックアップのインデックス番号")
+    async def rollback(self, interaction: discord.Interaction, index: int):
         """指定した番号のバックアップにロールバックする"""
-        if not check_role(ctx, 'backup'):
-            return await ctx.send("この操作は管理者（Admin）のみ可能です。") # 元のコードのコメントに合わせていますが、設定次第
+        if not check_role(interaction, 'backup'):
+            return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True) # メッセージは調整
 
-        status_msg = await ctx.send("🔄 ロールバック準備中... Notion情報を取得しています。")
+        await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。")
+        status_msg = await interaction.original_response()
 
         try:
             loop = asyncio.get_event_loop()
