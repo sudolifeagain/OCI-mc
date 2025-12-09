@@ -19,6 +19,8 @@ class BackupSystem(commands.Cog):
     def cog_unload(self):
         self.scheduler.cancel()
 
+    MC_DIR = "/opt/minecraft"
+
     async def perform_backup(self, channel):
         try:
             # 1. サーバー停止と待機
@@ -33,41 +35,44 @@ class BackupSystem(commands.Cog):
             if channel: await channel.send("ワールドデータを圧縮中...", silent=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             zip_name = f"backup_{timestamp}.zip"
+            zip_path = os.path.join(self.MC_DIR, zip_name)
 
-            original_cwd = os.getcwd()
-            try:
-                os.chdir("/opt/minecraft")
-                with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            def create_zip():
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     for d in CONFIG["backup"]["target_dirs"]:
-                        if os.path.exists(d):
-                            if os.path.isdir(d):
-                                for root, dirs, files in os.walk(d):
+                        # target_dir is relative name like "world"
+                        full_path = os.path.join(self.MC_DIR, d)
+                        if os.path.exists(full_path):
+                            if os.path.isdir(full_path):
+                                for root, dirs, files in os.walk(full_path):
                                     for file in files:
                                         file_path = os.path.join(root, file)
-                                        # arcname is relative to /opt/minecraft (cwd)
-                                        zipf.write(file_path, os.path.relpath(file_path, "."))
+                                        # arcname should be relative to MC_DIR
+                                        # e.g. /opt/minecraft/world/level.dat -> world/level.dat
+                                        arcname = os.path.relpath(file_path, self.MC_DIR)
+                                        zipf.write(file_path, arcname)
                             else:
-                                zipf.write(d, os.path.basename(d))
+                                zipf.write(full_path, os.path.basename(full_path))
+            
+            # Run zip creation in executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, create_zip)
 
-                size_mb = os.path.getsize(zip_name) / (1024 * 1024)
+            size_mb = os.path.getsize(zip_path) / (1024 * 1024)
 
-                # 3. Notion Upload
-                if channel: await channel.send(f"Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
+            # 3. Notion Upload
+            if channel: await channel.send(f"Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
-                # 非同期実行のためにExecutorを使用
-                loop = asyncio.get_event_loop()
-                file_id = await loop.run_in_executor(None, upload_to_notion, zip_name)
+            # 非同期実行のためにExecutorを使用
+            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path)
 
-                # DB登録
-                await loop.run_in_executor(None, register_to_database, file_id, zip_name, f"{size_mb:.1f}MB")
+            # DB登録
+            await loop.run_in_executor(None, register_to_database, file_id, zip_name, f"{size_mb:.1f}MB")
 
-                if channel: await channel.send("✅ バックアップ完了！", silent=True)
+            if channel: await channel.send("✅ バックアップ完了！", silent=True)
 
-                # 4. 一時ファイル削除
-                os.remove(zip_name)
-
-            finally:
-                os.chdir(original_cwd)
+            # 4. 一時ファイル削除
+            os.remove(zip_path)
 
             # 5. 再起動
             if was_running:
@@ -145,27 +150,29 @@ class BackupSystem(commands.Cog):
             # --- 2. バックアップのダウンロード ---
             await status_msg.edit(content=f"⬇️ ダウンロード中: {filename} ...")
             
-            original_cwd = os.getcwd()
-            try:
-                os.chdir("/opt/minecraft")
-                try:
-                    await loop.run_in_executor(None, download_file, download_url, filename)
-                except Exception as e:
-                    logging.error(f"Download failed: {e}")
-                    return await status_msg.edit(content=f"❌ ダウンロードに失敗しました: {e}")
+            # Use absolute path for saving
+            save_path = os.path.join(self.MC_DIR, filename)
 
+            try:
+                await loop.run_in_executor(None, download_file, download_url, save_path)
+            except Exception as e:
+                logging.error(f"Download failed: {e}")
+                return await status_msg.edit(content=f"❌ ダウンロードに失敗しました: {e}")
+
+            try:
                 # --- 3. 既存データの削除 ---
                 await status_msg.edit(content="🗑️ 既存のワールドデータを削除中...")
 
                 for d in CONFIG["backup"]["target_dirs"]:
-                    if os.path.exists(d):
+                    full_target_path = os.path.join(self.MC_DIR, d)
+                    if os.path.exists(full_target_path):
                         try:
-                            if os.path.isdir(d):
-                                shutil.rmtree(d)
+                            if os.path.isdir(full_target_path):
+                                shutil.rmtree(full_target_path)
                             else:
-                                os.remove(d)
+                                os.remove(full_target_path)
                         except Exception as e:
-                            logging.error(f"Failed to remove {d}: {e}")
+                            logging.error(f"Failed to remove {full_target_path}: {e}")
                             return await status_msg.edit(content=f"既存データの削除中にエラーが発生しました: {e}")
 
                 # --- 4. 解凍 ---
@@ -173,19 +180,24 @@ class BackupSystem(commands.Cog):
 
                 if filename.endswith(".zip"):
                     def unzip_safe():
-                        with zipfile.ZipFile(filename, 'r') as zipf:
-                            zipf.extractall()
+                        with zipfile.ZipFile(save_path, 'r') as zipf:
+                            # extractall with path argument
+                            zipf.extractall(path=self.MC_DIR)
                     await loop.run_in_executor(None, unzip_safe)
                 elif filename.endswith("tar.gz"):
                     def untar_safe():
-                        with tarfile.open(filename, "r:gz") as tar:
-                            tar.extractall()
+                        # tarfile doesn't support async nicely, but wrapped in executor is okay
+                        import tarfile
+                        with tarfile.open(save_path, "r:gz") as tar:
+                            tar.extractall(path=self.MC_DIR)
                     await loop.run_in_executor(None, untar_safe)
                 
-                os.remove(filename)
+                if os.path.exists(save_path):
+                    os.remove(save_path)
 
-            finally:
-                os.chdir(original_cwd)
+            except Exception as e:
+                logging.error(f"Rollback file operation failed: {e}")
+                raise e
 
             # --- 5. サーバー再起動 ---
             await status_msg.edit(content="✅ ロールバック完了！サーバーを起動します。")
