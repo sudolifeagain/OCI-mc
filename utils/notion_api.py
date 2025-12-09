@@ -21,9 +21,9 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
         "Content-Type": "application/json"
     }
 
-    # 5GB未満はsingle_part, 5GB以上はmulti_part
-    FIVE_GB = 5 * 1024 * 1024 * 1024
-    is_multi_part = file_size > FIVE_GB
+    # 50MB以上のファイルはmulti_partアップロードとする
+    UPLOAD_THRESHOLD = 50 * 1024 * 1024
+    is_multi_part = file_size > UPLOAD_THRESHOLD
     mode = "multi_part" if is_multi_part else "single_part"
 
     print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
