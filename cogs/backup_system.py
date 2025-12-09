@@ -64,7 +64,9 @@ class BackupSystem(commands.Cog):
             if channel: await channel.send(f"Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
             # 非同期実行のためにExecutorを使用
-            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path)
+            # Notionの拡張子制限を回避するために .pdf としてアップロードする (中身はzip)
+            upload_name = zip_name.replace(".zip", ".pdf")
+            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path, upload_name, "application/pdf")
 
             # DB登録
             await loop.run_in_executor(None, register_to_database, file_id, zip_name, f"{size_mb:.1f}MB")

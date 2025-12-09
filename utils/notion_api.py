@@ -3,16 +3,17 @@ import requests
 from datetime import datetime
 from settings import NOTION_TOKEN, NOTION_DB_ID
 
-def upload_to_notion(file_path):
+def upload_to_notion(file_path, custom_filename=None, content_type="application/zip"):
     """
     Notion APIを使用してファイルをアップロードし、File IDを返します。
     20MBを超えるファイルは自動的にマルチパートアップロードとして処理します。
+    custom_filenameが指定された場合、その名前でアップロードを初期化します（拡張子制限回避用）。
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"{file_path} not found.")
 
     file_size = os.path.getsize(file_path)
-    filename = os.path.basename(file_path)
+    filename = custom_filename if custom_filename else os.path.basename(file_path)
 
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
@@ -28,7 +29,7 @@ def upload_to_notion(file_path):
     print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
     init_payload = {
         "filename": filename,
-        "content_type": "application/zip",
+        "content_type": content_type,
         "mode": mode
     }
 
