@@ -1,7 +1,8 @@
 {
 	"roles": {
-	  "admin": null,
-	  "mod": null
+ 	  "admin": null,
+ 	  "mod": null,
+ 	  "owner": null
 	},
 	"permissions": {
 	  "start": ["admin", "mod"],

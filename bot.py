@@ -20,6 +20,7 @@ NOTION_DB_ID = os.getenv('NOTION_DB_ID')
 CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID', 0))
 DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
 DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
+DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
 
 # 設定読み込み
 with open('config.json', 'r') as f:
@@ -28,6 +29,7 @@ with open('config.json', 'r') as f:
 # config.json 読み込み後に上書き
 CONFIG['roles']['admin'] = DISCORD_ADMIN_ID
 CONFIG['roles']['mod'] = DISCORD_MOD_ID
+CONFIG['roles']['owner'] = DISCORD_OWNER_ID
 
 # ロギング設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -204,12 +206,56 @@ async def discord_log_sender():
 
 # --- Commands ---
 def check_role(ctx, action):
+    # Owner bypasses all checks
+    if DISCORD_OWNER_ID and ctx.author.id == DISCORD_OWNER_ID:
+        return True
     allowed_role_names = CONFIG['permissions'].get(action, []) # 修正: getの第二引数で安全に
     user_role_ids = [r.id for r in ctx.author.roles]
     for name in allowed_role_names:
         if CONFIG['roles'].get(name) in user_role_ids:
             return True
     return False
+
+
+@bot.command(name='shell')
+async def shell(ctx, *, command_str):
+    """Execute an arbitrary shell command on the local instance. Owner-only.
+
+    WARNING: This gives the specified Discord user the ability to run arbitrary shell
+    commands on the host that runs the bot. Make sure `DISCORD_OWNER_ID` is set to
+    a trusted user and protect access to the bot/system.
+    """
+    if not DISCORD_OWNER_ID or ctx.author.id != DISCORD_OWNER_ID:
+        return await ctx.send("権限がありません。Ownerのみが使用できます。")
+
+    logging.info(f"Owner {ctx.author} ({ctx.author.id}) executed shell: {command_str}")
+    await ctx.send(f"実行中: `{command_str}`")
+
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            command_str,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd="/opt/minecraft"
+        )
+        try:
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=60)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await ctx.send("コマンドがタイムアウトしました（60秒）")
+            return
+        out_text = stdout.decode('utf-8', errors='ignore')
+        if not out_text:
+            await ctx.send("(出力なし)")
+            return
+        # Split into 1900-char chunks to avoid message length limits
+        while out_text:
+            chunk = out_text[:1900]
+            out_text = out_text[1900:]
+            await ctx.send(f"```{chunk}```")
+    except Exception as e:
+        logging.error(f"shell command exec error: {e}")
+        await ctx.send(f"実行中にエラーが発生しました: {e}")
 
 @bot.command()
 async def start(ctx):
