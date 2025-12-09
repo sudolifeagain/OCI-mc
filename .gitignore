@@ -1,6 +1,21 @@
+# Documentation
 ssh.md
+
+# Environment Variables
 .env
-pycache/ *.pyc
-venv/ env/
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# Logs
 *.log
+
+# System
 .DS_Store
+
+
