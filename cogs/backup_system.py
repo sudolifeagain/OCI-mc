@@ -127,28 +127,44 @@ class BackupSystem(commands.Cog):
 
         await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。", silent=True)
         status_msg = await interaction.original_response()
+        
+        # ログメッセージを蓄積する変数
+        log_content = "🔄 ロールバック準備中... Notion情報を取得しています。\n"
+
+        async def update_status(text):
+            nonlocal log_content
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            new_line = f"[{timestamp}] {text}\n"
+            log_content += new_line
+            # Discordの文字数制限(2000文字)対策: 最後から1900文字程度に切り詰める
+            if len(log_content) > 1900:
+                log_content = "..." + log_content[-1900:]
+            await status_msg.edit(content=f"```\n{log_content}\n```")
 
         try:
             loop = asyncio.get_event_loop()
             backup_list = await loop.run_in_executor(None, get_backups_list, 10)
 
             if index < 0 or index >= len(backup_list):
-                return await status_msg.edit(content="❌ 指定された番号のバックアップは存在しません。")
+                await update_status("❌ 指定された番号のバックアップは存在しません。")
+                return
 
             target_backup = backup_list[index]
             filename = target_backup['filename']
             download_url = target_backup.get('url')
             if not download_url:
-                return await status_msg.edit(content="❌ バックアップのダウンロード URL が見つかりません。")
+                await update_status("❌ バックアップのダウンロード URL が見つかりません。")
+                return
 
             # --- 1. サーバー停止 ---
             if self.server_manager.is_running():
-                await status_msg.edit(content=f"⏹️ サーバーを停止しています...")
+                await update_status(f"⏹️ サーバーを停止しています...")
                 await self.server_manager.stop_server()
                 await self.server_manager.wait_for_exit()
+                await update_status("サーバー停止を確認しました。")
 
             # --- 2. バックアップのダウンロード ---
-            await status_msg.edit(content=f"⬇️ ダウンロード中: {filename} ...")
+            await update_status(f"⬇️ ダウンロード中: {filename} ...")
             
             # Use absolute path for saving
             save_path = os.path.join(self.MC_DIR, filename)
@@ -159,17 +175,20 @@ class BackupSystem(commands.Cog):
                 if os.path.exists(save_path):
                     size_mb = os.path.getsize(save_path) / (1024 * 1024)
                     logging.info(f"[Rollback] Download complete. File size: {size_mb:.2f}MB")
+                    await update_status(f"ダウンロード完了: {size_mb:.2f}MB")
                 else:
                     logging.error(f"[Rollback] File not found after download: {save_path}")
-                    return await status_msg.edit(content="❌ ダウンロード後にファイルが見つかりません。")
+                    await update_status("❌ ダウンロード後にファイルが見つかりません。")
+                    return
 
             except Exception as e:
                 logging.error(f"Download failed: {e}")
-                return await status_msg.edit(content=f"❌ ダウンロードに失敗しました: {e}")
+                await update_status(f"❌ ダウンロードに失敗しました: {e}")
+                return
 
             try:
                 # --- 3. 既存データの削除 ---
-                await status_msg.edit(content="🗑️ 既存のワールドデータを削除中...")
+                await update_status("🗑️ 既存のワールドデータを削除中...")
                 logging.info("[Rollback] Removing existing world data...")
 
                 for d in CONFIG["backup"]["target_dirs"]:
@@ -183,12 +202,13 @@ class BackupSystem(commands.Cog):
                                 os.remove(full_target_path)
                         except Exception as e:
                             logging.error(f"Failed to remove {full_target_path}: {e}")
-                            return await status_msg.edit(content=f"既存データの削除中にエラーが発生しました: {e}")
+                            await update_status(f"既存データの削除中にエラーが発生しました: {e}")
+                            return
                     else:
                         logging.info(f"[Rollback] Target not found (skipping): {full_target_path}")
 
                 # --- 4. 解凍 ---
-                await status_msg.edit(content=f"📦 バックアップを展開中... (File: {filename})")
+                await update_status(f"📦 バックアップを展開中... (File: {filename})")
                 logging.info(f"[Rollback] Extracting {save_path} to {self.MC_DIR}")
 
                 if filename.endswith(".zip"):
@@ -212,13 +232,14 @@ class BackupSystem(commands.Cog):
                     os.remove(save_path)
                 
                 logging.info("[Rollback] Rollback process finished successfully.")
+                await update_status("展開完了。")
 
             except Exception as e:
                 logging.error(f"Rollback file operation failed: {e}")
                 raise e
 
             # --- 5. サーバー再起動 ---
-            await status_msg.edit(content="✅ ロールバック完了！サーバーを起動します。")
+            await update_status("✅ ロールバック完了！サーバーを起動します。")
             await self.server_manager.start_server()
 
         except Exception as e:
