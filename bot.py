@@ -33,6 +33,10 @@ class MyBot(commands.Bot):
     async def on_ready(self):
         print(f'Logged in as {self.user}')
 
+    async def on_message(self, message):
+        # Disable prefix commands by not calling process_commands
+        pass
+
 # Bot Setup
 bot = MyBot()
 
