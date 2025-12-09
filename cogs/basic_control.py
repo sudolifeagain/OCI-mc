@@ -65,6 +65,29 @@ class BasicControl(commands.Cog):
         await self.server_manager.write_stdin(cmd)
         await interaction.response.send_message(f"ホワイトリスト追加コマンドを送信しました: `{cmd}`", silent=True)
 
+    @app_commands.command(name="status", description="サーバーのステータス(CPU, Memory, Uptime)を表示します")
+    async def status(self, interaction: discord.Interaction):
+        if not check_role(interaction, 'status'):
+             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        stats = self.server_manager.get_server_stats()
+        if not stats:
+             return await interaction.response.send_message("サーバーは起動していません/情報を取得できません。", ephemeral=True)
+        
+        # Uptime formatting
+        seconds = int(stats['uptime_seconds'])
+        m, s = divmod(seconds, 60)
+        h, m = divmod(m, 60)
+        uptime_str = f"{h}h {m}m {s}s"
+        
+        embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
+        embed.add_field(name="Status", value="Running", inline=False)
+        embed.add_field(name="CPU Usage", value=f"{stats['cpu_percent']}%", inline=True)
+        embed.add_field(name="Memory Usage", value=f"{stats['memory_mb']:.1f} MB", inline=True)
+        embed.add_field(name="Uptime", value=uptime_str, inline=True)
+        
+        await interaction.response.send_message(embed=embed, silent=True)
+
     @app_commands.command(name="shell", description="ホストOSでシェルコマンドを実行します(Ownerのみ)")
     @app_commands.describe(command_str="実行するシェルコマンド")
     async def shell(self, interaction: discord.Interaction, command_str: str):

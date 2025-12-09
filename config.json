@@ -26,6 +26,11 @@
 			"admin",
 			"mod",
 			"user"
+		],
+		"status": [
+			"admin",
+			"mod",
+			"user"
 		]
 	},
 	"backup": {

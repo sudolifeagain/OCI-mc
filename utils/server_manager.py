@@ -82,20 +82,56 @@ class ServerManager:
                 break
             await self.log_queue.put(line.decode('utf-8', errors='ignore'))
             
-    def is_running(self):
+    def _get_server_process(self):
+        """現在実行中のサーバープロセスを取得する"""
+        # 1. 自身が起動したプロセスをチェック
         if self.process is not None and self.process.returncode is None:
-            return True
-        
-        # Check via psutil for any java process running the specific jar
+            # pidからpsutil.Processを取得
+            try:
+                return psutil.Process(self.process.pid)
+            except psutil.NoSuchProcess:
+                pass
+
+        # 2. プロセスリストから検索
         jar_name = CONFIG["minecraft_server_jar"]
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
             try:
                 cmdline = proc.info['cmdline']
                 if cmdline and 'java' in proc.info['name'] and jar_name in cmdline:
-                    return True
+                    return proc
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
-        return False
+        return None
+
+    def is_running(self):
+        return self._get_server_process() is not None
+
+    def get_server_stats(self):
+        """サーバーのステータス(CPU, Memory, Uptime)を取得"""
+        proc = self._get_server_process()
+        if not proc:
+            return None
+        
+        try:
+            # CPU% (interval=None for non-blocking since last call, but first call allows 0.0)
+            cpu_percent = proc.cpu_percent(interval=None)
+            
+            # Memory (RSS) in MB
+            mem_info = proc.memory_info()
+            mem_mb = mem_info.rss / (1024 * 1024)
+            
+            # Uptime
+            import time
+            create_time = proc.create_time()
+            uptime_seconds = time.time() - create_time
+            
+            return {
+                "cpu_percent": cpu_percent,
+                "memory_mb": mem_mb,
+                "uptime_seconds": uptime_seconds
+            }
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return None
         
     async def wait_for_exit(self):
         if self.process:
