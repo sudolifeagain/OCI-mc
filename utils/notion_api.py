@@ -89,7 +89,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
 
     return file_upload_id
 
-def register_to_database(file_upload_id, filename, size_str):
+def register_to_database(file_upload_id, filename, size_mb):
     """アップロードしたファイルをDatabaseに登録"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
@@ -102,7 +102,7 @@ def register_to_database(file_upload_id, filename, size_str):
         "properties": {
             "Backup Name": {"title": [{"text": {"content": filename}}]},
             "Date": {"date": {"start": datetime.now().isoformat()}},
-            "Size": {"rich_text": [{"text": {"content": size_str}}]},
+            "Size": {"number": size_mb},
             "File": {
                 "files": [
                     {

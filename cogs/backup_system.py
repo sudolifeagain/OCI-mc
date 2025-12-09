@@ -69,7 +69,7 @@ class BackupSystem(commands.Cog):
             file_id = await loop.run_in_executor(None, upload_to_notion, zip_path, upload_name, "application/pdf")
 
             # DB登録
-            await loop.run_in_executor(None, register_to_database, file_id, zip_name, f"{size_mb:.1f}MB")
+            await loop.run_in_executor(None, register_to_database, file_id, zip_name, size_mb)
 
             if channel: await channel.send("✅ バックアップ完了！", silent=True)
 
