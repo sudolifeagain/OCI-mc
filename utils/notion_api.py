@@ -115,7 +115,9 @@ def register_to_database(file_upload_id, filename, size_str):
         }
     }
     res = requests.post("https://api.notion.com/v1/pages", headers=headers, json=payload)
-    return res.status_code == 200
+    if res.status_code not in (200, 201):
+        raise Exception(f"Failed to register to Notion DB: {res.text}")
+    return True
 
 def get_backups_list(limit=10):
     """Notion DBから最新のバックアップリストを取得"""
