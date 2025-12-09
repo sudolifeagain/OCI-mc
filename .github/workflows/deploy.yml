@@ -96,15 +96,22 @@ jobs:
     # 6. デプロイ成功通知
     - name: Notify Discord on Success
       if: success()
+      env:
+        COMMIT_MSG: ${{ github.event.head_commit.message }}
       run: |
+        # エスケープ処理（簡易的）
+        ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
         curl -H "Content-Type: application/json" \
-          -d '{"embeds":[{"title":"✅ デプロイ成功","color":3066993}]}' \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"$ESCAPED_MSG\",\"color\":3066993}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
 
     # 7. デプロイ失敗通知
     - name: Notify Discord on Failure
       if: failure()
+      env:
+        COMMIT_MSG: ${{ github.event.head_commit.message }}
       run: |
+        ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
         curl -H "Content-Type: application/json" \
-          -d '{"embeds":[{"title":"❌ デプロイ失敗","color":15158332}]}' \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"$ESCAPED_MSG\",\"color\":15158332}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
