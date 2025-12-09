@@ -211,28 +211,44 @@ class BackupSystem(commands.Cog):
                 await update_status(f"📦 バックアップを展開中... (File: {filename})")
                 logging.info(f"[Rollback] Extracting {save_path} to {self.MC_DIR}")
 
-                if filename.endswith(".zip"):
+                # --- 4. 解凍 ---
+                await update_status(f"📦 バックアップを展開中... (File: {filename})")
+                logging.info(f"[Rollback] Extracting {save_path} to {self.MC_DIR}")
+
+                import tarfile  # Ensure tarfile is imported
+
+                is_zip = zipfile.is_zipfile(save_path)
+                is_tar = tarfile.is_tarfile(save_path)
+
+                if is_zip:
                     def unzip_safe():
                         with zipfile.ZipFile(save_path, 'r') as zipf:
                             # extractall with path argument
                             zipf.extractall(path=self.MC_DIR)
                             logging.info(f"[Rollback] Unzipped {len(zipf.namelist())} files.")
                     await loop.run_in_executor(None, unzip_safe)
-                elif filename.endswith("tar.gz"):
+                    await update_status("ZIP展開完了。")
+                    
+                elif is_tar:
                     def untar_safe():
-                        # tarfile doesn't support async nicely, but wrapped in executor is okay
-                        import tarfile
-                        with tarfile.open(save_path, "r:gz") as tar:
+                        with tarfile.open(save_path, "r") as tar:
                             tar.extractall(path=self.MC_DIR)
                             logging.info(f"[Rollback] Untarred files.")
                     await loop.run_in_executor(None, untar_safe)
+                    await update_status("TAR展開完了。")
                 
-                logging.info("[Rollback] Extraction complete. Cleaning up zip file.")
+                else:
+                    error_msg = f"❌ 未知のファイル形式です (Extensions check skipped, Magic byte mismatch). Filename: {filename}"
+                    logging.error(f"[Rollback] {error_msg}")
+                    await update_status(error_msg)
+                    return # Exit if extraction didn't happen
+                
+                logging.info("[Rollback] Extraction complete. Cleaning up archive file.")
                 if os.path.exists(save_path):
                     os.remove(save_path)
                 
                 logging.info("[Rollback] Rollback process finished successfully.")
-                await update_status("展開完了。")
+                await update_status("展開処理終了。")
 
             except Exception as e:
                 logging.error(f"Rollback file operation failed: {e}")
