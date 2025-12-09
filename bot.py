@@ -9,7 +9,8 @@ class MyBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
-        super().__init__(command_prefix='!', intents=intents)
+        # Prefix commands are disabled as per user request (Slash commands only)
+        super().__init__(command_prefix=[], intents=intents)
         self.server_manager = ServerManager()
 
     async def setup_hook(self):
