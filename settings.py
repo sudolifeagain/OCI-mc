@@ -34,7 +34,16 @@ CONFIG['roles']['owner'] = DISCORD_OWNER_ID
 CONFIG['roles']['user'] = DISCORD_USER_ID # 新規追加
 
 # ロギング設定
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s [%(module)s]: %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(os.path.join(log_dir, 'discord_audit.log'), encoding='utf-8')
+    ]
+)
 
 def check_role(ctx_or_interaction, action):
     """

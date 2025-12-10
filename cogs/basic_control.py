@@ -24,6 +24,7 @@ class BasicControl(commands.Cog):
             return await interaction.response.send_message("サーバーは既に起動しています。", ephemeral=True)
             
         await interaction.response.send_message("起動コマンドを送信しました。", silent=True)
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /start")
         await self.server_manager.start_server()
 
     @app_commands.command(name="stop", description="Minecraftサーバーを停止します")
@@ -33,6 +34,7 @@ class BasicControl(commands.Cog):
         
         if self.server_manager.is_running():
             await self.server_manager.stop_server()
+            logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop")
             await interaction.response.send_message("停止コマンドを送信しました。", silent=True)
         else:
             await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
@@ -48,6 +50,7 @@ class BasicControl(commands.Cog):
 
         if self.server_manager.is_running():
             await self.server_manager.write_stdin(command_str)
+            logging.info(f"User {interaction.user} ({interaction.user.id}) executed /cmd {command_str}")
             await interaction.response.send_message(f"コマンド送信: `{command_str}`", silent=True)
         else:
              await interaction.response.send_message("サーバーは起動していません。", ephemeral=True)
@@ -63,6 +66,7 @@ class BasicControl(commands.Cog):
         
         cmd = f"whitelist add {player_name.strip()}"
         await self.server_manager.write_stdin(cmd)
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /whitelist_add {player_name}")
         await interaction.response.send_message(f"ホワイトリスト追加コマンドを送信しました: `{cmd}`", silent=True)
 
     @app_commands.command(name="status", description="サーバーのステータス(CPU, Memory, Uptime)を表示します")
@@ -87,6 +91,7 @@ class BasicControl(commands.Cog):
         embed.add_field(name="Uptime", value=uptime_str, inline=True)
         
         await interaction.response.send_message(embed=embed, silent=True)
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status")
 
     @app_commands.command(name="shell", description="ホストOSでシェルコマンドを実行します(Ownerのみ)")
     @app_commands.describe(command_str="実行するシェルコマンド")
