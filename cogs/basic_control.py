@@ -4,7 +4,8 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from settings import CONFIG, DISCORD_OWNER_ID, CHANNEL_ID, check_role, check_whitelist_add_permission
+from settings import CONFIG, DISCORD_OWNER_ID, CHANNEL_ID
+from utils.permissions import check_role
 
 class BasicControl(commands.Cog):
     def __init__(self, bot, server_manager):
@@ -42,11 +43,9 @@ class BasicControl(commands.Cog):
     @app_commands.command(name="cmd", description="サーバーコンソールにコマンドを送信します")
     @app_commands.describe(command_str="送信するコマンド")
     async def cmd(self, interaction: discord.Interaction, command_str: str):
-        # 権限チェック (check_role および check_whitelist_add_permission)
+        # 権限チェック (check_role) - Adminのみ
         if not check_role(interaction, 'command'):
-            # 特例: userロール かつ whitelist add
-            if not check_whitelist_add_permission(interaction, command_str):
-                return await interaction.response.send_message("権限がありません。", ephemeral=True)
+            return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
         if self.server_manager.is_running():
             await self.server_manager.write_stdin(command_str)

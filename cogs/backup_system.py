@@ -7,7 +7,8 @@ import discord
 from discord import app_commands
 from datetime import datetime
 from discord.ext import commands, tasks
-from settings import CONFIG, CHANNEL_ID, check_role
+from settings import CONFIG, CHANNEL_ID
+from utils.permissions import check_role
 from utils.notion_api import upload_to_notion, register_to_database, get_backups_list, download_file
 
 class BackupSystem(commands.Cog):

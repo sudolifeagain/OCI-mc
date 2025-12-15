@@ -20,18 +20,37 @@ DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NOTION_TOKEN = os.getenv('NOTION_TOKEN')
 NOTION_DB_ID = os.getenv('NOTION_DB_ID')
 
+def parse_ids(env_val):
+    if not env_val:
+        return None
+    try:
+        # Check for comma
+        if ',' in env_val:
+            return [int(x.strip()) for x in env_val.split(',') if x.strip()]
+        else:
+            return int(env_val)
+    except ValueError:
+        return None
+
 # Channel / Roles
 CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID', 0))
 DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
 DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
 DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
-DISCORD_USER_ID = int(os.getenv('DISCORD_USER_ID', 0)) # 新規追加
+
+# Support multiple User IDs via DISCORD_USER_IDS (commas sep) or legacy DISCORD_USER_ID
+user_ids_env = os.getenv('DISCORD_USER_IDS')
+if user_ids_env:
+    DISCORD_USER_IDS = parse_ids(user_ids_env)
+else:
+    # Fallback to single ID
+    DISCORD_USER_IDS = int(os.getenv('DISCORD_USER_ID', 0))
 
 # config.json のロールIDを上書き
 CONFIG['roles']['admin'] = DISCORD_ADMIN_ID
 CONFIG['roles']['mod'] = DISCORD_MOD_ID
 CONFIG['roles']['owner'] = DISCORD_OWNER_ID
-CONFIG['roles']['user'] = DISCORD_USER_ID # 新規追加
+CONFIG['roles']['user'] = DISCORD_USER_IDS # Can be int or list[int]
 
 # ロギング設定
 log_dir = "logs"
@@ -44,56 +63,3 @@ logging.basicConfig(
         logging.FileHandler(os.path.join(log_dir, 'discord_audit.log'), encoding='utf-8')
     ]
 )
-
-def check_role(ctx_or_interaction, action):
-    """
-    指定されたアクションに対して権限があるかチェックする
-    Ownerは常に許可
-    Context と Interaction の両方に対応
-    """
-    # ユーザーオブジェクトの取得
-    user = getattr(ctx_or_interaction, 'author', getattr(ctx_or_interaction, 'user', None))
-    
-    if not user:
-        return False
-
-    if DISCORD_OWNER_ID and user.id == DISCORD_OWNER_ID:
-        return True
-    
-    allowed_role_names = CONFIG['permissions'].get(action, [])
-    # user.roles は Member オブジェクトの場合のみ存在 (DMなどでは注意が必要だが、今回はサーバー前提)
-    user_role_ids = [r.id for r in getattr(user, 'roles', [])]
-    
-    for name in allowed_role_names:
-        role_id = CONFIG['roles'].get(name)
-        if role_id and role_id in user_role_ids:
-            return True
-            
-    return False
-
-def check_whitelist_add_permission(ctx_or_interaction, command_str):
-    """
-    'user' ロールが 'whitelist add' コマンドを実行する場合のみ許可する特例チェック
-    Context と Interaction の両方に対応
-    """
-    # 既存の権限(admin/mod/owner)がある場合はOK
-    if check_role(ctx_or_interaction, 'command'):
-        return True
-
-    # ユーザーオブジェクトの取得
-    user = getattr(ctx_or_interaction, 'author', getattr(ctx_or_interaction, 'user', None))
-    if not user:
-        return False
-
-    # userロールを持っているか確認
-    user_role_id = CONFIG['roles'].get('user')
-    user_role_ids = [r.id for r in getattr(user, 'roles', [])]
-    
-    if user_role_id and user_role_id in user_role_ids:
-        # コマンド内容をチェック
-        # 先頭の空白除去などを考慮
-        cmd_body = command_str.strip()
-        if cmd_body.startswith("whitelist add"):
-            return True
-            
-    return False
