@@ -42,5 +42,5 @@
 		"schedule_time": "04:00"
 	},
 	"minecraft_server_jar": "paper.jar",
-	"java_memory": "18G"
+	"java_memory": "12G"
 }
