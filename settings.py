@@ -52,6 +52,27 @@ CONFIG['roles']['mod'] = DISCORD_MOD_ID
 CONFIG['roles']['owner'] = DISCORD_OWNER_ID
 CONFIG['roles']['user'] = DISCORD_USER_IDS # Can be int or list[int]
 
+# --- サーバー設定 ---
+# 新形式（servers配列）と旧形式（単一サーバー）の両方に対応
+if 'servers' in CONFIG:
+    SERVERS_CONFIG = CONFIG['servers']
+    DEFAULT_SERVER = CONFIG.get('default_server', list(SERVERS_CONFIG.keys())[0])
+else:
+    # 旧形式からの変換（後方互換性）
+    SERVERS_CONFIG = {
+        'paper': {
+            'name': 'Paper',
+            'jar': CONFIG.get('minecraft_server_jar', 'paper.jar'),
+            'cwd': '/opt/minecraft',
+            'memory': CONFIG.get('java_memory', '4G'),
+            'port': 25565
+        }
+    }
+    DEFAULT_SERVER = 'paper'
+
+# サーバーIDのリスト
+SERVER_IDS = list(SERVERS_CONFIG.keys())
+
 # ロギング設定
 log_dir = "logs"
 os.makedirs(log_dir, exist_ok=True)
