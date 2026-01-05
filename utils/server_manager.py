@@ -11,9 +11,10 @@ class ServerInstance:
     def __init__(self, server_id: str, config: dict):
         self.server_id = server_id
         self.name = config.get("name", server_id)
-        self.jar = config["jar"]
+        self.jar = config.get("jar")
+        self.use_script = config.get("use_script")  # run.sh などのスクリプトを使う場合
         self.cwd = config["cwd"]
-        self.memory = config["memory"]
+        self.memory = config.get("memory", "4G")
         self.port = config.get("port", 25565)
         self.process = None
         self.log_queue = asyncio.Queue()
@@ -23,7 +24,12 @@ class ServerInstance:
         if self.is_running():
             return False
         
-        cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']
+        # スクリプトを使う場合（Forge等）
+        if self.use_script:
+            cmd = [self.use_script, 'nogui']
+        else:
+            # jar ファイルを直接起動（Paper等）
+            cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']
         
         self.process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -93,18 +99,30 @@ class ServerInstance:
             except psutil.NoSuchProcess:
                 pass
         
-        # 2. プロセスリストから検索（jarファイル名で識別）
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
+        # 2. プロセスリストから検索
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time', 'cwd']):
             try:
                 cmdline = proc.info['cmdline']
-                if cmdline and 'java' in proc.info['name'] and self.jar in cmdline:
-                    # cwdも確認してより正確に識別
-                    try:
-                        if proc.cwd() == self.cwd:
-                            return proc
-                    except (psutil.AccessDenied, psutil.NoSuchProcess):
-                        # cwdが取得できない場合はjarファイル名のみで判断
+                if not cmdline or 'java' not in proc.info['name']:
+                    continue
+                
+                # cwdで識別（最も確実）
+                try:
+                    proc_cwd = proc.cwd()
+                    if proc_cwd == self.cwd:
                         return proc
+                except (psutil.AccessDenied, psutil.NoSuchProcess):
+                    pass
+                
+                # jarファイル名で識別（Paperなど）
+                if self.jar and self.jar in cmdline:
+                    return proc
+                
+                # Forgeの場合: コマンドラインにcwdパスが含まれているか確認
+                cmdline_str = ' '.join(cmdline)
+                if self.cwd in cmdline_str:
+                    return proc
+                    
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return None
