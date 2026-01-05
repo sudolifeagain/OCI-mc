@@ -1,8 +1,8 @@
 import asyncio
 import discord
 from discord.ext import commands
-from settings import DISCORD_TOKEN
-from utils.server_manager import ServerManager
+from settings import DISCORD_TOKEN, SERVERS_CONFIG
+from utils.server_manager import MultiServerManager
 
 # Bot Class Definition
 class MyBot(commands.Bot):
@@ -11,7 +11,7 @@ class MyBot(commands.Bot):
         intents.message_content = True
         # Prefix commands are disabled as per user request (Slash commands only)
         super().__init__(command_prefix=[], intents=intents)
-        self.server_manager = ServerManager()
+        self.server_manager = MultiServerManager(SERVERS_CONFIG)
 
     async def setup_hook(self):
         # Load Extensions
