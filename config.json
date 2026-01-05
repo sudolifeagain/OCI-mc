@@ -1,4 +1,21 @@
 {
+	"servers": {
+		"paper": {
+			"name": "Paper (Vanilla)",
+			"jar": "paper.jar",
+			"cwd": "/opt/minecraft/paper",
+			"memory": "4G",
+			"port": 25565
+		},
+		"forge": {
+			"name": "Forge (Better MC)",
+			"jar": "forge-1.20.1-47.4.13.jar",
+			"cwd": "/opt/minecraft/forge",
+			"memory": "10G",
+			"port": 25566
+		}
+	},
+	"default_server": "paper",
 	"roles": {
 		"admin": null,
 		"mod": null,
@@ -34,13 +51,16 @@
 		]
 	},
 	"backup": {
-		"target_dirs": [
-			"world",
-			"world_nether",
-			"world_the_end"
-		],
+		"target_dirs": {
+			"paper": [
+				"world",
+				"world_nether",
+				"world_the_end"
+			],
+			"forge": [
+				"world"
+			]
+		},
 		"schedule_time": "04:00"
-	},
-	"minecraft_server_jar": "paper.jar",
-	"java_memory": "4G"
+	}
 }
