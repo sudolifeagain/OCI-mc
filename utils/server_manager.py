@@ -1,127 +1,128 @@
 import asyncio
 import subprocess
 import logging
+import time
 import psutil
-from settings import CONFIG
 
-class ServerManager:
-    def __init__(self):
+
+class ServerInstance:
+    """個別のMinecraftサーバーインスタンスを管理するクラス"""
+    
+    def __init__(self, server_id: str, config: dict):
+        self.server_id = server_id
+        self.name = config.get("name", server_id)
+        self.jar = config["jar"]
+        self.cwd = config["cwd"]
+        self.memory = config["memory"]
+        self.port = config.get("port", 25565)
         self.process = None
         self.log_queue = asyncio.Queue()
-
-    async def start_server(self):
+    
+    async def start(self) -> bool:
+        """サーバーを起動する"""
         if self.is_running():
-            return False # Already running
-
-        mem = CONFIG["java_memory"]
-        jar = CONFIG["minecraft_server_jar"]
-        cmd = ['java', f'-Xmx{mem}', f'-Xms{mem}', '-jar', jar, 'nogui']
-
+            return False
+        
+        cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']
+        
         self.process = await asyncio.create_subprocess_exec(
             *cmd,
-            cwd="/opt/minecraft",
+            cwd=self.cwd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
         
-        # Start reading stdout
         asyncio.create_task(self._read_stdout())
+        logging.info(f"Server '{self.server_id}' started with PID {self.process.pid}")
         return True
-
-    async def stop_server(self):
-        # Force terminate any existing java processes with this jar
+    
+    async def stop(self) -> bool:
+        """サーバーを停止する"""
         stopped_something = False
         
+        # 自分が起動したプロセスにstopコマンドを送信
         if self.process and self.process.returncode is None:
             if self.process.stdin:
                 try:
                     self.process.stdin.write(b"stop\n")
                     await self.process.stdin.drain()
                     stopped_something = True
-                except Exception:
-                    pass
+                    logging.info(f"Sent 'stop' command to server '{self.server_id}'")
+                except Exception as e:
+                    logging.warning(f"Failed to send stop command: {e}")
         
-        # Also check via psutil for any orphan processes
-        jar_name = CONFIG["minecraft_server_jar"]
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        # psutilでプロセスを検索して終了
+        proc = self._get_process()
+        if proc:
             try:
-                cmdline = proc.info['cmdline']
-                if cmdline and 'java' in proc.info['name'] and jar_name in cmdline:
-                     # Send SIGTERM (or input 'stop' if possible, but difficult to attach stdin here)
-                     # For simplicity, we assume if self.process was None, we might not be able to send 'stop' elegantly.
-                     # But most MC servers handle SIGTERM gracefully-ish or we can try to find the one we started.
-                     # If we can't write to stdin, we might have to kill it.
-                     # Ideally, we should try to attach or just kill.
-                     # Given the user wants to ensure it stops:
-                     proc.terminate()
-                     stopped_something = True
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                proc.terminate()
+                stopped_something = True
+                logging.info(f"Terminated process for server '{self.server_id}'")
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-                
-        if stopped_something:
-            return True
-        return False
-
-    async def write_stdin(self, command_str):
+        
+        return stopped_something
+    
+    async def write_stdin(self, command_str: str) -> bool:
+        """サーバーコンソールにコマンドを送信する"""
         if self.process and self.process.returncode is None:
             if self.process.stdin:
                 self.process.stdin.write(f"{command_str}\n".encode())
                 await self.process.stdin.drain()
                 return True
         return False
-
+    
     async def _read_stdout(self):
         """標準出力を非同期で読み取り、Queueに入れる"""
         if not self.process or not self.process.stdout:
             return
-
+        
         while True:
             line = await self.process.stdout.readline()
             if not line:
                 break
-            await self.log_queue.put(line.decode('utf-8', errors='ignore'))
-            
-    def _get_server_process(self):
+            await self.log_queue.put((self.server_id, line.decode('utf-8', errors='ignore')))
+    
+    def _get_process(self) -> psutil.Process | None:
         """現在実行中のサーバープロセスを取得する"""
         # 1. 自身が起動したプロセスをチェック
         if self.process is not None and self.process.returncode is None:
-            # pidからpsutil.Processを取得
             try:
                 return psutil.Process(self.process.pid)
             except psutil.NoSuchProcess:
                 pass
-
-        # 2. プロセスリストから検索
-        jar_name = CONFIG["minecraft_server_jar"]
+        
+        # 2. プロセスリストから検索（jarファイル名で識別）
         for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
             try:
                 cmdline = proc.info['cmdline']
-                if cmdline and 'java' in proc.info['name'] and jar_name in cmdline:
-                    return proc
+                if cmdline and 'java' in proc.info['name'] and self.jar in cmdline:
+                    # cwdも確認してより正確に識別
+                    try:
+                        if proc.cwd() == self.cwd:
+                            return proc
+                    except (psutil.AccessDenied, psutil.NoSuchProcess):
+                        # cwdが取得できない場合はjarファイル名のみで判断
+                        return proc
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return None
-
-    def is_running(self):
-        return self._get_server_process() is not None
-
-    def get_server_stats(self):
+    
+    def is_running(self) -> bool:
+        """サーバーが起動中かどうかを返す"""
+        return self._get_process() is not None
+    
+    def get_stats(self) -> dict | None:
         """サーバーのステータス(CPU, Memory, Uptime)を取得"""
-        proc = self._get_server_process()
+        proc = self._get_process()
         if not proc:
             return None
         
         try:
-            # CPU% (interval=None for non-blocking since last call, but first call allows 0.0)
             cpu_percent = proc.cpu_percent(interval=None)
-            
-            # Memory (RSS) in MB
             mem_info = proc.memory_info()
             mem_mb = mem_info.rss / (1024 * 1024)
-            
-            # Uptime
-            import time
             create_time = proc.create_time()
             uptime_seconds = time.time() - create_time
             
@@ -132,12 +133,88 @@ class ServerManager:
             }
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             return None
-        
+    
     async def wait_for_exit(self):
+        """サーバーの終了を待機する"""
         if self.process:
             await self.process.wait()
         
-        # Also wait for psutil processes to clear if necessary
-        # (Polling)
         while self.is_running():
             await asyncio.sleep(1)
+
+
+class MultiServerManager:
+    """複数のMinecraftサーバーを管理するクラス"""
+    
+    def __init__(self, servers_config: dict):
+        self.servers: dict[str, ServerInstance] = {}
+        for server_id, config in servers_config.items():
+            self.servers[server_id] = ServerInstance(server_id, config)
+        logging.info(f"MultiServerManager initialized with servers: {list(self.servers.keys())}")
+    
+    def get_server(self, server_id: str) -> ServerInstance | None:
+        """指定されたサーバーインスタンスを取得する"""
+        return self.servers.get(server_id)
+    
+    def get_server_ids(self) -> list[str]:
+        """登録されている全サーバーIDのリストを返す"""
+        return list(self.servers.keys())
+    
+    def get_server_choices(self) -> list[tuple[str, str]]:
+        """Discord用の選択肢リストを返す [(name, value), ...]"""
+        return [(server.name, server_id) for server_id, server in self.servers.items()]
+    
+    async def start_server(self, server_id: str) -> bool:
+        """指定されたサーバーを起動する"""
+        server = self.get_server(server_id)
+        if not server:
+            logging.error(f"Server '{server_id}' not found")
+            return False
+        return await server.start()
+    
+    async def stop_server(self, server_id: str) -> bool:
+        """指定されたサーバーを停止する"""
+        server = self.get_server(server_id)
+        if not server:
+            logging.error(f"Server '{server_id}' not found")
+            return False
+        return await server.stop()
+    
+    async def write_stdin(self, server_id: str, command_str: str) -> bool:
+        """指定されたサーバーにコマンドを送信する"""
+        server = self.get_server(server_id)
+        if not server:
+            return False
+        return await server.write_stdin(command_str)
+    
+    def is_running(self, server_id: str) -> bool:
+        """指定されたサーバーが起動中かどうかを返す"""
+        server = self.get_server(server_id)
+        if not server:
+            return False
+        return server.is_running()
+    
+    def get_server_stats(self, server_id: str) -> dict | None:
+        """指定されたサーバーのステータスを取得する"""
+        server = self.get_server(server_id)
+        if not server:
+            return None
+        return server.get_stats()
+    
+    def get_all_running(self) -> list[str]:
+        """起動中の全サーバーIDのリストを返す"""
+        return [server_id for server_id, server in self.servers.items() if server.is_running()]
+    
+    def get_all_log_queues(self) -> dict[str, asyncio.Queue]:
+        """全サーバーのログキューを返す"""
+        return {server_id: server.log_queue for server_id, server in self.servers.items()}
+    
+    async def wait_for_exit(self, server_id: str):
+        """指定されたサーバーの終了を待機する"""
+        server = self.get_server(server_id)
+        if server:
+            await server.wait_for_exit()
+
+
+# 後方互換性のためのエイリアス
+ServerManager = MultiServerManager
