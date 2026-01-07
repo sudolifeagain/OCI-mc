@@ -3,9 +3,12 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands
-from settings import SERVERS_CONFIG, DEFAULT_SERVER
+from settings import CONFIG, SERVERS_CONFIG, DEFAULT_SERVER
 from utils.permissions import check_role
-from utils.plugin_manager import list_plugins, format_plugins_list, get_plugins_dir
+from utils.plugin_manager import (
+    list_plugins, format_plugins_list, get_plugins_dir,
+    update_plugin, update_all_plugins
+)
 
 
 def get_server_choices():
@@ -23,6 +26,10 @@ class PluginSystem(commands.Cog):
     def __init__(self, bot, server_manager):
         self.bot = bot
         self.server_manager = server_manager
+
+    def get_plugins_config(self, server_id: str) -> dict:
+        """サーバーのプラグイン設定を取得"""
+        return CONFIG.get("plugins", {}).get(server_id, {})
 
     @app_commands.command(name="plugins", description="インストールされているプラグイン一覧を表示します")
     @app_commands.describe(
@@ -77,6 +84,86 @@ class PluginSystem(commands.Cog):
             logging.error(f"Plugin list error: {e}")
             await interaction.followup.send(f"エラーが発生しました: {e}", silent=True)
 
+    @app_commands.command(name="update_plugins", description="設定されたプラグインを最新版に更新します")
+    @app_commands.describe(server="対象サーバー")
+    @app_commands.choices(server=SERVER_CHOICES)
+    async def update_plugins(
+        self,
+        interaction: discord.Interaction,
+        server: str = DEFAULT_SERVER
+    ):
+        """設定されたプラグインを最新版に更新"""
+        if not check_role(interaction, 'backup'):  # admin権限を要求
+            return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        server_instance = self.server_manager.get_server(server)
+        if not server_instance:
+            return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
+
+        plugins_config = self.get_plugins_config(server)
+        if not plugins_config:
+            return await interaction.response.send_message(
+                f"[{server_instance.name}] プラグイン設定が見つかりません。config.jsonに設定してください。",
+                ephemeral=True
+            )
+
+        await interaction.response.send_message(
+            f"🔄 [{server_instance.name}] プラグイン更新を開始します...", 
+            silent=True
+        )
+        
+        server_name = server_instance.name
+        plugins_dir = get_plugins_dir(server_instance.cwd)
+        loop = asyncio.get_event_loop()
+        
+        try:
+            # 1. サーバー停止
+            was_running = False
+            if self.server_manager.is_running(server):
+                was_running = True
+                await interaction.edit_original_response(
+                    content=f"🔄 [{server_name}] サーバーを停止中..."
+                )
+                await self.server_manager.stop_server(server)
+                await self.server_manager.wait_for_exit(server)
+
+            # 2. プラグイン更新
+            await interaction.edit_original_response(
+                content=f"⬇️ [{server_name}] プラグインをダウンロード中..."
+            )
+            
+            results = await loop.run_in_executor(
+                None, update_all_plugins, plugins_dir, plugins_config
+            )
+            
+            # 3. 結果表示
+            success_count = sum(1 for r in results if r["success"])
+            fail_count = len(results) - success_count
+            
+            output_lines = [f"**[{server_name}] プラグイン更新結果**\n```"]
+            for r in results:
+                status = "✅" if r["success"] else "❌"
+                output_lines.append(f"{status} {r['plugin_name']}: {r['message']}")
+            output_lines.append("```")
+            output_lines.append(f"\n成功: {success_count} / 失敗: {fail_count}")
+            
+            # 4. サーバー再起動
+            if was_running:
+                output_lines.append(f"\n🚀 [{server_name}] サーバーを再起動中...")
+                await interaction.edit_original_response(content="\n".join(output_lines))
+                await self.server_manager.start_server(server)
+                output_lines[-1] = f"✅ [{server_name}] サーバーを再起動しました。"
+            
+            await interaction.edit_original_response(content="\n".join(output_lines))
+            logging.info(f"User {interaction.user} ({interaction.user.id}) executed /update_plugins server={server}")
+
+        except Exception as e:
+            logging.error(f"Plugin update error: {e}")
+            await interaction.edit_original_response(
+                content=f"❌ [{server_name}] プラグイン更新中にエラーが発生しました: {e}"
+            )
+
 
 async def setup(bot):
     await bot.add_cog(PluginSystem(bot, bot.server_manager))
+

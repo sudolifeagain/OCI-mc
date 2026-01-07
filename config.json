@@ -62,5 +62,25 @@
 			]
 		},
 		"schedule_time": "04:00"
+	},
+	"plugins": {
+		"paper": {
+			"geyser": {
+				"source": "direct",
+				"url": "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot",
+				"filename": "Geyser-Spigot.jar"
+			},
+			"floodgate": {
+				"source": "direct",
+				"url": "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot",
+				"filename": "floodgate-spigot.jar"
+			},
+			"bluemap": {
+				"source": "github",
+				"repo": "BlueMap-Minecraft/BlueMap",
+				"asset_pattern": "bluemap-*-paper.jar",
+				"filename": "bluemap-paper.jar"
+			}
+		}
 	}
 }

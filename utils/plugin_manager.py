@@ -124,6 +124,162 @@ def format_plugins_list(plugins: list[dict], detailed: bool = False) -> str:
     return "\n".join(lines)
 
 
+# ============================================
+# プラグインダウンロード機能
+# ============================================
+
+import requests
+import fnmatch
+import shutil
+import tempfile
+
+
+def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[dict]:
+    """
+    GitHubの最新リリースから指定パターンに一致するアセットを取得
+    
+    Args:
+        repo: "owner/repo" 形式のリポジトリ名
+        asset_pattern: ファイル名のパターン (fnmatch形式, 例: "bluemap-*-paper.jar")
+    
+    Returns:
+        dict with keys: name, download_url, size, tag_name (version)
+        or None if not found
+    """
+    try:
+        url = f"https://api.github.com/repos/{repo}/releases/latest"
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        
+        resp = requests.get(url, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return None
+        
+        data = resp.json()
+        tag_name = data.get("tag_name", "")
+        
+        for asset in data.get("assets", []):
+            name = asset.get("name", "")
+            if fnmatch.fnmatch(name, asset_pattern):
+                return {
+                    "name": name,
+                    "download_url": asset.get("browser_download_url"),
+                    "size": asset.get("size", 0),
+                    "tag_name": tag_name,
+                }
+        
+        return None
+    except Exception as e:
+        print(f"GitHub API error: {e}")
+        return None
+
+
+def download_file(url: str, dest_path: str, timeout: int = 300) -> bool:
+    """
+    URLからファイルをダウンロード
+    
+    Args:
+        url: ダウンロードURL
+        dest_path: 保存先パス
+        timeout: タイムアウト秒数
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        with requests.get(url, stream=True, timeout=timeout) as resp:
+            resp.raise_for_status()
+            with open(dest_path, 'wb') as f:
+                shutil.copyfileobj(resp.raw, f)
+        return True
+    except Exception as e:
+        print(f"Download error: {e}")
+        return False
+
+
+def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
+    """
+    設定に基づいてプラグインを更新する
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        plugin_config: プラグインの設定 (source, url/repo, filename等)
+    
+    Returns:
+        dict with keys: success, message, filename
+    """
+    source = plugin_config.get("source", "")
+    filename = plugin_config.get("filename", "")
+    
+    if not filename:
+        return {"success": False, "message": "filename が設定されていません", "filename": ""}
+    
+    dest_path = os.path.join(plugins_dir, filename)
+    
+    # 一時ファイルにダウンロード
+    temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{filename}")
+    
+    try:
+        if source == "direct":
+            # 直接ダウンロード
+            url = plugin_config.get("url", "")
+            if not url:
+                return {"success": False, "message": "URL が設定されていません", "filename": filename}
+            
+            if not download_file(url, temp_path):
+                return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+        
+        elif source == "github":
+            # GitHub releases から取得
+            repo = plugin_config.get("repo", "")
+            asset_pattern = plugin_config.get("asset_pattern", "")
+            
+            if not repo or not asset_pattern:
+                return {"success": False, "message": "repo または asset_pattern が設定されていません", "filename": filename}
+            
+            asset = get_github_latest_release_asset(repo, asset_pattern)
+            if not asset:
+                return {"success": False, "message": f"GitHub releases でアセットが見つかりません: {asset_pattern}", "filename": filename}
+            
+            if not download_file(asset["download_url"], temp_path):
+                return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+        
+        else:
+            return {"success": False, "message": f"不明なソース: {source}", "filename": filename}
+        
+        # ダウンロード成功 - 既存ファイルを置換
+        if os.path.exists(dest_path):
+            os.remove(dest_path)
+        
+        shutil.move(temp_path, dest_path)
+        
+        return {"success": True, "message": "更新完了", "filename": filename}
+    
+    except Exception as e:
+        # クリーンアップ
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return {"success": False, "message": str(e), "filename": filename}
+
+
+def update_all_plugins(plugins_dir: str, plugins_config: dict) -> list[dict]:
+    """
+    設定されているすべてのプラグインを更新
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        plugins_config: プラグイン設定の辞書 {plugin_name: config}
+    
+    Returns:
+        list of update results
+    """
+    results = []
+    for plugin_name, config in plugins_config.items():
+        result = update_plugin(plugins_dir, config)
+        result["plugin_name"] = plugin_name
+        results.append(result)
+    return results
+
+
 # スタンドアロン実行用
 if __name__ == "__main__":
     import sys
@@ -135,3 +291,4 @@ if __name__ == "__main__":
     
     plugins = list_plugins(plugins_path)
     print(format_plugins_list(plugins, detailed=True))
+
