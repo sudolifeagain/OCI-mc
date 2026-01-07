@@ -44,7 +44,7 @@ class PluginSystem(commands.Cog):
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
-        await interaction.response.defer()
+        await interaction.response.send_message("プラグイン一覧を取得中...", silent=True)
         
         try:
             plugins_dir = get_plugins_dir(server_instance.cwd)
@@ -53,9 +53,8 @@ class PluginSystem(commands.Cog):
             plugins = await loop.run_in_executor(None, list_plugins, plugins_dir)
             
             if not plugins:
-                await interaction.followup.send(
-                    f"[{server_instance.name}] プラグインが見つかりませんでした。\nパス: `{plugins_dir}`",
-                    silent=True
+                await interaction.edit_original_response(
+                    content=f"[{server_instance.name}] プラグインが見つかりませんでした。\nパス: `{plugins_dir}`"
                 )
                 return
 
@@ -66,13 +65,11 @@ class PluginSystem(commands.Cog):
             if len(output) > 2000:
                 # 長すぎる場合は分割
                 chunks = [output[i:i+1900] for i in range(0, len(output), 1900)]
-                for i, chunk in enumerate(chunks):
-                    if i == 0:
-                        await interaction.followup.send(chunk, silent=True)
-                    else:
-                        await interaction.followup.send(chunk, silent=True)
+                await interaction.edit_original_response(content=chunks[0])
+                for chunk in chunks[1:]:
+                    await interaction.followup.send(chunk, silent=True)
             else:
-                await interaction.followup.send(output, silent=True)
+                await interaction.edit_original_response(content=output)
 
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /plugins server={server}")
 
