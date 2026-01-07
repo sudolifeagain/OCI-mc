@@ -17,7 +17,8 @@ class MyBot(commands.Bot):
         # Load Extensions
         initial_extensions = [
             'cogs.basic_control',
-            'cogs.backup_system'
+            'cogs.backup_system',
+            'cogs.plugin_system'
         ]
         
         for extension in initial_extensions:
