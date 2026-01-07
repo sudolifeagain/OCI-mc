@@ -172,7 +172,8 @@ def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
     
     deleted = 0
     for filename in os.listdir(plugins_dir):
-        if fnmatch.fnmatch(filename, pattern):
+        # 安全対策: .jar ファイルのみ削除可能
+        if fnmatch.fnmatch(filename, pattern) and filename.endswith('.jar'):
             filepath = os.path.join(plugins_dir, filename)
             try:
                 os.remove(filepath)
