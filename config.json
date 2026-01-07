@@ -66,13 +66,15 @@
 	"plugins": {
 		"paper": {
 			"geyser": {
-				"source": "direct",
-				"url": "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot",
+				"source": "geysermc",
+				"project": "geyser",
+				"platform": "spigot",
 				"filename": "Geyser-Spigot.jar"
 			},
 			"floodgate": {
-				"source": "direct",
-				"url": "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot",
+				"source": "geysermc",
+				"project": "floodgate",
+				"platform": "spigot",
 				"filename": "floodgate-spigot.jar"
 			},
 			"bluemap": {

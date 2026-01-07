@@ -243,6 +243,21 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
             if not download_file(asset["download_url"], temp_path):
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
         
+        elif source == "geysermc":
+            # GeyserMC API から取得
+            project = plugin_config.get("project", "")
+            platform = plugin_config.get("platform", "spigot")
+            
+            if not project:
+                return {"success": False, "message": "project が設定されていません", "filename": filename}
+            
+            info = get_geysermc_latest_info(project, platform)
+            if not info:
+                return {"success": False, "message": f"GeyserMC API からダウンロードURLを取得できません", "filename": filename}
+            
+            if not download_file(info["download_url"], temp_path):
+                return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+        
         else:
             return {"success": False, "message": f"不明なソース: {source}", "filename": filename}
         
@@ -280,6 +295,230 @@ def update_all_plugins(plugins_dir: str, plugins_config: dict) -> list[dict]:
     return results
 
 
+# ============================================
+# プラグイン更新チェック機能
+# ============================================
+
+import hashlib
+
+
+def compute_file_sha256(filepath: str) -> Optional[str]:
+    """
+    ファイルのSHA256ハッシュを計算する
+    
+    Args:
+        filepath: ファイルパス
+    
+    Returns:
+        SHA256ハッシュ文字列（小文字16進数）、エラー時はNone
+    """
+    try:
+        sha256_hash = hashlib.sha256()
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                sha256_hash.update(chunk)
+        return sha256_hash.hexdigest()
+    except Exception as e:
+        print(f"SHA256 calculation error: {e}")
+        return None
+
+
+def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
+    """
+    GeyserMC APIから最新ビルド情報を取得
+    
+    Args:
+        project: "geyser" または "floodgate"
+        platform: "spigot", "bungeecord", "velocity" など
+    
+    Returns:
+        dict with keys: version, build, time, sha256, download_url
+        or None if error
+    """
+    try:
+        url = f"https://download.geysermc.org/v2/projects/{project}/versions/latest/builds/latest"
+        resp = requests.get(url, timeout=30)
+        if resp.status_code != 200:
+            return None
+        
+        data = resp.json()
+        downloads = data.get("downloads", {})
+        platform_info = downloads.get(platform, {})
+        
+        if not platform_info:
+            return None
+        
+        download_url = f"https://download.geysermc.org/v2/projects/{project}/versions/latest/builds/latest/downloads/{platform}"
+        
+        return {
+            "version": data.get("version", ""),
+            "build": data.get("build", 0),
+            "time": data.get("time", ""),
+            "sha256": platform_info.get("sha256", ""),
+            "download_url": download_url,
+            "filename": platform_info.get("name", ""),
+        }
+    except Exception as e:
+        print(f"GeyserMC API error: {e}")
+        return None
+
+
+def get_github_latest_info(repo: str, asset_pattern: str) -> Optional[dict]:
+    """
+    GitHubの最新リリースから指定パターンに一致するアセット情報を取得（sha256付き）
+    
+    Args:
+        repo: "owner/repo" 形式のリポジトリ名
+        asset_pattern: ファイル名のパターン (fnmatch形式)
+    
+    Returns:
+        dict with keys: name, download_url, size, tag_name, sha256
+        or None if not found
+    """
+    try:
+        url = f"https://api.github.com/repos/{repo}/releases/latest"
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        
+        resp = requests.get(url, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return None
+        
+        data = resp.json()
+        tag_name = data.get("tag_name", "")
+        published_at = data.get("published_at", "")
+        
+        for asset in data.get("assets", []):
+            name = asset.get("name", "")
+            if fnmatch.fnmatch(name, asset_pattern):
+                # digestフィールドからsha256を抽出（形式: "sha256:..."）
+                digest = asset.get("digest", "")
+                sha256 = digest.replace("sha256:", "") if digest.startswith("sha256:") else ""
+                
+                return {
+                    "name": name,
+                    "download_url": asset.get("browser_download_url"),
+                    "size": asset.get("size", 0),
+                    "tag_name": tag_name,
+                    "published_at": published_at,
+                    "sha256": sha256,
+                }
+        
+        return None
+    except Exception as e:
+        print(f"GitHub API error: {e}")
+        return None
+
+
+def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict) -> dict:
+    """
+    単一プラグインの更新をチェックする
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        plugin_name: プラグイン名（設定キー）
+        plugin_config: プラグインの設定
+    
+    Returns:
+        dict with keys: plugin_name, has_update, installed_version, latest_version, error
+    """
+    result = {
+        "plugin_name": plugin_name,
+        "has_update": False,
+        "installed_version": "不明",
+        "latest_version": "不明",
+        "error": None,
+    }
+    
+    source = plugin_config.get("source", "")
+    filename = plugin_config.get("filename", "")
+    
+    if not filename:
+        result["error"] = "filename が設定されていません"
+        return result
+    
+    filepath = os.path.join(plugins_dir, filename)
+    
+    # ローカルファイルのSHA256を計算
+    if not os.path.exists(filepath):
+        result["error"] = "ファイルが見つかりません"
+        result["installed_version"] = "未インストール"
+        result["has_update"] = True
+        return result
+    
+    local_sha256 = compute_file_sha256(filepath)
+    if not local_sha256:
+        result["error"] = "SHA256計算に失敗"
+        return result
+    
+    # リモートの最新情報を取得
+    remote_sha256 = None
+    
+    if source == "geysermc":
+        project = plugin_config.get("project", "")
+        platform = plugin_config.get("platform", "spigot")
+        
+        info = get_geysermc_latest_info(project, platform)
+        if info:
+            remote_sha256 = info.get("sha256", "")
+            result["latest_version"] = f"Build #{info.get('build', '?')}"
+            # ローカルバージョンはplugin.ymlから取得
+            plugin_info = parse_plugin_yml(filepath)
+            if plugin_info:
+                result["installed_version"] = plugin_info.get("version", "不明")
+        else:
+            result["error"] = "API取得に失敗"
+            return result
+    
+    elif source == "github":
+        repo = plugin_config.get("repo", "")
+        asset_pattern = plugin_config.get("asset_pattern", "")
+        
+        info = get_github_latest_info(repo, asset_pattern)
+        if info:
+            remote_sha256 = info.get("sha256", "")
+            result["latest_version"] = info.get("tag_name", "不明")
+            # ローカルバージョンはplugin.ymlから取得
+            plugin_info = parse_plugin_yml(filepath)
+            if plugin_info:
+                result["installed_version"] = plugin_info.get("version", "不明")
+        else:
+            result["error"] = "API取得に失敗"
+            return result
+    
+    elif source == "direct":
+        # 直接URLの場合はsha256比較ができないためスキップ
+        result["error"] = "directソースは更新チェック非対応"
+        return result
+    
+    else:
+        result["error"] = f"不明なソース: {source}"
+        return result
+    
+    # SHA256比較
+    if remote_sha256 and local_sha256:
+        result["has_update"] = (local_sha256.lower() != remote_sha256.lower())
+    
+    return result
+
+
+def check_all_plugin_updates(plugins_dir: str, plugins_config: dict) -> list[dict]:
+    """
+    設定されているすべてのプラグインの更新をチェック
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        plugins_config: プラグイン設定の辞書 {plugin_name: config}
+    
+    Returns:
+        list of check results
+    """
+    results = []
+    for plugin_name, config in plugins_config.items():
+        result = check_plugin_update(plugins_dir, plugin_name, config)
+        results.append(result)
+    return results
+
+
 # スタンドアロン実行用
 if __name__ == "__main__":
     import sys
@@ -291,4 +530,5 @@ if __name__ == "__main__":
     
     plugins = list_plugins(plugins_path)
     print(format_plugins_list(plugins, detailed=True))
+
 
