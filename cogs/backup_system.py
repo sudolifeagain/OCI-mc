@@ -1,4 +1,5 @@
 import os
+import tempfile
 import shutil
 import zipfile
 import asyncio
@@ -82,28 +83,41 @@ class BackupSystem(commands.Cog):
                 await self.server_manager.stop_server(server_id)
                 await self.server_manager.wait_for_exit(server_id)
 
-            # 2. 圧縮 (ZIP)
+            # 2. バックアップ対象の確認
+            backup_dirs = self.get_backup_dirs(server_id)
+            existing_dirs = []
+            for d in backup_dirs:
+                full_path = os.path.join(mc_dir, d)
+                if os.path.exists(full_path):
+                    existing_dirs.append(d)
+            
+            if not existing_dirs:
+                if channel:
+                    await channel.send(f"[{server_name}] ⚠️ バックアップ対象のデータが存在しません（{', '.join(backup_dirs)}）", silent=True)
+                # サーバーが動いていたら再起動
+                if was_running:
+                    await self.server_manager.start_server(server_id)
+                return
+
+            # 3. 圧縮 (ZIP) - 一時ディレクトリを使用
             if channel:
                 await channel.send(f"[{server_name}] ワールドデータを圧縮中...", silent=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             zip_name = f"backup_{server_id}_{timestamp}.zip"
-            zip_path = os.path.join(mc_dir, zip_name)
-
-            backup_dirs = self.get_backup_dirs(server_id)
+            zip_path = os.path.join(tempfile.gettempdir(), zip_name)
 
             def create_zip():
                 with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for d in backup_dirs:
+                    for d in existing_dirs:
                         full_path = os.path.join(mc_dir, d)
-                        if os.path.exists(full_path):
-                            if os.path.isdir(full_path):
-                                for root, dirs, files in os.walk(full_path):
-                                    for file in files:
-                                        file_path = os.path.join(root, file)
-                                        arcname = os.path.relpath(file_path, mc_dir)
-                                        zipf.write(file_path, arcname)
-                            else:
-                                zipf.write(full_path, os.path.basename(full_path))
+                        if os.path.isdir(full_path):
+                            for root, dirs, files in os.walk(full_path):
+                                for file in files:
+                                    file_path = os.path.join(root, file)
+                                    arcname = os.path.relpath(file_path, mc_dir)
+                                    zipf.write(file_path, arcname)
+                        else:
+                            zipf.write(full_path, os.path.basename(full_path))
             
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, create_zip)
