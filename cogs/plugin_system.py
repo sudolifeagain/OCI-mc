@@ -205,16 +205,16 @@ class PluginSystem(commands.Cog):
             
             output_lines = [f"**📋 [{server_name}] プラグイン更新チェック**\n```"]
             for r in results:
+                name = r['plugin_name']
+                installed = r['installed_version']
+                latest = r['latest_version']
+                
                 if r["error"]:
-                    status = "⚠️"
-                    info = r["error"]
+                    output_lines.append(f"⚠️ {name}: {r['error']}")
                 elif r["has_update"]:
-                    status = "⬆️"
-                    info = f"{r['installed_version']} → {r['latest_version']}"
+                    output_lines.append(f"⬆️ {name}: {installed} → {latest}")
                 else:
-                    status = "✅"
-                    info = f"最新 ({r['latest_version']})"
-                output_lines.append(f"{status} {r['plugin_name']}: {info}")
+                    output_lines.append(f"✅ {name}: {installed} (最新)")
             
             output_lines.append("```")
             

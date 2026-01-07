@@ -527,11 +527,14 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
         info = get_geysermc_latest_info(project, platform)
         if info:
             remote_sha256 = info.get("sha256", "")
-            result["latest_version"] = f"Build #{info.get('build', '?')}"
+            latest_build = info.get('build', '?')
+            result["latest_version"] = f"Build #{latest_build}"
+            
             # ローカルバージョンはplugin.ymlから取得
             plugin_info = parse_plugin_yml(filepath)
             if plugin_info:
-                result["installed_version"] = plugin_info.get("version", "不明")
+                local_version = plugin_info.get("version", "不明")
+                result["installed_version"] = local_version
         else:
             result["error"] = "API取得に失敗"
             return result
