@@ -117,7 +117,28 @@ class PluginSystem(commands.Cog):
         loop = asyncio.get_event_loop()
         
         try:
-            # 1. サーバー停止
+            # 1. 更新チェック
+            await interaction.edit_original_response(
+                content=f"📋 [{server_name}] 更新をチェック中..."
+            )
+            
+            check_results = await loop.run_in_executor(
+                None, check_all_plugin_updates, plugins_dir, plugins_config
+            )
+            
+            # 更新が必要なプラグインを抽出
+            plugins_to_update = {
+                r["plugin_name"]: plugins_config[r["plugin_name"]]
+                for r in check_results if r["has_update"] and not r["error"]
+            }
+            
+            if not plugins_to_update:
+                await interaction.edit_original_response(
+                    content=f"✅ [{server_name}] すべてのプラグインが最新です。更新は不要です。"
+                )
+                return
+            
+            # 2. サーバー停止（更新がある場合のみ）
             was_running = False
             if self.server_manager.is_running(server):
                 was_running = True
@@ -127,27 +148,30 @@ class PluginSystem(commands.Cog):
                 await self.server_manager.stop_server(server)
                 await self.server_manager.wait_for_exit(server)
 
-            # 2. プラグイン更新
+            # 3. 更新が必要なプラグインのみダウンロード
             await interaction.edit_original_response(
-                content=f"⬇️ [{server_name}] プラグインをダウンロード中..."
+                content=f"⬇️ [{server_name}] {len(plugins_to_update)}件のプラグインを更新中..."
             )
             
             results = await loop.run_in_executor(
-                None, update_all_plugins, plugins_dir, plugins_config
+                None, update_all_plugins, plugins_dir, plugins_to_update
             )
             
-            # 3. 結果表示
+            # 4. 結果表示
             success_count = sum(1 for r in results if r["success"])
             fail_count = len(results) - success_count
+            skipped_count = len(plugins_config) - len(plugins_to_update)
             
             output_lines = [f"**[{server_name}] プラグイン更新結果**\n```"]
             for r in results:
                 status = "✅" if r["success"] else "❌"
                 output_lines.append(f"{status} {r['plugin_name']}: {r['message']}")
+            if skipped_count > 0:
+                output_lines.append(f"⏭️ {skipped_count}件はスキップ (最新)")
             output_lines.append("```")
-            output_lines.append(f"\n成功: {success_count} / 失敗: {fail_count}")
+            output_lines.append(f"\n更新: {success_count} / 失敗: {fail_count} / スキップ: {skipped_count}")
             
-            # 4. サーバー再起動
+            # 5. サーバー再起動
             if was_running:
                 output_lines.append(f"\n🚀 [{server_name}] サーバーを再起動中...")
                 await interaction.edit_original_response(content="\n".join(output_lines))
