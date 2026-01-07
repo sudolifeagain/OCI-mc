@@ -1,31 +1,39 @@
 # OCI-mc
 
-A Discord bot designed to manage a Minecraft server running on Oracle Cloud Infrastructure (OCI), featuring a unique backup system integrated with Notion.
+A Discord bot designed to manage Minecraft servers running on Oracle Cloud Infrastructure (OCI), featuring backup integration with Notion and automated plugin management.
 
 ## Overview
 
-OCI-mc allows you to control your Minecraft server directly from Discord. You can start/stop the server, execute console commands, and manage backups without needing to SSH into your server. It leverages Notion as a database and storage solution for your world backups.
+OCI-mc allows you to control your Minecraft servers directly from Discord. You can start/stop servers, execute console commands, manage backups, and update plugins without needing to SSH into your server.
 
 ## Features
 
-- **Server Management**:
-  - **Start/Stop**: Turn the server on or off with simple slash commands (`/start`, `/stop`).
-  - **Console Commands**: Send commands directly to the Minecraft server console (`/cmd`).
-  - **Live Logging**: Streams Minecraft server logs to a specified Discord channel in real-time.
+- **Multi-Server Management**:
+  - Support for multiple Minecraft servers (Paper, Forge, etc.)
+  - Start/Stop/Restart individual servers (`/start`, `/stop`, `/restart`)
+  - Send console commands (`/cmd`)
+  - Live server log streaming to Discord
+  - Server status monitoring with CPU/Memory usage (`/status`)
 
 - **Advanced Backup System**:
-  - **Notion Integration**: Automatically uploads backup files to Notion. Supports large files via smart multipart upload (files > 20MB are chunked).
+  - **Notion Integration**: Automatically uploads backup files to Notion with multipart upload support for large files (>20MB).
   - **Scheduled Backups**: Configurable automated backup schedule.
   - **Manual Backups**: Trigger backups on demand (`/backup`).
-  - **Easy Rollback**: List available backups (`/backups`) and restore the server to a previous state with a single command (`/rollback`).
+  - **Easy Rollback**: List available backups (`/backups`) and restore with a single command (`/rollback`).
+
+- **Plugin Management**:
+  - **List Plugins**: View all installed plugins with version info (`/plugins`).
+  - **Update Check**: Check for plugin updates without stopping server (`/check_updates`).
+  - **Auto Update**: Download and install latest plugin versions (`/update_plugins`).
+  - Supports GeyserMC API and GitHub Releases for update detection via SHA256 hash comparison.
 
 - **Permission Control**:
-  - Role-based access control for commands (supports `start`, `stop`, `command`, `backup` roles).
-  - Whitelist support for specific commands for user roles.
+  - Role-based access control for commands.
+  - Configurable role permissions in `config.json`.
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - An Oracle Cloud Infrastructure (OCI) instance (ARM based recommended for free tier).
 - A Notion Integration Token and Database ID.
 - A Discord Bot Token.
@@ -44,35 +52,56 @@ OCI-mc allows you to control your Minecraft server directly from Discord. You ca
    ```
 
 3. **Configuration**:
-   - Create a `config.json` or configure `settings.py` with your environment variables.
-   - Required configuration includes:
-     - `DISCORD_TOKEN`: Your Discord Bot Token.
-     - `DISCORD_OWNER_ID`: Your Discord User ID (for admin/shell commands).
-     - `CHANNEL_ID`: The Discord Channel ID for logs and notifications.
-     - `NOTION_TOKEN`: Your Notion Integration Token.
-     - `NOTION_DB_ID`: The ID of the Notion Database for backups.
-     - `minecraft_server_jar`: Path to your server jar file.
-     - `java_memory`: Memory allocation (e.g., "4G").
+   - Copy `.env.example` to `.env` and configure environment variables.
+   - Edit `config.json` for server-specific settings.
 
 4. **Run the Bot**:
    ```bash
    python bot.py
    ```
 
-## Usage
+## Commands
 
-### Commands
+| Command | Description | Permission |
+| :--- | :--- | :--- |
+| `/start [server]` | Starts the Minecraft server. | `start` role |
+| `/stop [server]` | Stops the Minecraft server. | `stop` role |
+| `/restart [server]` | Restarts the Minecraft server. | `restart` role |
+| `/cmd <command> [server]` | Sends a command to the server console. | `command` role |
+| `/status [server]` | Shows server status (CPU, Memory, Uptime). | `status` role |
+| `/whitelist_add <player> [server]` | Adds a player to whitelist. | `whitelist_add` role |
+| `/backup [server]` | Creates a backup and uploads it to Notion. | `backup` role |
+| `/backups` | Lists the latest 10 backups from Notion. | `backup` role |
+| `/rollback <index>` | Restores the server from a selected backup. | `backup` role |
+| `/plugins [server]` | Lists installed plugins with versions. | `status` role |
+| `/check_updates [server]` | Checks for plugin updates (no server stop required). | `status` role |
+| `/update_plugins [server]` | Updates all configured plugins to latest versions. | `backup` role |
+| `/shell <command>` | Executes a shell command on the host. | Owner only |
 
-66: | Command | Description | Permission |
-67: | :--- | :--- | :--- |
-68: | `/start` | Starts the Minecraft server. | `start` role |
-69: | `/stop` | Stops the Minecraft server. | `stop` role |
-70: | `/cmd <command>` | Sends a command to the server console. | `command` role |
-71: | `/backup` | Creates a backup and uploads it to Notion. | `backup` role |
-72: | `/backups` | Lists the latest 10 backups from Notion. | `backup` role |
-73: | `/rollback <index>` | Restores the server from a selected backup. | `backup` role (Admin recommended) |
-74: | `/shell <command>` | Executes a shell command on the host (Owner only). | Owner |
+## Plugin Configuration
 
-### Roles
+Configure plugins in `config.json`:
 
-To use the bot, ensure users have roles named correspondinly to the permissions (e.g., `start`, `stop`, `backup`). You can configure role names in `settings.py`.
+```json
+"plugins": {
+  "paper": {
+    "geyser": {
+      "source": "geysermc",
+      "project": "geyser",
+      "platform": "spigot",
+      "filename": "Geyser-Spigot.jar"
+    },
+    "bluemap": {
+      "source": "github",
+      "repo": "BlueMap-Minecraft/BlueMap",
+      "asset_pattern": "bluemap-*-paper.jar",
+      "filename": "bluemap-paper.jar"
+    }
+  }
+}
+```
+
+Supported sources:
+- `geysermc`: GeyserMC download API (Geyser, Floodgate)
+- `github`: GitHub Releases API
+
