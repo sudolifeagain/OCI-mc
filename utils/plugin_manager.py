@@ -134,6 +134,55 @@ import shutil
 import tempfile
 
 
+def find_plugin_by_pattern(plugins_dir: str, pattern: str) -> Optional[str]:
+    """
+    パターンに一致するプラグインファイルを検索
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        pattern: ファイル名のパターン (fnmatch形式, 例: "bluemap-*-paper.jar")
+    
+    Returns:
+        見つかったファイルのフルパス、見つからない場合はNone
+        複数見つかった場合は最初のものを返す
+    """
+    if not os.path.exists(plugins_dir):
+        return None
+    
+    for filename in os.listdir(plugins_dir):
+        if fnmatch.fnmatch(filename, pattern):
+            return os.path.join(plugins_dir, filename)
+    
+    return None
+
+
+def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
+    """
+    パターンに一致するプラグインファイルをすべて削除
+    
+    Args:
+        plugins_dir: pluginsディレクトリのパス
+        pattern: ファイル名のパターン (fnmatch形式)
+    
+    Returns:
+        削除したファイル数
+    """
+    if not os.path.exists(plugins_dir):
+        return 0
+    
+    deleted = 0
+    for filename in os.listdir(plugins_dir):
+        if fnmatch.fnmatch(filename, pattern):
+            filepath = os.path.join(plugins_dir, filename)
+            try:
+                os.remove(filepath)
+                deleted += 1
+            except Exception as e:
+                print(f"Failed to delete {filepath}: {e}")
+    
+    return deleted
+
+
 def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[dict]:
     """
     GitHubの最新リリースから指定パターンに一致するアセットを取得
@@ -209,14 +258,17 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
     """
     source = plugin_config.get("source", "")
     filename = plugin_config.get("filename", "")
+    filename_pattern = plugin_config.get("filename_pattern", "")
     
-    if not filename:
+    # GitHubソースでパターンがある場合、ダウンロードファイル名は後で決定
+    use_pattern = bool(filename_pattern)
+    
+    if not filename and not filename_pattern:
         return {"success": False, "message": "filename が設定されていません", "filename": ""}
     
-    dest_path = os.path.join(plugins_dir, filename)
-    
     # 一時ファイルにダウンロード
-    temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{filename}")
+    temp_filename = filename if filename else "temp_plugin.jar"
+    temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{temp_filename}")
     
     try:
         if source == "direct":
@@ -234,11 +286,16 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
             asset_pattern = plugin_config.get("asset_pattern", "")
             
             if not repo or not asset_pattern:
-                return {"success": False, "message": "repo または asset_pattern が設定されていません", "filename": filename}
+                return {"success": False, "message": "repo または asset_pattern が設定されていません", "filename": filename or asset_pattern}
             
             asset = get_github_latest_release_asset(repo, asset_pattern)
             if not asset:
-                return {"success": False, "message": f"GitHub releases でアセットが見つかりません: {asset_pattern}", "filename": filename}
+                return {"success": False, "message": f"GitHub releases でアセットが見つかりません: {asset_pattern}", "filename": filename or asset_pattern}
+            
+            # パターン使用時は元のファイル名で保存
+            if use_pattern:
+                filename = asset.get("name", "")
+                temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{filename}")
             
             if not download_file(asset["download_url"], temp_path):
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
@@ -259,10 +316,15 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
         
         else:
-            return {"success": False, "message": f"不明なソース: {source}", "filename": filename}
+            return {"success": False, "message": f"不明なソース: {source}", "filename": filename or ""}
         
         # ダウンロード成功 - 既存ファイルを置換
-        if os.path.exists(dest_path):
+        dest_path = os.path.join(plugins_dir, filename)
+        
+        # パターン使用時は古いバージョンをすべて削除
+        if use_pattern and filename_pattern:
+            delete_plugins_by_pattern(plugins_dir, filename_pattern)
+        elif os.path.exists(dest_path):
             os.remove(dest_path)
         
         shutil.move(temp_path, dest_path)
@@ -431,15 +493,19 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
     
     source = plugin_config.get("source", "")
     filename = plugin_config.get("filename", "")
+    filename_pattern = plugin_config.get("filename_pattern", "")
     
-    if not filename:
+    # ファイルパスを決定（パターンマッチまたは固定ファイル名）
+    if filename_pattern:
+        filepath = find_plugin_by_pattern(plugins_dir, filename_pattern)
+    elif filename:
+        filepath = os.path.join(plugins_dir, filename)
+    else:
         result["error"] = "filename が設定されていません"
         return result
     
-    filepath = os.path.join(plugins_dir, filename)
-    
     # ローカルファイルのSHA256を計算
-    if not os.path.exists(filepath):
+    if not filepath or not os.path.exists(filepath):
         result["error"] = "ファイルが見つかりません"
         result["installed_version"] = "未インストール"
         result["has_update"] = True

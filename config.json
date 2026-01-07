@@ -81,7 +81,7 @@
 				"source": "github",
 				"repo": "BlueMap-Minecraft/BlueMap",
 				"asset_pattern": "bluemap-*-paper.jar",
-				"filename": "bluemap-paper.jar"
+				"filename_pattern": "bluemap-*-paper.jar"
 			}
 		}
 	}
