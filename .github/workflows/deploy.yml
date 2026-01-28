@@ -97,10 +97,16 @@ jobs:
         COMMIT_MSG: ${{ github.event.head_commit.message }}
         COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
       run: |
-        # エスケープ処理（簡易的）
-        ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        # 1行目をタイトルとして抽出、残りを詳細として処理
+        TITLE=$(echo "$COMMIT_MSG" | head -n 1 | sed 's/"/\\"/g')
+        BODY=$(echo "$COMMIT_MSG" | tail -n +2 | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        if [ -n "$BODY" ]; then
+          DESC="[$TITLE]($COMMIT_URL)\\n\\n$BODY"
+        else
+          DESC="[$TITLE]($COMMIT_URL)"
+        fi
         curl -H "Content-Type: application/json" \
-          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"[$ESCAPED_MSG]($COMMIT_URL)\",\"color\":3066993}]}" \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ デプロイ成功\",\"description\":\"$DESC\",\"color\":3066993}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
 
     # 7. デプロイ失敗通知
@@ -110,7 +116,13 @@ jobs:
         COMMIT_MSG: ${{ github.event.head_commit.message }}
         COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
       run: |
-        ESCAPED_MSG=$(echo "$COMMIT_MSG" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        TITLE=$(echo "$COMMIT_MSG" | head -n 1 | sed 's/"/\\"/g')
+        BODY=$(echo "$COMMIT_MSG" | tail -n +2 | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        if [ -n "$BODY" ]; then
+          DESC="[$TITLE]($COMMIT_URL)\\n\\n$BODY"
+        else
+          DESC="[$TITLE]($COMMIT_URL)"
+        fi
         curl -H "Content-Type: application/json" \
-          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"[$ESCAPED_MSG]($COMMIT_URL)\",\"color\":15158332}]}" \
+          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"❌ デプロイ失敗\",\"description\":\"$DESC\",\"color\":15158332}]}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
