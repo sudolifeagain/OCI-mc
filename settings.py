@@ -48,6 +48,9 @@ def get_log_channel_id(server_id: str) -> int:
     """サーバーごとのログチャンネルIDを取得"""
     return LOG_CHANNEL_IDS.get(server_id, CHANNEL_ID)
 
+# リアルタイムステータス表示用チャンネル
+STATUS_CHANNEL_ID = int(os.getenv('DISCORD_STATUS_CHANNEL_ID', 0))
+
 # Support multiple User IDs via DISCORD_USER_IDS (commas sep) or legacy DISCORD_USER_ID
 user_ids_env = os.getenv('DISCORD_USER_IDS')
 if user_ids_env:

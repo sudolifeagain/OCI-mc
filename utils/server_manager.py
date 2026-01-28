@@ -3,6 +3,7 @@ import subprocess
 import logging
 import time
 import psutil
+import re
 
 
 class ServerInstance:
@@ -18,6 +19,10 @@ class ServerInstance:
         self.port = config.get("port", 25565)
         self.process = None
         self.log_queue = asyncio.Queue()
+        self.online_players = {}  # {name: join_timestamp}
+        # Regex patterns for join/leave
+        self.join_pattern = re.compile(r': (.+) joined the game')
+        self.leave_pattern = re.compile(r': (.+) left the game')
     
     async def start(self) -> bool:
         """サーバーを起動する"""
@@ -40,6 +45,7 @@ class ServerInstance:
         )
         
         asyncio.create_task(self._read_stdout())
+        self.online_players.clear() # Reset on start
         logging.info(f"Server '{self.server_id}' started with PID {self.process.pid}")
         return True
     
@@ -88,7 +94,21 @@ class ServerInstance:
             line = await self.process.stdout.readline()
             if not line:
                 break
-            await self.log_queue.put((self.server_id, line.decode('utf-8', errors='ignore')))
+            text = line.decode('utf-8', errors='ignore')
+            
+            # プレイヤー参加/退出の検知
+            if "joined the game" in text:
+                match = self.join_pattern.search(text)
+                if match:
+                    player_name = match.group(1)
+                    self.online_players[player_name] = time.time()
+            elif "left the game" in text:
+                match = self.leave_pattern.search(text)
+                if match:
+                    player_name = match.group(1)
+                    self.online_players.pop(player_name, None)
+            
+            await self.log_queue.put((self.server_id, text))
     
     def _get_process(self) -> psutil.Process | None:
         """現在実行中のサーバープロセスを取得する"""
