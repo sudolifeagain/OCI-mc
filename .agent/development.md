@@ -13,6 +13,9 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **File**: `cogs/basic_control.py`
 - **Role**: Server lifecycle (start, stop, restart, status).
 - **Key Logic**: Calls `MultiServerManager` to interact with subprocesses.
+- **Log Streaming**: Bot captures stdout from spawned processes and forwards to Discord.
+  - Only works for servers started via Bot (not SSH/manual startup)
+  - Uses `asyncio.Queue` in `ServerInstance.log_queue`
 
 ### 2. Backup System (`cogs.backup_system`)
 - **File**: `cogs/backup_system.py`

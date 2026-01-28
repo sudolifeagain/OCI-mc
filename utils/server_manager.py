@@ -52,7 +52,7 @@ class ServerInstance:
     async def stop(self) -> bool:
         """サーバーを停止する"""
         stopped_something = False
-        
+
         # 自分が起動したプロセスにstopコマンドを送信
         if self.process and self.process.returncode is None:
             if self.process.stdin:
@@ -63,17 +63,27 @@ class ServerInstance:
                     logging.info(f"Sent 'stop' command to server '{self.server_id}'")
                 except Exception as e:
                     logging.warning(f"Failed to send stop command: {e}")
-        
-        # psutilでプロセスを検索して終了
+
+        # psutilでプロセスを検索して終了（子プロセス含む）
         proc = self._get_process()
         if proc:
             try:
+                # 子プロセスを先に終了（run.sh -> java の場合など）
+                children = proc.children(recursive=True)
+                for child in children:
+                    try:
+                        child.terminate()
+                        logging.info(f"Terminated child process {child.pid} for server '{self.server_id}'")
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+
+                # 親プロセスを終了
                 proc.terminate()
                 stopped_something = True
                 logging.info(f"Terminated process for server '{self.server_id}'")
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-        
+
         return stopped_something
     
     async def write_stdin(self, command_str: str) -> bool:
