@@ -38,6 +38,16 @@ DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
 DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
 DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
 
+# サーバー別ログチャンネル（環境変数から読み込み、未設定の場合はデフォルトにフォールバック）
+LOG_CHANNEL_IDS = {
+    'paper': int(os.getenv('DISCORD_PAPER_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
+    'forge': int(os.getenv('DISCORD_FORGE_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
+}
+
+def get_log_channel_id(server_id: str) -> int:
+    """サーバーごとのログチャンネルIDを取得"""
+    return LOG_CHANNEL_IDS.get(server_id, CHANNEL_ID)
+
 # Support multiple User IDs via DISCORD_USER_IDS (commas sep) or legacy DISCORD_USER_ID
 user_ids_env = os.getenv('DISCORD_USER_IDS')
 if user_ids_env:

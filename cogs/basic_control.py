@@ -4,7 +4,7 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from settings import CONFIG, DISCORD_OWNER_ID, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER
+from settings import CONFIG, DISCORD_OWNER_ID, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 
 
@@ -225,12 +225,13 @@ class BasicControl(commands.Cog):
     @tasks.loop(seconds=2.0)
     async def discord_log_sender(self):
         """Queueに溜まったログをまとめてDiscordに送信"""
-        channel = self.bot.get_channel(CHANNEL_ID)
-        if not channel:
-            return
-        
         # 全サーバーのログキューをチェック
         for server_id, server_instance in self.server_manager.servers.items():
+            # サーバーごとのチャンネルを取得
+            channel = self.bot.get_channel(get_log_channel_id(server_id))
+            if not channel:
+                continue
+
             messages = []
             q = server_instance.log_queue
             while not q.empty():
