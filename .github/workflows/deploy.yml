@@ -24,13 +24,10 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts
 
-    # 1.5 リモートホストにrsyncをインストール
+    # 1.5 リモートホストにrsyncをインストール（未インストールの場合のみ）
     - name: Install rsync on remote
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
-          sudo apt-get update
-          sudo apt-get install -y rsync
-        EOF
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} "which rsync || (sudo apt-get update && sudo apt-get install -y rsync)"
 
     # 2. ファイル転送 (rsync)
     - name: Sync files to OCI
