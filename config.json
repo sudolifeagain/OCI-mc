@@ -2,16 +2,14 @@
 	"servers": {
 		"paper": {
 			"name": "Paper (Vanilla)",
-			"jar": "paper.jar",
+			"use_script": "./start.sh",
 			"cwd": "/opt/minecraft/paper",
-			"memory": "4G",
 			"port": 25565
 		},
 		"forge": {
 			"name": "Forge (Better MC)",
-			"use_script": "./run.sh",
+			"use_script": "./start.sh",
 			"cwd": "/opt/minecraft/forge",
-			"memory": "10G",
 			"port": 25566
 		}
 	},
