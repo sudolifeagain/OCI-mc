@@ -28,6 +28,27 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Role**: Update management.
 - **Key Logic**: Checks SHA256 hashes against APIs (Geyser, GitHub Releases).
 
+### 4. Status Display (`cogs.status_display`)
+- **File**: `cogs/status_display.py`
+- **Role**: リアルタイムサーバー参加状況表示
+- **Key Logic**:
+  - 3分ごとに指定チャンネルのEmbedメッセージを更新
+  - サーバー稼働状態（✅/❌）とオンラインプレイヤー一覧を表示
+  - プレイヤーの参加時間も表示
+- **Required Env**: `DISCORD_STATUS_CHANNEL_ID`
+
+## Player Tracking
+`ServerInstance` がプレイヤーの参加/退出をログから検知し `online_players` dict に保持。
+- Join: `joined the game` パターンでタイムスタンプ記録
+- Leave: `left the game` パターンで削除
+- `status_display` や `/status` コマンドで利用
+
+## Server-specific Log Channels
+各サーバーのログを別々のDiscordチャンネルに転送可能。
+- `DISCORD_PAPER_LOG_CHANNEL_ID`: Paperサーバー用
+- `DISCORD_FORGE_LOG_CHANNEL_ID`: Forgeサーバー用
+- 未設定時は `DISCORD_CHANNEL_ID` にフォールバック
+
 ## Code Style
 - **Slash Commands Only**: No `command_prefix`. Use `@app_commands.command`.
 - **Type Hinting**: Required for all function arguments and returns.

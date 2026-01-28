@@ -56,6 +56,27 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
    - Path: `/etc/systemd/system/discord-bot.service`
    - Restarted automatically after deploy.
 
+## Environment Variables (.env)
+
+### Required
+- `DISCORD_TOKEN`: Bot token
+
+### Channels
+- `DISCORD_CHANNEL_ID`: Default log channel (fallback)
+- `DISCORD_PAPER_LOG_CHANNEL_ID`: Paper server log channel (optional)
+- `DISCORD_FORGE_LOG_CHANNEL_ID`: Forge server log channel (optional)
+- `DISCORD_STATUS_CHANNEL_ID`: Real-time status display channel (optional)
+
+### Roles/Users
+- `DISCORD_ADMIN_ID`: Admin role ID
+- `DISCORD_MOD_ID`: Mod role ID
+- `DISCORD_OWNER_ID`: Bot owner user ID (for `/shell`)
+- `DISCORD_USER_IDS`: Allowed user IDs (comma-separated)
+
+### Notion (Backup)
+- `NOTION_TOKEN`: Notion API token
+- `NOTION_DB_ID`: Notion database ID for backups
+
 ## Sensitive Data Handling
 - **Public Repo**: This codebase is public.
 - **Secrets**:
