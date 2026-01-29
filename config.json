@@ -10,7 +10,7 @@
 		},
 		"forge": {
 			"name": "Forge (Better MC)",
-			"use_script": "./start.sh",
+			"use_script": "./run.sh",
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
 			"auto_start": true
