@@ -9,7 +9,15 @@
 - **Install**: `pip install -r requirements.txt`
 - **Run Local**: `python bot.py`
   - Ensure `.env` exists with `DISCORD_TOKEN`.
-- **Lint**: `ruff check . --select=E,F,W --ignore=E501`
+
+## Code Quality (必須)
+コードを変更したら、push前に必ず以下を実行:
+```bash
+ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+```
+- CIで同じチェックが走るため、ローカルで通らないコードはpushしない
+- `--fix` オプションで自動修正可能
+- エラーが出たら修正してからcommit
 
 ## Architecture: Cogs System
 The bot uses `discord.py` Cogs extension pattern in `cogs/`.

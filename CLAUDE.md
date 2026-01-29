@@ -1,3 +1,11 @@
+# Pre-commit checklist (必須)
+コード変更後、push前に必ず実行:
+```bash
+ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+```
+- CIで同じチェックが走るため、ローカルで通らないコードはpushしない
+- `--fix` オプションで自動修正可能
+
 # Bash commands
 - `pip install -r requirements.txt`: Install dependencies
 - `python bot.py`: Run bot locally (requires .env)
