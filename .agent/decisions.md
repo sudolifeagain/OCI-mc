@@ -99,7 +99,7 @@ else:
 ```json
 // config.json
 "paper": { "jar": "paper.jar", "memory": "4G", ... }  // 直接起動
-"forge": { "use_script": "./start.sh", ... }          // スクリプト起動
+"forge": { "use_script": "./run.sh", ... }            // Forgeデフォルトスクリプト
 ```
 
 ### 重要な教訓
