@@ -2,8 +2,9 @@
 	"servers": {
 		"paper": {
 			"name": "Paper (Vanilla)",
-			"use_script": "./start.sh",
+			"jar": "paper.jar",
 			"cwd": "/opt/minecraft/paper",
+			"memory": "4G",
 			"port": 25565,
 			"auto_start": true
 		},

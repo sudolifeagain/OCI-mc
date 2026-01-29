@@ -79,37 +79,40 @@ on_ready で自動起動
 ## stdoutバッファリング問題 (2026-01)
 
 ### 問題
-起動ログはDiscordに転送されるが、コマンド実行結果やゲーム内コマンドのログが転送されない。
+シェルスクリプト経由でJavaを起動すると、ログがDiscordに転送されない。
 
 ### 原因
-パイプ接続時、javaはブロックバッファリング（デフォルト4KB〜64KB）を使用する。
-- 起動時: 大量のログ出力でバッファがフラッシュされる → 転送される
-- 運用時: 個別のログ行はバッファに溜まったまま → 転送されない
+シェルスクリプト経由の起動では、シェルのバッファリングによりstdoutがブロックバッファになる。
+- `stdbuf -oL`、`unbuffer`、`script` コマンドは **Javaには効かない**（Javaは独自のI/Oシステムを使用）
 
 ### 解決策
-`stdbuf -oL` でstdoutをline bufferedに強制する。
+**Paperは直接Java起動、Forgeはスクリプト起動**
 
-```sh
-# /opt/minecraft/paper/start.sh
-#!/usr/bin/env sh
-stdbuf -oL java @user_jvm_args.txt -jar paper.jar "$@"
+```python
+# server_manager.py
+if self.use_script:
+    cmd = [self.use_script, 'nogui']  # Forge用
+else:
+    cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']  # Paper用
+```
 
-# /opt/minecraft/forge/start.sh
-#!/usr/bin/env sh
-stdbuf -oL ./run.sh "$@"
+```json
+// config.json
+"paper": { "jar": "paper.jar", "memory": "4G", ... }  // 直接起動
+"forge": { "use_script": "./start.sh", ... }          // スクリプト起動
 ```
 
 ### 重要な教訓
 
-1. **パイプ接続時のバッファリング動作**
-   - ターミナル接続: line buffered（行単位でフラッシュ）
-   - パイプ接続: block buffered（バッファが満杯でフラッシュ）
+1. **直接起動 vs スクリプト起動**
+   - 直接起動: Javaのstdoutが直接パイプに接続 → リアルタイム転送
+   - スクリプト起動: シェルを経由 → バッファリング問題
 
-2. **`stdbuf -oL` の意味**
-   - `-o`: stdout に対して
-   - `L`: line buffered モードを強制
+2. **試みたが効果がなかった方法**
+   - `stdbuf -oL`: Javaは libc を使わないため無効
+   - `unbuffer`: 同様に無効
+   - `script -qfc`: 制御文字が混入する問題
+   - log4j2設定変更: Paper側で上書きされる
 
-3. **注意点**
-   - `stdbuf` はLinux coreutilsに含まれる（macOSでは `gstdbuf`）
-   - リモートサーバー上のstart.shを直接編集する必要がある（GitHubリポジトリ外）
-   - **`stdbuf -oL`がないとログ転送が完全に動作しない**: Pythonの`asyncio.subprocess`の`readline()`はデータがバッファに溜まるまでブロックし続ける
+3. **Forgeがスクリプト必須な理由**
+   - `run.sh` がForge起動に必要なクラスパス等を設定している
