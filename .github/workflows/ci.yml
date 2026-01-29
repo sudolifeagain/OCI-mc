@@ -43,10 +43,10 @@ jobs:
         import psutil
         import yaml
 
-        # Test local modules can be imported
-        import utils.server_manager
-        import utils.permissions
-        import utils.plugin_manager
+        # Test local module imports with actual exports
+        from utils.server_manager import ServerInstance, MultiServerManager
+        from utils.permissions import check_role
+        from utils.plugin_manager import list_plugins, update_plugin, check_all_plugin_updates
 
         print('All imports successful')
         "
