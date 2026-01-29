@@ -26,11 +26,11 @@ class StatusDisplay(commands.Cog):
 
         now = datetime.now(JST)
         embed = discord.Embed(
-            title="🔴 サーバー参加状況", 
+            title="🔴 サーバー参加状況",
             description=f"最終更新: {now.strftime('%Y/%m/%d %H:%M:%S')} (JST)",
             color=0x00ff00
         )
-        
+
         for server_id, server in self.bot.server_manager.servers.items():
             if not server.is_running():
                 embed.add_field(name=f"❌ {server.name}", value="Offline", inline=False)
@@ -41,7 +41,7 @@ class StatusDisplay(commands.Cog):
             if players:
                 # 参加時間の古い順（長く居る順）にソート
                 sorted_players = sorted(players.items(), key=lambda item: item[1])
-                
+
                 for name, join_time in sorted_players:
                     elapsed_seconds = int(time.time() - join_time)
                     lines.append(f"👤 **{name}** ({self.format_duration(elapsed_seconds)})")
@@ -70,7 +70,7 @@ class StatusDisplay(commands.Cog):
                     return msg
         except Exception:
             pass # 履歴取得エラー時は新規送信
-            
+
         return await channel.send(embed=embed, silent=True)
 
     def format_duration(self, seconds):

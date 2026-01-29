@@ -4,7 +4,7 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from settings import CONFIG, DISCORD_OWNER_ID, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
+from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 
 
@@ -35,14 +35,14 @@ class BasicControl(commands.Cog):
     async def start(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
         if not check_role(interaction, 'start'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
-        
+
         server_instance = self.server_manager.get_server(server)
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
-        
+
         if self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は既に起動しています。", ephemeral=True)
-            
+
         await interaction.response.send_message(f"🚀 {server_instance.name} の起動コマンドを送信しました。", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /start server={server}")
         await self.server_manager.start_server(server)
@@ -53,11 +53,11 @@ class BasicControl(commands.Cog):
     async def stop(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
         if not check_role(interaction, 'stop'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
-        
+
         server_instance = self.server_manager.get_server(server)
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
-        
+
         if self.server_manager.is_running(server):
             await self.server_manager.stop_server(server)
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop server={server}")
@@ -71,18 +71,18 @@ class BasicControl(commands.Cog):
     async def restart(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
         if not check_role(interaction, 'restart'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
-        
+
         server_instance = self.server_manager.get_server(server)
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
-        
+
         await interaction.response.send_message(f"🔄 {server_instance.name} を再起動しています...", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /restart server={server}")
-        
+
         if self.server_manager.is_running(server):
             await self.server_manager.stop_server(server)
             await self.server_manager.wait_for_exit(server)
-        
+
         await self.server_manager.start_server(server)
         await interaction.followup.send(f"✅ {server_instance.name} の再起動を開始しました。", silent=True)
 
@@ -117,7 +117,7 @@ class BasicControl(commands.Cog):
 
         if not self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
-        
+
         cmd = f"whitelist add {player_name.strip()}"
         await self.server_manager.write_stdin(server, cmd)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /whitelist_add server={server} {player_name}")
@@ -133,19 +133,19 @@ class BasicControl(commands.Cog):
         # サーバー指定がない場合は全サーバーのステータスを表示
         if server is None:
             embed = discord.Embed(title="🖥️ Minecraft Server Status", color=0x00ff00)
-            
+
             for server_id in SERVER_IDS:
                 server_instance = self.server_manager.get_server(server_id)
                 if not server_instance:
                     continue
-                
+
                 stats = self.server_manager.get_server_stats(server_id)
                 if stats:
                     seconds = int(stats['uptime_seconds'])
                     m, s = divmod(seconds, 60)
                     h, m = divmod(m, 60)
                     uptime_str = f"{h}h {m}m {s}s"
-                    
+
                     embed.add_field(
                         name=f"🟢 {server_instance.name}",
                         value=f"CPU: {stats['cpu_percent']}%\nMemory: {stats['memory_mb']:.1f} MB\nUptime: {uptime_str}",
@@ -157,32 +157,32 @@ class BasicControl(commands.Cog):
                         value="Offline",
                         inline=True
                     )
-            
+
             await interaction.response.send_message(embed=embed, silent=True)
         else:
             # 特定のサーバーのステータスを表示
             server_instance = self.server_manager.get_server(server)
             if not server_instance:
                 return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
-            
+
             stats = self.server_manager.get_server_stats(server)
             if not stats:
                 return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
-            
+
             seconds = int(stats['uptime_seconds'])
             m, s = divmod(seconds, 60)
             h, m = divmod(m, 60)
             uptime_str = f"{h}h {m}m {s}s"
-            
+
             embed = discord.Embed(title=f"🖥️ {server_instance.name} Status", color=0x00ff00)
             embed.add_field(name="Status", value="🟢 Running", inline=False)
             embed.add_field(name="CPU Usage", value=f"{stats['cpu_percent']}%", inline=True)
             embed.add_field(name="Memory Usage", value=f"{stats['memory_mb']:.1f} MB", inline=True)
             embed.add_field(name="Uptime", value=uptime_str, inline=True)
             embed.add_field(name="Port", value=str(server_instance.port), inline=True)
-            
+
             await interaction.response.send_message(embed=embed, silent=True)
-        
+
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status server={server}")
 
     @app_commands.command(name="shell", description="ホストOSでシェルコマンドを実行します(Ownerのみ)")
@@ -249,7 +249,7 @@ class BasicControl(commands.Cog):
             # サーバー名をプレフィックスとして付加
             server_name = server_instance.name
             full_text = "".join(messages)
-            
+
             while len(full_text) > 0:
                 chunk = full_text[:1850]
                 full_text = full_text[1850:]
@@ -257,7 +257,7 @@ class BasicControl(commands.Cog):
                     await channel.send(f"**[{server_name}]**\n```{chunk}```", silent=True)
                 except Exception as e:
                     print(f"Log send error: {e}")
-            
+
     @discord_log_sender.before_loop
     async def before_discord_log_sender(self):
         await self.bot.wait_until_ready()
