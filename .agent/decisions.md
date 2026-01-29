@@ -112,3 +112,4 @@ stdbuf -oL ./run.sh "$@"
 3. **注意点**
    - `stdbuf` はLinux coreutilsに含まれる（macOSでは `gstdbuf`）
    - リモートサーバー上のstart.shを直接編集する必要がある（GitHubリポジトリ外）
+   - **`stdbuf -oL`がないとログ転送が完全に動作しない**: Pythonの`asyncio.subprocess`の`readline()`はデータがバッファに溜まるまでブロックし続ける

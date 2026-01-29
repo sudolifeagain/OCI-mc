@@ -196,6 +196,7 @@ class ServerInstance:
             while True:
                 line = await self.process.stdout.readline()
                 if not line:
+                    logging.info(f"Server '{self.server_id}': stdout EOF reached")
                     break
                 text = line.decode('utf-8', errors='ignore')
 

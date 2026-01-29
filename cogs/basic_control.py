@@ -256,7 +256,7 @@ class BasicControl(commands.Cog):
                 try:
                     await channel.send(f"**[{server_name}]**\n```{chunk}```", silent=True)
                 except Exception as e:
-                    print(f"Log send error: {e}")
+                    logging.warning(f"Failed to send log to Discord: {e}")
 
     @discord_log_sender.before_loop
     async def before_discord_log_sender(self):
