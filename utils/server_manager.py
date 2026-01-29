@@ -13,8 +13,10 @@ class ServerInstance:
     def __init__(self, server_id: str, config: dict):
         self.server_id = server_id
         self.name = config.get("name", server_id)
-        self.use_script = config.get("use_script", "./start.sh")
+        self.jar = config.get("jar")
+        self.use_script = config.get("use_script")
         self.cwd = config["cwd"]
+        self.memory = config.get("memory", "4G")
         self.port = config.get("port", 25565)
         self.process = None
         self.log_queue = asyncio.Queue()
@@ -90,7 +92,12 @@ class ServerInstance:
         # 古いPIDファイルをクリーンアップ
         self._cleanup_pid_file()
 
-        cmd = [self.use_script, 'nogui']
+        # スクリプトを使う場合（Forge等）
+        if self.use_script:
+            cmd = [self.use_script, 'nogui']
+        else:
+            # jar ファイルを直接起動（Paper等）
+            cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']
 
         self.process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -196,7 +203,6 @@ class ServerInstance:
             while True:
                 line = await self.process.stdout.readline()
                 if not line:
-                    logging.info(f"Server '{self.server_id}': stdout EOF reached")
                     break
                 text = line.decode('utf-8', errors='ignore')
 
