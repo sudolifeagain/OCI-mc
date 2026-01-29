@@ -97,8 +97,7 @@ class ServerInstance:
             cwd=self.cwd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True  # ボットとは独立したセッションで起動
+            stderr=subprocess.STDOUT
         )
 
         # PIDファイルに保存
