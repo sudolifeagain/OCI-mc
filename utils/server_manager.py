@@ -18,6 +18,7 @@ class ServerInstance:
         self.cwd = config["cwd"]
         self.memory = config.get("memory", "4G")
         self.port = config.get("port", 25565)
+        self.log_forwarding = config.get("log_forwarding", True)
         self.process = None
         self.log_queue = asyncio.Queue()
         self.online_players = {}  # {name: join_timestamp}

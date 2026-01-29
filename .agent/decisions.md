@@ -116,3 +116,46 @@ else:
 
 3. **Forgeがスクリプト必須な理由**
    - `run.sh` がForge起動に必要なクラスパス等を設定している
+
+---
+
+## Forgeのログ転送無効化 (2026-01)
+
+### 問題
+Forgeサーバーはシェルスクリプト経由でしか起動できず、stdoutバッファリング問題が解決できない。
+また、大量のMOD（約590個）により起動時にログが大量出力され、Discord送信が追いつかない。
+
+### 決定
+Forgeのログ転送を無効化する。
+
+### 理由
+1. シェルスクリプト経由ではリアルタイムログ転送が不可能
+2. コマンド実行結果も見えないため、ログ転送の価値が低い
+3. 大量のログがキューに溜まり、メモリ消費・送信遅延の原因になる
+
+### 実装
+
+```json
+// config.json
+"forge": {
+    "log_forwarding": false,  // ログ転送を無効化
+    ...
+}
+```
+
+```python
+# server_manager.py
+self.log_forwarding = config.get("log_forwarding", True)
+
+# basic_control.py - discord_log_sender
+if not server_instance.log_forwarding:
+    # キューを空にしてスキップ（メモリリーク防止）
+    while not server_instance.log_queue.empty():
+        server_instance.log_queue.get_nowait()
+    continue
+```
+
+### 注意点
+- デフォルトは `true`（後方互換性維持）
+- 無効化時もキューは空にする（stdoutは読み続けるため）
+- Forgeのログ確認はSSHで `tail -f /opt/minecraft/forge/logs/latest.log`

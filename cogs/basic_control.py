@@ -227,6 +227,15 @@ class BasicControl(commands.Cog):
         """Queueに溜まったログをまとめてDiscordに送信"""
         # 全サーバーのログキューをチェック
         for server_id, server_instance in self.server_manager.servers.items():
+            # ログ転送が無効なサーバーはスキップ（キューを空にしてメモリリーク防止）
+            if not server_instance.log_forwarding:
+                while not server_instance.log_queue.empty():
+                    try:
+                        server_instance.log_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+                continue
+
             # サーバーごとのチャンネルを取得
             channel = self.bot.get_channel(get_log_channel_id(server_id))
             if not channel:
