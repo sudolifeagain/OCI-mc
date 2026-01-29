@@ -63,8 +63,9 @@ on_ready で自動起動
 
 3. **start.sh の内容**
    - `exec` は使わない
-   - Paper: `java @user_jvm_args.txt -jar paper.jar "$@"`
-   - Forge: `./run.sh "$@"`
+   - `stdbuf -oL` でline bufferingを強制（後述）
+   - Paper: `stdbuf -oL java @user_jvm_args.txt -jar paper.jar "$@"`
+   - Forge: `stdbuf -oL ./run.sh "$@"`
 
 ### 関連ファイル
 - `bot.py` - 自動起動処理
@@ -72,3 +73,42 @@ on_ready で自動起動
 - `utils/server_manager.py` - プロセス管理
 - `/opt/minecraft/*/start.sh` - 起動スクリプト（リモート）
 - `/opt/minecraft/*/user_jvm_args.txt` - JVMメモリ設定（リモート）
+
+---
+
+## stdoutバッファリング問題 (2026-01)
+
+### 問題
+起動ログはDiscordに転送されるが、コマンド実行結果やゲーム内コマンドのログが転送されない。
+
+### 原因
+パイプ接続時、javaはブロックバッファリング（デフォルト4KB〜64KB）を使用する。
+- 起動時: 大量のログ出力でバッファがフラッシュされる → 転送される
+- 運用時: 個別のログ行はバッファに溜まったまま → 転送されない
+
+### 解決策
+`stdbuf -oL` でstdoutをline bufferedに強制する。
+
+```sh
+# /opt/minecraft/paper/start.sh
+#!/usr/bin/env sh
+stdbuf -oL java @user_jvm_args.txt -jar paper.jar "$@"
+
+# /opt/minecraft/forge/start.sh
+#!/usr/bin/env sh
+stdbuf -oL ./run.sh "$@"
+```
+
+### 重要な教訓
+
+1. **パイプ接続時のバッファリング動作**
+   - ターミナル接続: line buffered（行単位でフラッシュ）
+   - パイプ接続: block buffered（バッファが満杯でフラッシュ）
+
+2. **`stdbuf -oL` の意味**
+   - `-o`: stdout に対して
+   - `L`: line buffered モードを強制
+
+3. **注意点**
+   - `stdbuf` はLinux coreutilsに含まれる（macOSでは `gstdbuf`）
+   - リモートサーバー上のstart.shを直接編集する必要がある（GitHubリポジトリ外）
