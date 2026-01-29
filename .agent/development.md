@@ -76,3 +76,14 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Slash Commands Only**: No `command_prefix`. Use `@app_commands.command`.
 - **Type Hinting**: Required for all function arguments and returns.
 - **Async**: Strictly used for all blocking operations (IO, Net, Subprocess).
+
+## Agent Skills
+`.claude/skills/`にドメイン固有の知識をパッケージ化。タスクに応じて自動的にトリガーされる。
+
+| Skill | 用途 | トリガー例 |
+|-------|------|-----------|
+| `/deploy` | デプロイワークフロー、CI | 「デプロイ手順」「CIが失敗」 |
+| `/process-management` | プロセス管理、ログ転送 | 「サーバーが停止しない」「ログが転送されない」 |
+| `/backup-notion` | バックアップ・復元 | 「バックアップが失敗」「ロールバック」 |
+
+**新規Skill作成時**: `.claude/skills/<name>/SKILL.md`を作成。YAMLフロントマターに`name`と`description`を記述。

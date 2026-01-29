@@ -1,9 +1,9 @@
 ---
-name: deploy-bot
+name: deploy
 description: Deploy workflow for OCI-mc Discord bot. Use when deploying code, pushing to master, checking GitHub Actions, or troubleshooting deployment failures.
 ---
 
-# Deploy Bot
+# Deploy
 
 ## Quick Start
 
