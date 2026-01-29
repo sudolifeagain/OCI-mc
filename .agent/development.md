@@ -1,10 +1,23 @@
 # Development Guide
 
+## Branch Strategy
+- **`develop`**: 開発用ブランチ。CIでlint/構文チェックのみ実行。デプロイなし。
+- **`master`**: 本番ブランチ。pushでOCIへ自動デプロイ（サーバー再起動を伴う）。
+- **Workflow**: `develop`で開発 → PRで`master`にマージ → 自動デプロイ
+
 ## Commands
 - **Install**: `pip install -r requirements.txt`
 - **Run Local**: `python bot.py`
   - Ensure `.env` exists with `DISCORD_TOKEN`.
-- **Lint**: Use `ruff` or `flake8`.
+
+## Code Quality (必須)
+コードを変更したら、push前に必ず以下を実行:
+```bash
+ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+```
+- CIで同じチェックが走るため、ローカルで通らないコードはpushしない
+- `--fix` オプションで自動修正可能
+- エラーが出たら修正してからcommit
 
 ## Architecture: Cogs System
 The bot uses `discord.py` Cogs extension pattern in `cogs/`.
@@ -48,6 +61,16 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - `DISCORD_PAPER_LOG_CHANNEL_ID`: Paperサーバー用
 - `DISCORD_FORGE_LOG_CHANNEL_ID`: Forgeサーバー用
 - 未設定時は `DISCORD_CHANNEL_ID` にフォールバック
+
+## Auto-Start Feature
+ボット起動時に `auto_start: true` のサーバーを自動起動。
+
+- **設定**: `config.json` の各サーバーに `"auto_start": true` を追加
+- **処理**: `bot.py` の `on_ready` で `_auto_start_servers()` を実行
+- **フラグ**: `_auto_start_done` でDiscord再接続時の重複起動を防止
+- **並列起動**: `asyncio.gather` で複数サーバーを同時起動
+
+**重要**: デプロイ（GitHub push → master）時にボット再起動でサーバーも終了するが、この機能で自動復旧する。
 
 ## Code Style
 - **Slash Commands Only**: No `command_prefix`. Use `@app_commands.command`.

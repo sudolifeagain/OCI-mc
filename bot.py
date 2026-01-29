@@ -23,10 +23,10 @@ class MyBot(commands.Bot):
             'cogs.plugin_system',
             'cogs.status_display'
         ]
-        
+
         for extension in initial_extensions:
             await self.load_extension(extension)
-            
+
         # Sync Slash Commands
         # Note: In production, it's better to sync to a specific guild for faster updates during dev,
         # or use a command to sync globally. For now, we sync globally on startup.

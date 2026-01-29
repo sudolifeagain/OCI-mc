@@ -1,3 +1,22 @@
+# Writing style (必須)
+ドキュメント、コミットメッセージ、PR/Issue/レビューコメントは以下を遵守:
+- **である調を使用**: ですます調は使わない
+- **絵文字禁止**: 不要な絵文字は使わない
+- **簡潔に**: 冗長な表現を避け、要点のみ記述
+- **プロフェッショナルな口調**: 曖昧な表現や感情的な表現を避ける
+
+例:
+- ✗ 「〜を追加しました！」 → ✓ 「〜を追加」
+- ✗ 「〜かもしれません」 → ✓ 「〜の可能性がある」
+
+# Pre-commit checklist (必須)
+コード変更後、push前に必ず実行:
+```bash
+ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+```
+- CIで同じチェックが走るため、ローカルで通らないコードはpushしない
+- `--fix` オプションで自動修正可能
+
 # Bash commands
 - `pip install -r requirements.txt`: Install dependencies
 - `python bot.py`: Run bot locally (requires .env)

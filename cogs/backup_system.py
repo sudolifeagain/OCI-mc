@@ -36,11 +36,11 @@ class BackupSystem(commands.Cog):
     def get_backup_dirs(self, server_id: str) -> list[str]:
         """指定されたサーバーのバックアップ対象ディレクトリを取得する"""
         backup_config = CONFIG.get("backup", {}).get("target_dirs", {})
-        
+
         # 新形式: サーバーごとにディレクトリが分かれている
         if isinstance(backup_config, dict):
             return backup_config.get(server_id, ["world"])
-        
+
         # 旧形式: 単一リスト（後方互換性）
         return backup_config if isinstance(backup_config, list) else ["world"]
 
@@ -58,7 +58,7 @@ class BackupSystem(commands.Cog):
             servers_to_backup = SERVER_IDS
         else:
             servers_to_backup = [server_id]
-        
+
         for srv_id in servers_to_backup:
             await self._backup_single_server(channel, srv_id)
 
@@ -69,10 +69,10 @@ class BackupSystem(commands.Cog):
             if channel:
                 await channel.send(f"❌ サーバー '{server_id}' が見つかりません。", silent=True)
             return
-        
+
         server_name = server_instance.name
         mc_dir = server_instance.cwd
-        
+
         try:
             # 1. サーバー停止と待機
             was_running = False
@@ -90,7 +90,7 @@ class BackupSystem(commands.Cog):
                 full_path = os.path.join(mc_dir, d)
                 if os.path.exists(full_path):
                     existing_dirs.append(d)
-            
+
             if not existing_dirs:
                 if channel:
                     await channel.send(f"[{server_name}] ⚠️ バックアップ対象のデータが存在しません（{', '.join(backup_dirs)}）", silent=True)
@@ -118,7 +118,7 @@ class BackupSystem(commands.Cog):
                                     zipf.write(file_path, arcname)
                         else:
                             zipf.write(full_path, os.path.basename(full_path))
-            
+
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, create_zip)
 
@@ -157,13 +157,13 @@ class BackupSystem(commands.Cog):
     async def backup(self, interaction: discord.Interaction, server: str | None = None):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
-        
+
         if server:
             server_instance = self.server_manager.get_server(server)
             msg = f"[{server_instance.name}] バックアップ処理を開始します..."
         else:
             msg = "全サーバーのバックアップ処理を開始します..."
-        
+
         await interaction.response.send_message(msg, silent=True)
         await self.perform_backup(interaction.channel, server)
 
@@ -203,7 +203,7 @@ class BackupSystem(commands.Cog):
 
         await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。", silent=True)
         status_msg = await interaction.original_response()
-        
+
         log_content = "🔄 ロールバック準備中... Notion情報を取得しています。\n"
 
         async def update_status(text):
@@ -237,7 +237,7 @@ class BackupSystem(commands.Cog):
                 if f"_{srv_id}_" in filename:
                     detected_server_id = srv_id
                     break
-            
+
             server_instance = self.server_manager.get_server(detected_server_id)
             mc_dir = server_instance.cwd if server_instance else "/opt/minecraft"
             server_name = server_instance.name if server_instance else detected_server_id
@@ -253,7 +253,7 @@ class BackupSystem(commands.Cog):
 
             # --- 2. バックアップのダウンロード ---
             await update_status(f"⬇️ ダウンロード中: {filename} ...")
-            
+
             save_path = os.path.join(mc_dir, filename)
             logging.info(f"[Rollback] Downloading backup from {download_url} to {save_path}")
 
@@ -311,25 +311,25 @@ class BackupSystem(commands.Cog):
                             logging.info(f"[Rollback] Unzipped {len(zipf.namelist())} files.")
                     await loop.run_in_executor(None, unzip_safe)
                     await update_status("ZIP展開完了。")
-                    
+
                 elif is_tar:
                     def untar_safe():
                         with tarfile.open(save_path, "r") as tar:
                             tar.extractall(path=mc_dir)
-                            logging.info(f"[Rollback] Untarred files.")
+                            logging.info("[Rollback] Untarred files.")
                     await loop.run_in_executor(None, untar_safe)
                     await update_status("TAR展開完了。")
-                
+
                 else:
                     error_msg = f"❌ 未知のファイル形式です. Filename: {filename}"
                     logging.error(f"[Rollback] {error_msg}")
                     await update_status(error_msg)
                     return
-                
+
                 logging.info("[Rollback] Extraction complete. Cleaning up archive file.")
                 if os.path.exists(save_path):
                     os.remove(save_path)
-                
+
                 logging.info("[Rollback] Rollback process finished successfully.")
                 await update_status("展開処理終了。")
 
@@ -354,7 +354,7 @@ class BackupSystem(commands.Cog):
                 channel = self.bot.get_channel(CHANNEL_ID)
                 # 全サーバーをバックアップ
                 await self.perform_backup(channel, None)
-    
+
     @scheduler.before_loop
     async def before_scheduler(self):
         await self.bot.wait_until_ready()

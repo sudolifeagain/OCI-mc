@@ -7,7 +7,7 @@ from settings import CONFIG, SERVERS_CONFIG, DEFAULT_SERVER
 from utils.permissions import check_role
 from utils.plugin_manager import (
     list_plugins, format_plugins_list, get_plugins_dir,
-    update_plugin, update_all_plugins, check_all_plugin_updates
+    update_all_plugins, check_all_plugin_updates
 )
 
 
@@ -38,8 +38,8 @@ class PluginSystem(commands.Cog):
     )
     @app_commands.choices(server=SERVER_CHOICES)
     async def plugins(
-        self, 
-        interaction: discord.Interaction, 
+        self,
+        interaction: discord.Interaction,
         server: str = DEFAULT_SERVER,
         detailed: bool = False
     ):
@@ -52,13 +52,13 @@ class PluginSystem(commands.Cog):
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
         await interaction.response.send_message("プラグイン一覧を取得中...", silent=True)
-        
+
         try:
             plugins_dir = get_plugins_dir(server_instance.cwd)
-            
+
             loop = asyncio.get_event_loop()
             plugins = await loop.run_in_executor(None, list_plugins, plugins_dir)
-            
+
             if not plugins:
                 await interaction.edit_original_response(
                     content=f"[{server_instance.name}] プラグインが見つかりませんでした。\nパス: `{plugins_dir}`"
@@ -67,7 +67,7 @@ class PluginSystem(commands.Cog):
 
             # フォーマット
             output = f"**[{server_instance.name}]** {format_plugins_list(plugins, detailed=detailed)}"
-            
+
             # Discordメッセージ制限対応
             if len(output) > 2000:
                 # 長すぎる場合は分割
@@ -108,36 +108,36 @@ class PluginSystem(commands.Cog):
             )
 
         await interaction.response.send_message(
-            f"🔄 [{server_instance.name}] プラグイン更新を開始します...", 
+            f"🔄 [{server_instance.name}] プラグイン更新を開始します...",
             silent=True
         )
-        
+
         server_name = server_instance.name
         plugins_dir = get_plugins_dir(server_instance.cwd)
         loop = asyncio.get_event_loop()
-        
+
         try:
             # 1. 更新チェック
             await interaction.edit_original_response(
                 content=f"📋 [{server_name}] 更新をチェック中..."
             )
-            
+
             check_results = await loop.run_in_executor(
                 None, check_all_plugin_updates, plugins_dir, plugins_config
             )
-            
+
             # 更新が必要なプラグインを抽出
             plugins_to_update = {
                 r["plugin_name"]: plugins_config[r["plugin_name"]]
                 for r in check_results if r["has_update"] and not r["error"]
             }
-            
+
             if not plugins_to_update:
                 await interaction.edit_original_response(
                     content=f"✅ [{server_name}] すべてのプラグインが最新です。更新は不要です。"
                 )
                 return
-            
+
             # 2. サーバー停止（更新がある場合のみ）
             was_running = False
             if self.server_manager.is_running(server):
@@ -152,16 +152,16 @@ class PluginSystem(commands.Cog):
             await interaction.edit_original_response(
                 content=f"⬇️ [{server_name}] {len(plugins_to_update)}件のプラグインを更新中..."
             )
-            
+
             results = await loop.run_in_executor(
                 None, update_all_plugins, plugins_dir, plugins_to_update
             )
-            
+
             # 4. 結果表示
             success_count = sum(1 for r in results if r["success"])
             fail_count = len(results) - success_count
             skipped_count = len(plugins_config) - len(plugins_to_update)
-            
+
             output_lines = [f"**[{server_name}] プラグイン更新結果**\n```"]
             for r in results:
                 status = "✅" if r["success"] else "❌"
@@ -170,14 +170,14 @@ class PluginSystem(commands.Cog):
                 output_lines.append(f"⏭️ {skipped_count}件はスキップ (最新)")
             output_lines.append("```")
             output_lines.append(f"\n更新: {success_count} / 失敗: {fail_count} / スキップ: {skipped_count}")
-            
+
             # 5. サーバー再起動
             if was_running:
                 output_lines.append(f"\n🚀 [{server_name}] サーバーを再起動中...")
                 await interaction.edit_original_response(content="\n".join(output_lines))
                 await self.server_manager.start_server(server)
                 output_lines[-1] = f"✅ [{server_name}] サーバーを再起動しました。"
-            
+
             await interaction.edit_original_response(content="\n".join(output_lines))
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /update_plugins server={server}")
 
@@ -211,45 +211,45 @@ class PluginSystem(commands.Cog):
             )
 
         await interaction.response.send_message(
-            f"📋 [{server_instance.name}] プラグイン更新をチェック中...", 
+            f"📋 [{server_instance.name}] プラグイン更新をチェック中...",
             silent=True
         )
-        
+
         server_name = server_instance.name
         plugins_dir = get_plugins_dir(server_instance.cwd)
         loop = asyncio.get_event_loop()
-        
+
         try:
             results = await loop.run_in_executor(
                 None, check_all_plugin_updates, plugins_dir, plugins_config
             )
-            
+
             update_count = sum(1 for r in results if r["has_update"])
             error_count = sum(1 for r in results if r["error"])
-            
+
             output_lines = [f"**📋 [{server_name}] プラグイン更新チェック**\n```"]
             for r in results:
                 name = r['plugin_name']
                 installed = r['installed_version']
                 latest = r['latest_version']
-                
+
                 if r["error"]:
                     output_lines.append(f"⚠️ {name}: {r['error']}")
                 elif r["has_update"]:
                     output_lines.append(f"⬆️ {name}: {installed} → {latest}")
                 else:
                     output_lines.append(f"✅ {name}: {installed} (最新)")
-            
+
             output_lines.append("```")
-            
+
             if update_count > 0:
                 output_lines.append(f"\n更新が必要: **{update_count}件** `/update_plugins` で更新できます")
             else:
                 output_lines.append("\n✅ すべてのプラグインが最新です")
-            
+
             if error_count > 0:
                 output_lines.append(f"\n⚠️ チェックできなかったプラグイン: {error_count}件")
-            
+
             await interaction.edit_original_response(content="\n".join(output_lines))
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /check_updates server={server}")
 
