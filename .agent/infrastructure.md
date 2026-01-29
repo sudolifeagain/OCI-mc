@@ -9,8 +9,13 @@
 - **/opt/minecraft/**: Root
   - **paper/**: Paper server (Vanilla compatible)
     - `paper.jar`, `plugins/`, `world/`
+    - `start.sh` - 起動スクリプト (`java @user_jvm_args.txt -jar paper.jar`)
+    - `user_jvm_args.txt` - JVMメモリ設定 (`-Xmx4G -Xms4G`)
+    - `.paper.pid` - PIDファイル（ボット起動時に自動生成）
   - **forge/**: Forge server (Modded, Better MC 1.20.1)
     - `run.sh`, `mods/` (~590 mods, 1.1GB), `world/`
+    - `start.sh` - 起動スクリプト (`./run.sh`)
+    - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
     - Memory: 10G, Port: 25566
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
@@ -46,15 +51,22 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 ### Important Notes
 - **Discord Logs**: Only work when server is started via Bot (`/start`), not SSH
 - **Bot monitors stdout** of processes it spawns; SSH-started servers are invisible to Bot
+- **start.sh に `exec` を使わない**: stdoutパイプが壊れてログ転送が動作しなくなる（詳細: `.agent/decisions.md`）
 
 ## Deployment Flow
-1. **GitHub Actions**: Triggered on push to `master`.
+1. **GitHub Actions**: Triggered on push to `master` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
    - Excludes: `.env`, `.git`, `venv`.
 3. **Systemd**:
    - Service: `discord-bot`
    - Path: `/etc/systemd/system/discord-bot.service`
    - Restarted automatically after deploy.
+4. **Auto-Start**: ボット起動後、`auto_start: true` のサーバーを自動起動。
+
+### Branch Strategy
+- **`develop`**: 開発用。CIでlint/構文チェックのみ。デプロイなし。
+- **`master`**: 本番用。pushでOCIへ自動デプロイ。
+- **注意**: masterへのpushはサーバー再起動を伴う。
 
 ## Environment Variables (.env)
 
