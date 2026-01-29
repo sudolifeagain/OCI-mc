@@ -45,7 +45,7 @@ jobs:
 
         # Test local module imports
         from utils.server_manager import ServerInstance, MultiServerManager
-        from utils.permissions import check_permission, has_any_role
+        from utils.permissions import check_role
         from utils.plugin_manager import PluginManager
 
         print('All imports successful')
