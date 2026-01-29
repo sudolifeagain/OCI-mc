@@ -182,20 +182,28 @@ class ServerInstance:
                 try:
                     self.process.stdin.write(f"{command_str}\n".encode())
                     await self.process.stdin.drain()
+                    logging.info(f"Server '{self.server_id}': Sent command to stdin: {command_str}")
                     return True
                 except Exception as e:
-                    logging.warning(f"Failed to write to stdin: {e}")
+                    logging.warning(f"Server '{self.server_id}': Failed to write to stdin: {e}")
+            else:
+                logging.warning(f"Server '{self.server_id}': stdin is None")
+        else:
+            logging.warning(f"Server '{self.server_id}': process not available or already terminated")
         return False
 
     async def _read_stdout(self):
         """標準出力を非同期で読み取り、Queueに入れる"""
         if not self.process or not self.process.stdout:
+            logging.warning(f"Server '{self.server_id}': No process or stdout available")
             return
 
+        logging.info(f"Server '{self.server_id}': Starting stdout reader")
         try:
             while True:
                 line = await self.process.stdout.readline()
                 if not line:
+                    logging.info(f"Server '{self.server_id}': stdout EOF reached")
                     break
                 text = line.decode('utf-8', errors='ignore')
 
