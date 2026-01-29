@@ -9,12 +9,12 @@
 - **/opt/minecraft/**: Root
   - **paper/**: Paper server (Vanilla compatible)
     - `paper.jar`, `plugins/`, `world/`
-    - `start.sh` - 起動スクリプト (`java @user_jvm_args.txt -jar paper.jar`)
+    - `start.sh` - 起動スクリプト (`stdbuf -oL java @user_jvm_args.txt -jar paper.jar`)
     - `user_jvm_args.txt` - JVMメモリ設定 (`-Xmx4G -Xms4G`)
     - `.paper.pid` - PIDファイル（ボット起動時に自動生成）
   - **forge/**: Forge server (Modded, Better MC 1.20.1)
     - `run.sh`, `mods/` (~590 mods, 1.1GB), `world/`
-    - `start.sh` - 起動スクリプト (`./run.sh`)
+    - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
     - Memory: 10G, Port: 25566
   - **bot/**: This repository deployment

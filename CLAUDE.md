@@ -32,3 +32,9 @@ ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 - **Deploy**: Push to `master` to trigger OCI deployment via GitHub Actions
 - **Secrets**: Do NOT commit real IPs or keys. Use `.env` or GitHub Secrets
 - **Documentation**: See `.agent/infrastructure.md` for server paths and `.agent/development.md` for architecture details
+
+# Skills
+`.claude/skills/`にドメイン固有の知識がパッケージ化されている。関連タスクで自動的にトリガーされる。
+- `/deploy`: デプロイワークフロー、CI、トラブルシューティング
+- `/process-management`: サーバープロセス管理、ログ転送の仕組み
+- `/backup-notion`: バックアップ・復元、Notion連携

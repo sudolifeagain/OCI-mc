@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(scp:*)",
+      "Bash(git rm:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(gh run:*)",
+      "Bash(ruff check:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr edit:*)",
+      "Skill"
+    ]
+  }
+}
