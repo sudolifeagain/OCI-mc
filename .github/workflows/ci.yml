@@ -53,7 +53,7 @@ jobs:
 
     - name: Run ruff linter
       run: |
-        ruff check . --select=E,F,W --ignore=E501,W503 --exclude=venv
+        ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 
   notify:
     needs: lint

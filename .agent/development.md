@@ -9,7 +9,7 @@
 - **Install**: `pip install -r requirements.txt`
 - **Run Local**: `python bot.py`
   - Ensure `.env` exists with `DISCORD_TOKEN`.
-- **Lint**: `ruff check . --select=E,F,W --ignore=E501,W503`
+- **Lint**: `ruff check . --select=E,F,W --ignore=E501`
 
 ## Architecture: Cogs System
 The bot uses `discord.py` Cogs extension pattern in `cogs/`.
