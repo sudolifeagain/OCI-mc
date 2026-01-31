@@ -50,16 +50,14 @@ def check_role(ctx_or_interaction, action):
     return False
 
 
-def save_config():
-    """config.jsonに現在の設定を保存する（rolesは除外）"""
+def save_user_permissions():
+    """user_permissions.jsonに保存する"""
     try:
-        # rolesは.envから読み込まれるため、保存対象から除外
-        config_to_save = {k: v for k, v in CONFIG.items() if k != 'roles'}
-        with open('config.json', 'w', encoding='utf-8') as f:
-            json.dump(config_to_save, f, indent='\t', ensure_ascii=False)
+        with open('user_permissions.json', 'w', encoding='utf-8') as f:
+            json.dump(CONFIG.get('user_permissions', {}), f, indent='\t', ensure_ascii=False)
         return True
     except Exception as e:
-        logging.error(f"Failed to save config: {e}")
+        logging.error(f"Failed to save user_permissions: {e}")
         return False
 
 
@@ -74,7 +72,7 @@ def add_user_permission(user_id: int, action: str) -> bool:
 
     if action not in CONFIG['user_permissions'][user_id_str]:
         CONFIG['user_permissions'][user_id_str].append(action)
-        return save_config()
+        return save_user_permissions()
     return True
 
 
@@ -92,7 +90,7 @@ def remove_user_permission(user_id: int, action: str) -> bool:
         # 空になったら削除
         if not CONFIG['user_permissions'][user_id_str]:
             del CONFIG['user_permissions'][user_id_str]
-        return save_config()
+        return save_user_permissions()
     return True
 
 
@@ -103,7 +101,7 @@ def add_role_permission(role_name: str, action: str) -> bool:
 
     if role_name not in CONFIG['permissions'][action]:
         CONFIG['permissions'][action].append(role_name)
-        return save_config()
+        return save_user_permissions()
     return True
 
 
@@ -114,7 +112,7 @@ def remove_role_permission(role_name: str, action: str) -> bool:
 
     if role_name in CONFIG['permissions'][action]:
         CONFIG['permissions'][action].remove(role_name)
-        return save_config()
+        return save_user_permissions()
     return True
 
 

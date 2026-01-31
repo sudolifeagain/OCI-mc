@@ -22,11 +22,6 @@
 		}
 	},
 	"default_server": "paper",
-	"roles": {
-		"admin": null,
-		"mod": null,
-		"owner": null
-	},
 	"permissions": {
 		"start": [
 			"admin",
@@ -56,7 +51,6 @@
 			"user"
 		]
 	},
-	"user_permissions": {},
 	"backup": {
 		"target_dirs": {
 			"paper": [
