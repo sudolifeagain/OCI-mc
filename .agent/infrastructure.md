@@ -53,6 +53,32 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 - **Bot monitors stdout** of processes it spawns; SSH-started servers are invisible to Bot
 - **start.sh に `exec` を使わない**: stdoutパイプが壊れてログ転送が動作しなくなる（詳細: `.agent/decisions.md`）
 
+### Memory Configuration
+
+#### Swap Settings
+スワップは無効化済み。Minecraftサーバーのパフォーマンス優先のため。
+
+```bash
+# 現在のスワップ状態を確認
+swapon --show
+free -h
+sysctl vm.swappiness
+
+# スワップが有効な場合の無効化手順
+sudo swapoff -a                                           # 即時無効化
+echo 'vm.swappiness=0' | sudo tee /etc/sysctl.d/99-disable-swap.conf
+sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
+```
+
+#### 設定ファイル
+- `/etc/sysctl.d/99-disable-swap.conf`: `vm.swappiness=0`
+- `/etc/fstab`: スワップエントリなし
+
+#### 注意点
+- **OOM Killer**: メモリ枯渇時はスワップへの退避ではなくプロセス強制終了が発生
+- **監視推奨**: `free -h`でメモリ使用量を定期確認
+- 現在のメモリ構成: 17GB（Forge 10GB + Paper 4GB + Bot + OS）
+
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `master` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
