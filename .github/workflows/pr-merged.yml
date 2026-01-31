@@ -22,11 +22,14 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
-          # コミット一覧を取得（最大10件）
-          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[:10] | .[] | "├─ " + .messageHeadline' | sed '$ s/├─/└─/')
+          # コミット一覧を取得（最大10件）、改行を\nにエスケープ
+          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[:10] | .[] | "├─ " + .messageHeadline' | sed '$ s/├─/└─/' | sed ':a;N;$!ba;s/\n/\\n/g')
+
+          # PRタイトルの特殊文字をエスケープ
+          ESCAPED_TITLE=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
 
           # 通知送信
-          DESC="#${PR_NUMBER} ${PR_TITLE}\n\n${COMMITS}"
+          DESC="#${PR_NUMBER} ${ESCAPED_TITLE}\\n\\n${COMMITS}"
           curl -H "Content-Type: application/json" \
             -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ PRマージ: ${BASE_BRANCH}\",\"description\":\"$DESC\",\"url\":\"$PR_URL\",\"color\":3066993}]}" \
             ${{ secrets.DISCORD_WEBHOOK_URL }}
