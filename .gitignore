@@ -21,4 +21,7 @@ env/
 # Reference files
 ref/
 
+# Dynamic permissions (server-specific)
+user_permissions.json
+
 

@@ -53,6 +53,72 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 - **Bot monitors stdout** of processes it spawns; SSH-started servers are invisible to Bot
 - **start.sh に `exec` を使わない**: stdoutパイプが壊れてログ転送が動作しなくなる（詳細: `.agent/decisions.md`）
 
+### RCON設定
+Discord botからMinecraftサーバーにコマンドを送信するためにRCONを使用。
+
+#### サーバー側設定 (server.properties)
+```properties
+# Paper (port 25575)
+enable-rcon=true
+rcon.port=25575
+rcon.password=<secure_password>
+
+# Forge (port 25576)
+enable-rcon=true
+rcon.port=25576
+rcon.password=<secure_password>
+```
+
+#### Bot側設定 (.env)
+```bash
+PAPER_RCON_PASSWORD=<password>
+FORGE_RCON_PASSWORD=<password>
+```
+
+#### config.json
+各サーバーに`rcon_port`と`rcon_password_env`を設定:
+```json
+{
+  "servers": {
+    "paper": {
+      "rcon_port": 25575,
+      "rcon_password_env": "PAPER_RCON_PASSWORD"
+    }
+  }
+}
+```
+
+#### 使用方法
+- `/cmd <command> [server]`: RCONでコマンド実行、結果を表示
+
+#### セキュリティ
+- RCONポート（25575/25576）は外部に公開しない
+- OCI Security Listで許可されていないことを確認
+- パスワードは16文字以上のランダム文字列を推奨
+
+### 権限管理
+
+#### ファイル構成
+| ファイル | 内容 | Git管理 |
+|---------|------|--------|
+| `config.json` | 静的設定（サーバー設定、権限マッピング） | Yes |
+| `user_permissions.json` | 動的権限（`/permission`で変更） | No（.gitignore） |
+| `.env` | ロールID、トークン、パスワード | No |
+
+#### 権限チェックの流れ
+1. Owner（`DISCORD_OWNER_ID`）→ 常に許可
+2. `user_permissions.json` にユーザーIDとアクションが存在 → 許可
+3. `config.json`の`permissions`でロールにアクションが割り当て → 許可
+
+#### コマンド
+- `/permission list`: 現在の権限一覧
+- `/permission user <user> <action> <allow/deny>`: ユーザー権限設定（永続化）
+- `/permission role <role> <action> <allow/deny>`: ロール権限設定（**一時的、再起動で消失**）
+
+#### 注意事項
+- ユーザー権限は`user_permissions.json`に保存され、デプロイ後も維持される
+- ロール権限の変更はメモリ上のみ。永続化するには`config.json`を直接編集する
+
 ### Memory Configuration
 
 #### Swap Settings
@@ -82,7 +148,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
-   - Excludes: `.env`, `.git`, `venv`.
+   - Excludes: `.env`, `.git`, `venv`, `user_permissions.json`
 3. **Systemd**:
    - Service: `discord-bot`
    - Path: `/etc/systemd/system/discord-bot.service`
@@ -110,6 +176,10 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_MOD_ID`: Mod role ID
 - `DISCORD_OWNER_ID`: Bot owner user ID (for `/shell`)
 - `DISCORD_USER_IDS`: Allowed user IDs (comma-separated)
+
+### RCON
+- `PAPER_RCON_PASSWORD`: Paper server RCON password
+- `FORGE_RCON_PASSWORD`: Forge server RCON password
 
 ### Notion (Backup)
 - `NOTION_TOKEN`: Notion API token

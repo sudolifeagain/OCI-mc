@@ -15,6 +15,20 @@ except FileNotFoundError:
     print("config.jsonが見つかりません。")
     sys.exit(1)
 
+# user_permissions.json 読み込み（なければ空辞書、壊れていても空辞書）
+USER_PERMISSIONS_FILE = 'user_permissions.json'
+try:
+    with open(USER_PERMISSIONS_FILE, 'r', encoding='utf-8') as f:
+        USER_PERMISSIONS = json.load(f)
+except FileNotFoundError:
+    USER_PERMISSIONS = {}
+except json.JSONDecodeError as e:
+    logging.warning(f"user_permissions.json is corrupted, using empty: {e}")
+    USER_PERMISSIONS = {}
+
+# CONFIGにマージ（既存コードとの互換性維持）
+CONFIG['user_permissions'] = USER_PERMISSIONS
+
 # 環境変数
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NOTION_TOKEN = os.getenv('NOTION_TOKEN')
@@ -59,11 +73,13 @@ else:
     # Fallback to single ID
     DISCORD_USER_IDS = int(os.getenv('DISCORD_USER_ID', 0))
 
-# config.json のロールIDを上書き
-CONFIG['roles']['admin'] = DISCORD_ADMIN_ID
-CONFIG['roles']['mod'] = DISCORD_MOD_ID
-CONFIG['roles']['owner'] = DISCORD_OWNER_ID
-CONFIG['roles']['user'] = DISCORD_USER_IDS # Can be int or list[int]
+# ロールIDを設定（.envから読み込み）
+CONFIG['roles'] = {
+    'admin': DISCORD_ADMIN_ID,
+    'mod': DISCORD_MOD_ID,
+    'owner': DISCORD_OWNER_ID,
+    'user': DISCORD_USER_IDS,  # Can be int or list[int]
+}
 
 # --- サーバー設定 ---
 # 新形式（servers配列）と旧形式（単一サーバー）の両方に対応

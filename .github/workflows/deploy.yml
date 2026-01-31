@@ -36,6 +36,7 @@ jobs:
           --exclude '.git' \
           --exclude '.env' \
           --exclude 'venv' \
+          --exclude 'user_permissions.json' \
           -e "ssh -i ~/.ssh/id_rsa" \
           ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
 
