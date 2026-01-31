@@ -18,4 +18,7 @@ env/
 # System
 .DS_Store
 
+# Reference files
+ref/
+
 

@@ -13,7 +13,8 @@
       "Bash(ruff check:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr edit:*)",
-      "Skill"
+      "Skill",
+      "Bash(gh repo edit:*)"
     ]
   }
 }
