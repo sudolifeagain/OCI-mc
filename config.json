@@ -6,7 +6,9 @@
 			"cwd": "/opt/minecraft/paper",
 			"memory": "4G",
 			"port": 25565,
-			"auto_start": true
+			"auto_start": true,
+			"rcon_port": 25575,
+			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		},
 		"forge": {
 			"name": "Forge (Better MC)",
@@ -14,7 +16,9 @@
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
 			"auto_start": true,
-			"log_forwarding": false
+			"log_forwarding": false,
+			"rcon_port": 25576,
+			"rcon_password_env": "FORGE_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
@@ -35,7 +39,7 @@
 			"admin",
 			"mod"
 		],
-		"command": [
+		"rcon": [
 			"admin"
 		],
 		"backup": [
@@ -52,6 +56,7 @@
 			"user"
 		]
 	},
+	"user_permissions": {},
 	"backup": {
 		"target_dirs": {
 			"paper": [

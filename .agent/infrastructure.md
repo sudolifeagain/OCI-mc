@@ -53,6 +53,44 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 - **Bot monitors stdout** of processes it spawns; SSH-started servers are invisible to Bot
 - **start.sh に `exec` を使わない**: stdoutパイプが壊れてログ転送が動作しなくなる（詳細: `.agent/decisions.md`）
 
+### RCON設定
+Discord botからMinecraftサーバーにコマンドを送信するためにRCONを使用。
+
+#### サーバー側設定 (server.properties)
+```properties
+# Paper (port 25575)
+enable-rcon=true
+rcon.port=25575
+rcon.password=<secure_password>
+
+# Forge (port 25576)
+enable-rcon=true
+rcon.port=25576
+rcon.password=<secure_password>
+```
+
+#### Bot側設定 (.env)
+```bash
+PAPER_RCON_PASSWORD=<password>
+FORGE_RCON_PASSWORD=<password>
+```
+
+#### config.json
+各サーバーに`rcon_port`と`rcon_password_env`を設定:
+```json
+{
+  "servers": {
+    "paper": {
+      "rcon_port": 25575,
+      "rcon_password_env": "PAPER_RCON_PASSWORD"
+    }
+  }
+}
+```
+
+#### 使用方法
+- `/cmd <command> [server]`: RCONでコマンド実行、結果を表示
+
 ### Memory Configuration
 
 #### Swap Settings
@@ -110,6 +148,10 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_MOD_ID`: Mod role ID
 - `DISCORD_OWNER_ID`: Bot owner user ID (for `/shell`)
 - `DISCORD_USER_IDS`: Allowed user IDs (comma-separated)
+
+### RCON
+- `PAPER_RCON_PASSWORD`: Paper server RCON password
+- `FORGE_RCON_PASSWORD`: Forge server RCON password
 
 ### Notion (Backup)
 - `NOTION_TOKEN`: Notion API token

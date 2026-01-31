@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
+from utils.rcon import get_rcon_client
 
 
 def get_server_choices():
@@ -86,23 +87,51 @@ class BasicControl(commands.Cog):
         await self.server_manager.start_server(server)
         await interaction.followup.send(f"✅ {server_instance.name} の再起動を開始しました。", silent=True)
 
-    @app_commands.command(name="cmd", description="サーバーコンソールにコマンドを送信します")
+    @app_commands.command(name="cmd", description="サーバーにRCONコマンドを送信します")
     @app_commands.describe(command_str="送信するコマンド", server="対象サーバー")
     @app_commands.choices(server=SERVER_CHOICES)
     async def cmd(self, interaction: discord.Interaction, command_str: str, server: str = DEFAULT_SERVER):
-        if not check_role(interaction, 'command'):
+        if not check_role(interaction, 'rcon'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
         server_instance = self.server_manager.get_server(server)
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
-        if self.server_manager.is_running(server):
-            await self.server_manager.write_stdin(server, command_str)
-            logging.info(f"User {interaction.user} ({interaction.user.id}) executed /cmd server={server} {command_str}")
-            await interaction.response.send_message(f"📝 [{server_instance.name}] コマンド送信: `{command_str}`", silent=True)
+        # RCONクライアントを取得
+        server_config = SERVERS_CONFIG.get(server, {})
+        rcon_client = get_rcon_client(server_config)
+
+        if not rcon_client:
+            return await interaction.response.send_message(
+                f"{server_instance.name} のRCONが設定されていません。",
+                ephemeral=True
+            )
+
+        await interaction.response.defer(thinking=True)
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /cmd server={server} {command_str}")
+
+        # RCONでコマンド実行
+        success, result = await rcon_client.execute(command_str)
+
+        if success:
+            # 結果が長い場合は分割
+            if len(result) > 1900:
+                await interaction.followup.send(f"📝 [{server_instance.name}] `{command_str}`")
+                while result:
+                    chunk = result[:1900]
+                    result = result[1900:]
+                    await interaction.followup.send(f"```{chunk}```")
+            elif result:
+                await interaction.followup.send(
+                    f"📝 [{server_instance.name}] `{command_str}`\n```{result}```"
+                )
+            else:
+                await interaction.followup.send(
+                    f"📝 [{server_instance.name}] `{command_str}` (応答なし)"
+                )
         else:
-            await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+            await interaction.followup.send(f"❌ [{server_instance.name}] エラー: {result}")
 
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
     @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")
