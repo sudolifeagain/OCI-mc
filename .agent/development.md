@@ -60,11 +60,16 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Role**: Discord上での権限管理
 - **Commands**:
   - `/permission list`: 権限設定一覧（Admin以上）
-  - `/permission user <user> <action> <mode>`: ユーザー権限設定（Owner限定）
-  - `/permission role <role> <action> <mode>`: ロール権限設定（Owner限定）
+  - `/permission user <user> <action> <mode>`: ユーザー権限設定（Owner限定、**永続化**）
+  - `/permission role <role> <action> <mode>`: ロール権限設定（Owner限定、**一時的**）
 - **Key Logic**:
   - `utils/permissions.py`で権限チェック・保存
-  - 設定は`user_permissions.json`に保存（デプロイで上書きされない）
+  - ユーザー権限: `user_permissions.json`に保存（デプロイで上書きされない）
+  - ロール権限: メモリ上のみ（再起動で消失、永続化は`config.json`直接編集）
+- **権限チェック順序**:
+  1. Owner（`DISCORD_OWNER_ID`）→ 常に許可
+  2. `user_permissions.json`にユーザーIDとアクションが存在 → 許可
+  3. `config.json`の`permissions`でロールにアクションが割り当て → 許可
 
 ## Player Tracking
 `ServerInstance` がプレイヤーの参加/退出をログから検知し `online_players` dict に保持。

@@ -215,7 +215,60 @@ def save_user_permissions():
 3. 以降のデプロイ: rsync除外のため上書きされない
 
 ### 関連ファイル
-- `settings.py` - 読み込み処理
+- `settings.py` - 読み込み処理（`json.JSONDecodeError`もフォールバック）
 - `utils/permissions.py` - 保存処理
+- `.gitignore` - `user_permissions.json`
+- `.github/workflows/deploy.yml` - rsync除外設定
+
+---
+
+## ロール権限の一時性 (2026-01)
+
+### 問題
+`/permission role`でロール権限を変更しても、保存先がない。
+
+### 背景
+- ユーザー権限は`user_permissions.json`に保存（デプロイで上書きされない）
+- ロール権限は`config.json`の`permissions`セクションに定義
+- `config.json`はGit管理下でデプロイ時に上書きされる
+
+### 検討した選択肢
+
+| 方式 | 内容 | 結果 |
+|------|------|------|
+| `permissions_override.json`を新規作成 | 別ファイルでオーバーライド | ❌ 複雑化、優先順位の混乱 |
+| `config.json`に保存 | 既存の保存先を使用 | ❌ デプロイで上書きされる |
+| 一時的な変更として文書化 | 再起動で消失することを明示 | ✅ 採用 |
+
+### 採用した解決策
+
+**一時的な変更として扱う**
+
+- `/permission role`の変更はメモリ上のみ
+- 再起動で消失
+- ユーザーには警告メッセージを表示
+- 永続化が必要な場合は`config.json`を直接編集
+
+### 理由
+
+1. ロール権限の変更は頻繁ではない（初期設定時のみ）
+2. 複雑なオーバーライド機構を避ける
+3. Git管理された`config.json`が信頼できる唯一の情報源となる
+
+### 実装
+
+```python
+# cogs/permission_system.py
+await interaction.response.send_message(
+    f"✅ ロール `{role}` に `{action}` 権限を付与しました。\n"
+    f"⚠️ この変更は一時的です（Bot再起動で消失）。永続化するには`config.json`を編集してください。",
+    ephemeral=True
+)
+```
+
+### 関連ファイル
+- `cogs/permission_system.py` - 警告メッセージ
+- `utils/permissions.py` - `add_role_permission`/`remove_role_permission`（保存なし）
+- `config.json` - `permissions`セクション（永続的なロール権限）
 - `.gitignore` - `user_permissions.json`
 - `.github/workflows/deploy.yml` - rsync除外設定
