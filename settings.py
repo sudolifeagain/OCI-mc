@@ -15,12 +15,15 @@ except FileNotFoundError:
     print("config.jsonが見つかりません。")
     sys.exit(1)
 
-# user_permissions.json 読み込み（なければ空辞書）
+# user_permissions.json 読み込み（なければ空辞書、壊れていても空辞書）
 USER_PERMISSIONS_FILE = 'user_permissions.json'
 try:
     with open(USER_PERMISSIONS_FILE, 'r', encoding='utf-8') as f:
         USER_PERMISSIONS = json.load(f)
 except FileNotFoundError:
+    USER_PERMISSIONS = {}
+except json.JSONDecodeError as e:
+    logging.warning(f"user_permissions.json is corrupted, using empty: {e}")
     USER_PERMISSIONS = {}
 
 # CONFIGにマージ（既存コードとの互換性維持）

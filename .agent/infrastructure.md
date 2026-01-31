@@ -112,8 +112,12 @@ FORGE_RCON_PASSWORD=<password>
 
 #### コマンド
 - `/permission list`: 現在の権限一覧
-- `/permission user <user> <action> <allow/deny>`: ユーザー権限設定
-- `/permission role <role> <action> <allow/deny>`: ロール権限設定
+- `/permission user <user> <action> <allow/deny>`: ユーザー権限設定（永続化）
+- `/permission role <role> <action> <allow/deny>`: ロール権限設定（**一時的、再起動で消失**）
+
+#### 注意事項
+- ユーザー権限は`user_permissions.json`に保存され、デプロイ後も維持される
+- ロール権限の変更はメモリ上のみ。永続化するには`config.json`を直接編集する
 
 ### Memory Configuration
 

@@ -174,37 +174,27 @@ class PermissionSystem(commands.Cog):
             )
 
         if mode.lower() in ['allow', '許可', 'add']:
-            success = add_role_permission(role, action)
-            if success:
-                await interaction.response.send_message(
-                    f"✅ ロール `{role}` に `{action}` 権限を付与しました。",
-                    ephemeral=True
-                )
-                logging.info(
-                    f"Owner {interaction.user} ({interaction.user.id}) "
-                    f"granted {action} to role {role}"
-                )
-            else:
-                await interaction.response.send_message(
-                    "❌ 設定の保存に失敗しました。",
-                    ephemeral=True
-                )
+            add_role_permission(role, action)
+            await interaction.response.send_message(
+                f"✅ ロール `{role}` に `{action}` 権限を付与しました。\n"
+                f"⚠️ この変更は一時的です（Bot再起動で消失）。永続化するには`config.json`を編集してください。",
+                ephemeral=True
+            )
+            logging.info(
+                f"Owner {interaction.user} ({interaction.user.id}) "
+                f"granted {action} to role {role} (temporary)"
+            )
         elif mode.lower() in ['deny', '拒否', 'remove']:
-            success = remove_role_permission(role, action)
-            if success:
-                await interaction.response.send_message(
-                    f"✅ ロール `{role}` から `{action}` 権限を削除しました。",
-                    ephemeral=True
-                )
-                logging.info(
-                    f"Owner {interaction.user} ({interaction.user.id}) "
-                    f"revoked {action} from role {role}"
-                )
-            else:
-                await interaction.response.send_message(
-                    "❌ 設定の保存に失敗しました。",
-                    ephemeral=True
-                )
+            remove_role_permission(role, action)
+            await interaction.response.send_message(
+                f"✅ ロール `{role}` から `{action}` 権限を削除しました。\n"
+                f"⚠️ この変更は一時的です（Bot再起動で消失）。永続化するには`config.json`を編集してください。",
+                ephemeral=True
+            )
+            logging.info(
+                f"Owner {interaction.user} ({interaction.user.id}) "
+                f"revoked {action} from role {role} (temporary)"
+            )
         else:
             await interaction.response.send_message(
                 "無効なモードです。`allow` または `deny` を指定してください。",

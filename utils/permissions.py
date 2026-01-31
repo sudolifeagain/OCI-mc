@@ -95,24 +95,22 @@ def remove_user_permission(user_id: int, action: str) -> bool:
 
 
 def add_role_permission(role_name: str, action: str) -> bool:
-    """ロールに権限を追加する"""
+    """ロールに権限を追加する（メモリ上のみ、再起動で消失）"""
     if action not in CONFIG['permissions']:
         CONFIG['permissions'][action] = []
 
     if role_name not in CONFIG['permissions'][action]:
         CONFIG['permissions'][action].append(role_name)
-        return save_user_permissions()
     return True
 
 
 def remove_role_permission(role_name: str, action: str) -> bool:
-    """ロールから権限を削除する"""
+    """ロールから権限を削除する（メモリ上のみ、再起動で消失）"""
     if action not in CONFIG['permissions']:
         return True
 
     if role_name in CONFIG['permissions'][action]:
         CONFIG['permissions'][action].remove(role_name)
-        return save_user_permissions()
     return True
 
 
