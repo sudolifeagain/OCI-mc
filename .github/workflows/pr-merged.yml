@@ -21,9 +21,13 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          # コミット一覧を取得（最大10件）、改行を\nにエスケープ
-          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[:10] | .[] | "├─ " + .messageHeadline' | sed '$ s/├─/└─/' | sed ':a;N;$!ba;s/\n/\\n/g')
+          # コミット一覧を取得（最大10件）、リンク付きで改行を\nにエスケープ
+          COMMITS=$(gh pr view $PR_NUMBER --json commits \
+            --jq --arg repo "$REPO_URL" '.commits[:10] | .[] | "├─ [" + .messageHeadline + "](" + $repo + "/commit/" + .oid + ")"' \
+            | sed '$ s/├─/└─/' \
+            | sed ':a;N;$!ba;s/\n/\\n/g')
 
           # PRタイトルの特殊文字をエスケープ
           ESCAPED_TITLE=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
