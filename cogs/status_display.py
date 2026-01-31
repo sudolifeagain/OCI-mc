@@ -26,14 +26,14 @@ class StatusDisplay(commands.Cog):
 
         now = datetime.now(JST)
         embed = discord.Embed(
-            title="🔴 サーバー参加状況",
+            title="サーバー参加状況",
             description=f"最終更新: {now.strftime('%Y/%m/%d %H:%M:%S')} (JST)",
             color=0x00ff00
         )
 
         for server_id, server in self.bot.server_manager.servers.items():
             if not server.is_running():
-                embed.add_field(name=f"❌ {server.name}", value="Offline", inline=False)
+                embed.add_field(name=f"{server.name} (停止中)", value="Offline", inline=False)
                 continue
 
             lines = []
@@ -49,7 +49,7 @@ class StatusDisplay(commands.Cog):
             else:
                 value = "参加者なし"
 
-            embed.add_field(name=f"✅ {server.name} ({len(players)}人)", value=value, inline=False)
+            embed.add_field(name=f"{server.name} (稼働中・{len(players)}人)", value=value, inline=False)
 
         # メッセージの送信または編集
         if self.message:
