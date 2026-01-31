@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: Deploy workflow for OCI-mc Discord bot. Use when deploying code, pushing to master, checking GitHub Actions, or troubleshooting deployment failures.
+description: Deploy workflow for OCI-mc Discord bot. Use when deploying code, pushing to main, checking GitHub Actions, or troubleshooting deployment failures.
 ---
 
 # Deploy
@@ -21,8 +21,8 @@ ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 # 4. developにpush
 git push origin develop
 
-# 5. PRを作成してmasterにマージ
-gh pr create --base master --head develop
+# 5. PRを作成してmainにマージ
+gh pr create --base main --head develop
 ```
 
 **重要**: featureブランチは作成しない。すべての開発は`develop`ブランチで直接行う。
@@ -34,7 +34,7 @@ gh pr create --base master --head develop
 | ブランチ | 用途 | CI | デプロイ |
 |---------|------|-----|---------|
 | `develop` | 開発用 | lint/構文チェック | なし |
-| `master` | 本番用 | lint/構文チェック | OCI自動デプロイ |
+| `main` | 本番用 | lint/構文チェック | OCI自動デプロイ |
 
 ### デプロイフロー
 
@@ -47,7 +47,7 @@ git push origin develop
     |
 CI成功を確認
     |
-gh pr create --base master
+gh pr create --base main
     |
 PRマージ
     |
@@ -62,13 +62,13 @@ Discordに通知
 
 ## Important Notes
 
-1. **masterへの直接pushは禁止** - 必ずdevelop経由でPRを作成する
+1. **mainへの直接pushは禁止** - 必ずdevelop経由でPRを作成する
 2. **lint必須** - CIで同じチェックが走るため、ローカルで通らないコードはpushしない
-3. **masterへのpushはサーバー再起動を伴う** - Minecraftサーバーも一時停止する（auto-start機能で自動復旧）
+3. **mainへのpushはサーバー再起動を伴う** - Minecraftサーバーも一時停止する（auto-start機能で自動復旧）
 
 ## Related Files
 
-- `.github/workflows/deploy.yml` - デプロイワークフロー（master push時）
+- `.github/workflows/deploy.yml` - デプロイワークフロー（main push時）
 - `.github/workflows/pr-merged.yml` - PRマージ通知（コミット一覧付き）
 - `.github/workflows/ci.yml` - CI設定
 - `CLAUDE.md` - コード規約・チェックリスト
@@ -78,7 +78,7 @@ Discordに通知
 
 | イベント | ワークフロー | 内容 |
 |---------|-------------|------|
-| master push | `deploy.yml` | デプロイ成功/失敗 + コミットメッセージ |
+| main push | `deploy.yml` | デプロイ成功/失敗 + コミットメッセージ |
 | PRマージ | `pr-merged.yml` | PRタイトル + コミット一覧（階層表示） |
 | develop push（CI失敗時） | `ci.yml` | CI失敗通知 |
 

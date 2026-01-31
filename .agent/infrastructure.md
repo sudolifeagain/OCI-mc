@@ -80,7 +80,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - 現在のメモリ構成: 17GB（Forge 10GB + Paper 4GB + Bot + OS）
 
 ## Deployment Flow
-1. **GitHub Actions**: Triggered on push to `master` (not `develop`).
+1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
    - Excludes: `.env`, `.git`, `venv`.
 3. **Systemd**:
@@ -91,8 +91,8 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 
 ### Branch Strategy
 - **`develop`**: 開発用。CIでlint/構文チェックのみ。デプロイなし。
-- **`master`**: 本番用。pushでOCIへ自動デプロイ。
-- **注意**: masterへのpushはサーバー再起動を伴う。
+- **`main`**: 本番用。pushでOCIへ自動デプロイ。
+- **注意**: mainへのpushはサーバー再起動を伴う。
 
 ## Environment Variables (.env)
 

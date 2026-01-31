@@ -14,7 +14,6 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr edit:*)",
       "Skill",
-      "Bash(gh pr create --base master --head develop --title \"develop → master: CI、Skills、ログ転送修正\" --body \"$\\(cat <<''EOF''\n## Summary\n- developブランチでCI追加、lintエラー修正\n- Agent Skills導入（Phase 1: deploy, process-management, backup-notion）\n- CommandsをSkillsに統合\n- 文章スタイルガイド追加\n- ログ転送のエラーハンドリング改善\n- settings.local.jsonをgit管理に追加\n\n## Test plan\n- [ ] CIが通ることを確認\n- [ ] ボット再起動後、ログがDiscordに転送されることを確認\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
       "Bash(gh pr checks:*)",
       "Bash(gh pr merge:*)",
       "Bash(git stash:*)",
@@ -22,7 +21,8 @@
       "Bash(git merge:*)",
       "Bash(ping:*)",
       "Bash(curl:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(gh repo edit:*)"
     ]
   }
 }
