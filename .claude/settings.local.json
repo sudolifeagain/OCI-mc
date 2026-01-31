@@ -22,7 +22,8 @@
       "Bash(ping:*)",
       "Bash(curl:*)",
       "Bash(git fetch:*)",
-      "Bash(gh repo edit:*)"
+      "Bash(gh repo edit:*)",
+      "Bash(gh pr create:*)"
     ]
   }
 }
