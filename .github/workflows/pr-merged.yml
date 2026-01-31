@@ -24,8 +24,9 @@ jobs:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           # コミット一覧を取得（最大10件）、リンク付き
+          # gh pr viewの出力をjqにパイプして--argを使用
           COMMITS=$(gh pr view $PR_NUMBER --json commits \
-            --jq --arg repo "$REPO_URL" '.commits[:10] | .[] | "├─ [" + .messageHeadline + "](" + $repo + "/commit/" + .oid + ")"' \
+            | jq -r --arg repo "$REPO_URL" '.commits[:10] | .[] | "├─ [" + .messageHeadline + "](" + $repo + "/commit/" + .oid + ")"' \
             | sed '$ s/├─/└─/')
 
           # 説明文を構築してJSONエスケープ
