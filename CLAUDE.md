@@ -29,6 +29,9 @@ ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 - **Async**: Use `async/await` for all I/O functions
 
 # Workflow
+- **Branch Strategy**: `develop`で開発 → PRで`main`にマージ → 自動デプロイ
+  - **featureブランチは作成しない**: すべての開発は`develop`ブランチで直接行う
+  - `main`への直接pushは禁止
 - **Deploy**: Push to `main` to trigger OCI deployment via GitHub Actions
 - **Secrets**: Do NOT commit real IPs or keys. Use `.env` or GitHub Secrets
 - **Documentation**: See `.agent/infrastructure.md` for server paths and `.agent/development.md` for architecture details

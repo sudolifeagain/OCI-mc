@@ -8,15 +8,24 @@ description: Deploy workflow for OCI-mc Discord bot. Use when deploying code, pu
 ## Quick Start
 
 ```bash
-# 1. lint確認（必須）
+# 1. developブランチに切り替え
+git checkout develop
+
+# 2. 変更をコミット
+git add <files>
+git commit -m "feat: 変更内容"
+
+# 3. lint確認（必須）
 ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 
-# 2. developにpush
+# 4. developにpush
 git push origin develop
 
-# 3. PRを作成してmainにマージ
+# 5. PRを作成してmainにマージ
 gh pr create --base main --head develop
 ```
+
+**重要**: featureブランチは作成しない。すべての開発は`develop`ブランチで直接行う。
 
 ## Workflow
 
@@ -59,10 +68,19 @@ Discordに通知
 
 ## Related Files
 
-- `.github/workflows/deploy.yml` - デプロイワークフロー
+- `.github/workflows/deploy.yml` - デプロイワークフロー（main push時）
+- `.github/workflows/pr-merged.yml` - PRマージ通知（コミット一覧付き）
 - `.github/workflows/ci.yml` - CI設定
 - `CLAUDE.md` - コード規約・チェックリスト
 - `.agent/development.md` - ブランチ戦略詳細
+
+## Discord通知
+
+| イベント | ワークフロー | 内容 |
+|---------|-------------|------|
+| main push | `deploy.yml` | デプロイ成功/失敗 + コミットメッセージ |
+| PRマージ | `pr-merged.yml` | PRタイトル + コミット一覧（階層表示） |
+| develop push（CI失敗時） | `ci.yml` | CI失敗通知 |
 
 ## Troubleshooting
 

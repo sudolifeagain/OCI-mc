@@ -5,6 +5,11 @@
 - **`main`**: 本番ブランチ。pushでOCIへ自動デプロイ（サーバー再起動を伴う）。
 - **Workflow**: `develop`で開発 → PRで`main`にマージ → 自動デプロイ
 
+### ブランチ運用ルール
+- **featureブランチは作成しない**: すべての開発は`develop`ブランチで直接行う
+- **masterへの直接pushは禁止**: 必ず`develop`経由でPRを作成する
+- **コミット粒度**: 機能単位で適切にコミットを分割する
+
 ## Commands
 - **Install**: `pip install -r requirements.txt`
 - **Run Local**: `python bot.py`
@@ -46,7 +51,7 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Role**: リアルタイムサーバー参加状況表示
 - **Key Logic**:
   - 3分ごとに指定チャンネルのEmbedメッセージを更新
-  - サーバー稼働状態（✅/❌）とオンラインプレイヤー一覧を表示
+  - サーバー稼働状態（「稼働中・N人」/「停止中」）とオンラインプレイヤー一覧を表示
   - プレイヤーの参加時間も表示
 - **Required Env**: `DISCORD_STATUS_CHANNEL_ID`
 

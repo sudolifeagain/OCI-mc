@@ -14,7 +14,16 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr edit:*)",
       "Skill",
-      "Bash(gh repo edit:*)"
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(ping:*)",
+      "Bash(curl:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh pr create:*)"
     ]
   }
 }
