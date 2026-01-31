@@ -5,6 +5,11 @@
 - **`master`**: 本番ブランチ。pushでOCIへ自動デプロイ（サーバー再起動を伴う）。
 - **Workflow**: `develop`で開発 → PRで`master`にマージ → 自動デプロイ
 
+### ブランチ運用ルール
+- **featureブランチは作成しない**: すべての開発は`develop`ブランチで直接行う
+- **masterへの直接pushは禁止**: 必ず`develop`経由でPRを作成する
+- **コミット粒度**: 機能単位で適切にコミットを分割する
+
 ## Commands
 - **Install**: `pip install -r requirements.txt`
 - **Run Local**: `python bot.py`

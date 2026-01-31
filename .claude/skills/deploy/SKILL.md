@@ -8,15 +8,24 @@ description: Deploy workflow for OCI-mc Discord bot. Use when deploying code, pu
 ## Quick Start
 
 ```bash
-# 1. lint確認（必須）
+# 1. developブランチに切り替え
+git checkout develop
+
+# 2. 変更をコミット
+git add <files>
+git commit -m "feat: 変更内容"
+
+# 3. lint確認（必須）
 ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 
-# 2. developにpush
+# 4. developにpush
 git push origin develop
 
-# 3. PRを作成してmasterにマージ
+# 5. PRを作成してmasterにマージ
 gh pr create --base master --head develop
 ```
+
+**重要**: featureブランチは作成しない。すべての開発は`develop`ブランチで直接行う。
 
 ## Workflow
 
