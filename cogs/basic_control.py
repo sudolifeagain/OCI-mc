@@ -117,21 +117,23 @@ class BasicControl(commands.Cog):
         if success:
             # 結果が長い場合は分割
             if len(result) > 1900:
-                await interaction.followup.send(f"📝 [{server_instance.name}] `{command_str}`")
+                await interaction.followup.send(f"📝 [{server_instance.name}] `{command_str}`", silent=True)
                 while result:
                     chunk = result[:1900]
                     result = result[1900:]
-                    await interaction.followup.send(f"```{chunk}```")
+                    await interaction.followup.send(f"```{chunk}```", silent=True)
             elif result:
                 await interaction.followup.send(
-                    f"📝 [{server_instance.name}] `{command_str}`\n```{result}```"
+                    f"📝 [{server_instance.name}] `{command_str}`\n```{result}```",
+                    silent=True
                 )
             else:
                 await interaction.followup.send(
-                    f"📝 [{server_instance.name}] `{command_str}` (応答なし)"
+                    f"📝 [{server_instance.name}] `{command_str}` (応答なし)",
+                    silent=True
                 )
         else:
-            await interaction.followup.send(f"❌ [{server_instance.name}] エラー: {result}")
+            await interaction.followup.send(f"❌ [{server_instance.name}] エラー: {result}", silent=True)
 
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
     @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")

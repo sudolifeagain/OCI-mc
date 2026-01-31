@@ -51,10 +51,12 @@ def check_role(ctx_or_interaction, action):
 
 
 def save_config():
-    """config.jsonに現在の設定を保存する"""
+    """config.jsonに現在の設定を保存する（rolesは除外）"""
     try:
+        # rolesは.envから読み込まれるため、保存対象から除外
+        config_to_save = {k: v for k, v in CONFIG.items() if k != 'roles'}
         with open('config.json', 'w', encoding='utf-8') as f:
-            json.dump(CONFIG, f, indent='\t', ensure_ascii=False)
+            json.dump(config_to_save, f, indent='\t', ensure_ascii=False)
         return True
     except Exception as e:
         logging.error(f"Failed to save config: {e}")
