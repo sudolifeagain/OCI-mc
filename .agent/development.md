@@ -51,7 +51,7 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Role**: リアルタイムサーバー参加状況表示
 - **Key Logic**:
   - 3分ごとに指定チャンネルのEmbedメッセージを更新
-  - サーバー稼働状態（✅/❌）とオンラインプレイヤー一覧を表示
+  - サーバー稼働状態（「稼働中・N人」/「停止中」）とオンラインプレイヤー一覧を表示
   - プレイヤーの参加時間も表示
 - **Required Env**: `DISCORD_STATUS_CHANNEL_ID`
 
