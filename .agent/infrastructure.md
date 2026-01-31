@@ -91,6 +91,30 @@ FORGE_RCON_PASSWORD=<password>
 #### 使用方法
 - `/cmd <command> [server]`: RCONでコマンド実行、結果を表示
 
+#### セキュリティ
+- RCONポート（25575/25576）は外部に公開しない
+- OCI Security Listで許可されていないことを確認
+- パスワードは16文字以上のランダム文字列を推奨
+
+### 権限管理
+
+#### ファイル構成
+| ファイル | 内容 | Git管理 |
+|---------|------|--------|
+| `config.json` | 静的設定（サーバー設定、権限マッピング） | Yes |
+| `user_permissions.json` | 動的権限（`/permission`で変更） | No（.gitignore） |
+| `.env` | ロールID、トークン、パスワード | No |
+
+#### 権限チェックの流れ
+1. Owner（`DISCORD_OWNER_ID`）→ 常に許可
+2. `user_permissions.json` にユーザーIDとアクションが存在 → 許可
+3. `config.json`の`permissions`でロールにアクションが割り当て → 許可
+
+#### コマンド
+- `/permission list`: 現在の権限一覧
+- `/permission user <user> <action> <allow/deny>`: ユーザー権限設定
+- `/permission role <role> <action> <allow/deny>`: ロール権限設定
+
 ### Memory Configuration
 
 #### Swap Settings
@@ -120,7 +144,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
-   - Excludes: `.env`, `.git`, `venv`.
+   - Excludes: `.env`, `.git`, `venv`, `user_permissions.json`
 3. **Systemd**:
    - Service: `discord-bot`
    - Path: `/etc/systemd/system/discord-bot.service`

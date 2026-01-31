@@ -55,6 +55,17 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
   - プレイヤーの参加時間も表示
 - **Required Env**: `DISCORD_STATUS_CHANNEL_ID`
 
+### 5. Permission System (`cogs.permission_system`)
+- **File**: `cogs/permission_system.py`
+- **Role**: Discord上での権限管理
+- **Commands**:
+  - `/permission list`: 権限設定一覧（Admin以上）
+  - `/permission user <user> <action> <mode>`: ユーザー権限設定（Owner限定）
+  - `/permission role <role> <action> <mode>`: ロール権限設定（Owner限定）
+- **Key Logic**:
+  - `utils/permissions.py`で権限チェック・保存
+  - 設定は`user_permissions.json`に保存（デプロイで上書きされない）
+
 ## Player Tracking
 `ServerInstance` がプレイヤーの参加/退出をログから検知し `online_players` dict に保持。
 - Join: `joined the game` パターンでタイムスタンプ記録

@@ -159,3 +159,63 @@ if not server_instance.log_forwarding:
 - デフォルトは `true`（後方互換性維持）
 - 無効化時もキューは空にする（stdoutは読み続けるため）
 - Forgeのログ確認はSSHで `tail -f /opt/minecraft/forge/logs/latest.log`
+
+---
+
+## 権限設定ファイルの分離 (2026-01)
+
+### 問題
+`config.json`に`user_permissions`が含まれていると、デプロイ時にサーバー固有の権限設定が上書きされる。
+
+### 原因
+- `rsync --delete`により、リポジトリの`config.json`がサーバー上のファイルを上書き
+- `/permission user`で追加した権限が消失する
+
+### 検討した選択肢
+
+| 方式 | 内容 | 結果 |
+|------|------|------|
+| config.json全体をgitignore | 静的設定もGit管理外になる | ❌ 設定変更の追跡ができない |
+| .envに全て移行 | 権限マッピングを環境変数で管理 | ❌ 複雑な構造に不向き |
+| ファイル分離 | user_permissionsだけ別ファイルに | ✅ 採用 |
+
+### 採用した解決策
+
+**`user_permissions.json`の分離**
+
+```
+config.json          # 静的設定（Git管理）
+user_permissions.json # 動的権限（.gitignore、rsync除外）
+```
+
+### 実装
+
+```python
+# settings.py
+try:
+    with open('user_permissions.json', 'r') as f:
+        USER_PERMISSIONS = json.load(f)
+except FileNotFoundError:
+    USER_PERMISSIONS = {}  # 初回は空
+
+CONFIG['user_permissions'] = USER_PERMISSIONS  # 既存コードとの互換性
+```
+
+```python
+# utils/permissions.py
+def save_user_permissions():
+    with open('user_permissions.json', 'w') as f:
+        json.dump(CONFIG['user_permissions'], f)
+```
+
+### デプロイ時の動作
+
+1. 初回デプロイ: `user_permissions.json`が存在しない → 空辞書で初期化
+2. `/permission user`で権限追加 → `user_permissions.json`作成
+3. 以降のデプロイ: rsync除外のため上書きされない
+
+### 関連ファイル
+- `settings.py` - 読み込み処理
+- `utils/permissions.py` - 保存処理
+- `.gitignore` - `user_permissions.json`
+- `.github/workflows/deploy.yml` - rsync除外設定
