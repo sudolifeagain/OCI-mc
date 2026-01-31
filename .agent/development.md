@@ -2,8 +2,8 @@
 
 ## Branch Strategy
 - **`develop`**: 開発用ブランチ。CIでlint/構文チェックのみ実行。デプロイなし。
-- **`master`**: 本番ブランチ。pushでOCIへ自動デプロイ（サーバー再起動を伴う）。
-- **Workflow**: `develop`で開発 → PRで`master`にマージ → 自動デプロイ
+- **`main`**: 本番ブランチ。pushでOCIへ自動デプロイ（サーバー再起動を伴う）。
+- **Workflow**: `develop`で開発 → PRで`main`にマージ → 自動デプロイ
 
 ## Commands
 - **Install**: `pip install -r requirements.txt`
@@ -70,7 +70,7 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **フラグ**: `_auto_start_done` でDiscord再接続時の重複起動を防止
 - **並列起動**: `asyncio.gather` で複数サーバーを同時起動
 
-**重要**: デプロイ（GitHub push → master）時にボット再起動でサーバーも終了するが、この機能で自動復旧する。
+**重要**: デプロイ（GitHub push → main）時にボット再起動でサーバーも終了するが、この機能で自動復旧する。
 
 ## Code Style
 - **Slash Commands Only**: No `command_prefix`. Use `@app_commands.command`.

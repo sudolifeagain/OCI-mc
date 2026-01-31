@@ -54,7 +54,7 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 - **start.sh に `exec` を使わない**: stdoutパイプが壊れてログ転送が動作しなくなる（詳細: `.agent/decisions.md`）
 
 ## Deployment Flow
-1. **GitHub Actions**: Triggered on push to `master` (not `develop`).
+1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
    - Excludes: `.env`, `.git`, `venv`.
 3. **Systemd**:
@@ -65,8 +65,8 @@ echo '[{"uuid":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx","name":"PlayerName"}]' > /
 
 ### Branch Strategy
 - **`develop`**: 開発用。CIでlint/構文チェックのみ。デプロイなし。
-- **`master`**: 本番用。pushでOCIへ自動デプロイ。
-- **注意**: masterへのpushはサーバー再起動を伴う。
+- **`main`**: 本番用。pushでOCIへ自動デプロイ。
+- **注意**: mainへのpushはサーバー再起動を伴う。
 
 ## Environment Variables (.env)
 
