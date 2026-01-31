@@ -1,0 +1,32 @@
+name: PR Merged Notification
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR commits and notify Discord
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          # コミット一覧を取得（最大10件）
+          COMMITS=$(gh pr view $PR_NUMBER --json commits --jq '.commits[:10] | .[] | "├─ " + .messageHeadline' | sed '$ s/├─/└─/')
+
+          # 通知送信
+          DESC="#${PR_NUMBER} ${PR_TITLE}\n\n${COMMITS}"
+          curl -H "Content-Type: application/json" \
+            -d "{\"flags\":4096,\"embeds\":[{\"title\":\"✅ PRマージ: ${BASE_BRANCH}\",\"description\":\"$DESC\",\"url\":\"$PR_URL\",\"color\":3066993}]}" \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
