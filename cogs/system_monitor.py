@@ -47,25 +47,25 @@ class SystemMonitor(commands.Cog):
                 stderr=subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
-            
+
             if proc.returncode != 0:
                 logging.warning(f"dmesg failed: {stderr.decode()}")
                 return []
 
             output = stdout.decode()
             oom_events = []
-            
+
             # OOM Kill ログを検索
             # パターン: [タイムスタンプ] Out of memory: Killed process PID (プロセス名) ...
             pattern = r'\[\s*(\d+\.\d+)\].*Out of memory: Killed process (\d+) \(([^)]+)\).*total-vm:(\d+)kB.*anon-rss:(\d+)kB'
-            
+
             for match in re.finditer(pattern, output, re.IGNORECASE):
                 kernel_time = float(match.group(1))
                 pid = match.group(2)
                 process_name = match.group(3)
                 total_vm_kb = int(match.group(4))
                 rss_kb = int(match.group(5))
-                
+
                 oom_events.append({
                     'kernel_time': kernel_time,
                     'pid': pid,
@@ -73,9 +73,9 @@ class SystemMonitor(commands.Cog):
                     'total_vm_mb': total_vm_kb // 1024,
                     'rss_mb': rss_kb // 1024,
                 })
-            
+
             return oom_events
-            
+
         except Exception as e:
             logging.error(f"Error checking dmesg: {e}")
             return []
@@ -125,7 +125,7 @@ class SystemMonitor(commands.Cog):
         # Discord に通知
         for event in new_events:
             event_time = self.kernel_time_to_datetime(event['kernel_time'], boot_time)
-            
+
             embed = discord.Embed(
                 title="⚠️ OOM Kill 検知",
                 description="メモリ不足によりプロセスが強制終了されました",
