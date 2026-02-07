@@ -185,6 +185,49 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `NOTION_TOKEN`: Notion API token
 - `NOTION_DB_ID`: Notion database ID for backups
 
+### Notion API でバックアップファイルをダウンロード
+
+NotionにアップロードされたバックアップファイルをAPI経由でダウンロードする手順:
+
+#### 1. ページIDを取得
+Notion URLからページIDを抽出（`?p=`パラメータの値）:
+```
+https://re4rity.notion.site/...?p=2ff8e4f849c181aead25e6194692d944
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  これがページID
+```
+
+#### 2. ページ情報を取得
+```bash
+curl -s -X GET "https://api.notion.com/v1/pages/<PAGE_ID>" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2022-06-28"
+```
+
+#### 3. ファイルURLを抽出
+レスポンスの `properties.File.files[0].file.url` に署名付きS3 URLが含まれる。
+
+#### 4. ファイルをダウンロード
+```bash
+curl -L -o "backup.zip" "<S3_URL>"
+```
+
+**注意**: 署名付きURLは1時間で期限切れ。期限切れ後は再度ページ情報を取得する。
+
+## BlueMap (Paper)
+Paperサーバーで3DマップをWebブラウザで表示するプラグイン。
+
+- **Webポート**: 8100
+- **タイル保存先**: `/opt/minecraft/paper/bluemap/web/maps/`
+- **設定**: `/opt/minecraft/paper/plugins/BlueMap/`
+
+### 現在の設定
+- `player-render-limit: 1` - プレイヤーオンライン中は自動レンダリング停止
+- 手動更新: `/bluemap update world`
+
+### トラブルシューティング
+高CPU使用率などの問題は `.agent/bluemap-troubleshooting.md` を参照。
+
 ## Sensitive Data Handling
 - **Public Repo**: This codebase is public.
 - **Secrets**:
