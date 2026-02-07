@@ -22,7 +22,8 @@ class MyBot(commands.Bot):
             'cogs.backup_system',
             'cogs.plugin_system',
             'cogs.status_display',
-            'cogs.permission_system'
+            'cogs.permission_system',
+            'cogs.system_monitor'
         ]
 
         for extension in initial_extensions:
