@@ -9,7 +9,7 @@ import re
 from datetime import datetime, timedelta
 import discord
 from discord.ext import commands, tasks
-from settings import CHANNEL_ID
+from settings import CHANNEL_ID, DISCORD_OWNER_ID
 
 
 class SystemMonitor(commands.Cog):
@@ -139,7 +139,9 @@ class SystemMonitor(commands.Cog):
             embed.set_footer(text="OOM Killer")
 
             try:
-                await channel.send(embed=embed)
+                # Owner にメンションして通知（サイレントなし）
+                mention = f"<@{DISCORD_OWNER_ID}>" if DISCORD_OWNER_ID else ""
+                await channel.send(content=mention, embed=embed)
                 logging.info(f"Sent OOM alert for process {event['process']} (PID: {event['pid']})")
             except Exception as e:
                 logging.error(f"Failed to send OOM alert: {e}")
