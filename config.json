@@ -6,7 +6,7 @@
 			"cwd": "/opt/minecraft/paper",
 			"memory": "4G",
 			"port": 25565,
-			"auto_start": true,
+			"auto_start": false,
 			"rcon_port": 25575,
 			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		},
