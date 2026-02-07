@@ -17,6 +17,11 @@
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
     - Memory: 10G, Port: 25566
+  - **neoforge/**: NeoForge server (21.1.219)
+    - `run.sh`, `mods/`, `world/`
+    - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
+    - `.neoforge.pid` - PIDファイル
+    - Port: 25567
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
 
@@ -67,12 +72,18 @@ rcon.password=<secure_password>
 enable-rcon=true
 rcon.port=25576
 rcon.password=<secure_password>
+
+# NeoForge (port 25577)
+enable-rcon=true
+rcon.port=25577
+rcon.password=<secure_password>
 ```
 
 #### Bot側設定 (.env)
 ```bash
 PAPER_RCON_PASSWORD=<password>
 FORGE_RCON_PASSWORD=<password>
+NEOFORGE_RCON_PASSWORD=<password>
 ```
 
 #### config.json
@@ -169,6 +180,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_CHANNEL_ID`: Default log channel (fallback)
 - `DISCORD_PAPER_LOG_CHANNEL_ID`: Paper server log channel (optional)
 - `DISCORD_FORGE_LOG_CHANNEL_ID`: Forge server log channel (optional)
+- `DISCORD_NEOFORGE_LOG_CHANNEL_ID`: NeoForge server log channel (optional)
 - `DISCORD_STATUS_CHANNEL_ID`: Real-time status display channel (optional)
 
 ### Roles/Users

@@ -15,10 +15,20 @@
 			"use_script": "./run.sh",
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
-			"auto_start": true,
+			"auto_start": false,
 			"log_forwarding": false,
 			"rcon_port": 25576,
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
+		},
+		"neoforge": {
+			"name": "NeoForge (21.1.219)",
+			"use_script": "./run.sh",
+			"cwd": "/opt/minecraft/neoforge",
+			"port": 25567,
+			"auto_start": false,
+			"log_forwarding": false,
+			"rcon_port": 25577,
+			"rcon_password_env": "NEOFORGE_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
