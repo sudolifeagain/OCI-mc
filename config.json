@@ -70,6 +70,9 @@
 			],
 			"forge": [
 				"world"
+			],
+			"neoforge": [
+				"world"
 			]
 		},
 		"schedule_time": "04:00"
