@@ -1,7 +1,7 @@
 {
 	"servers": {
 		"paper": {
-			"name": "Paper (Vanilla)",
+			"name": "Paper",
 			"jar": "paper.jar",
 			"cwd": "/opt/minecraft/paper",
 			"memory": "4G",
@@ -11,7 +11,7 @@
 			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		},
 		"forge": {
-			"name": "Forge (Better MC)",
+			"name": "Forge",
 			"use_script": "./run.sh",
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
@@ -21,7 +21,7 @@
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
 		},
 		"neoforge": {
-			"name": "NeoForge (21.1.219)",
+			"name": "NeoForge",
 			"use_script": "./run.sh",
 			"cwd": "/opt/minecraft/neoforge",
 			"port": 25567,
