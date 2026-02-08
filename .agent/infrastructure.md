@@ -16,12 +16,12 @@
     - `run.sh`, `mods/` (~590 mods, 1.1GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
-    - Memory: 10G, Port: 25566
+    - Memory: 14G, Port: 25566
   - **neoforge/**: NeoForge server (21.1.219)
     - `run.sh`, `mods/`, `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.neoforge.pid` - PIDファイル
-    - Port: 25567
+    - Memory: 4G, Port: 25567
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
 
@@ -154,7 +154,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 #### 注意点
 - **OOM Killer**: メモリ枯渇時はスワップへの退避ではなくプロセス強制終了が発生
 - **監視推奨**: `free -h`でメモリ使用量を定期確認
-- 現在のメモリ構成: 17GB（Forge 10GB + Paper 4GB + Bot + OS）
+- 現在のメモリ構成: 22GB+（Forge 14GB + NeoForge 4GB + Paper 4GB + Bot + OS）※同時起動注意
 
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
