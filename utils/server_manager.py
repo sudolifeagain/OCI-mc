@@ -288,19 +288,23 @@ class ServerInstance:
         """サーバーが起動中かどうかを返す"""
         return self._get_process() is not None
 
-    async def get_tps(self, rcon_client) -> float | None:
-        """RCON経由でTPSを取得する"""
+    async def get_tick_stats(self, rcon_client) -> dict | None:
+        """RCON経由でTPS/MSPTを取得する"""
         if not rcon_client:
             return None
         try:
             success, response = await rcon_client.execute("forge tps")
             if not success:
                 return None
-            match = re.search(r'Overall.*Mean TPS:\s*([\d.]+)', response)
-            if match:
-                return float(match.group(1))
+            tps_match = re.search(r'Overall.*Mean TPS:\s*([\d.]+)', response)
+            mspt_match = re.search(r'Overall.*Mean tick time:\s*([\d.]+)', response)
+            if tps_match and mspt_match:
+                return {
+                    "tps": float(tps_match.group(1)),
+                    "mspt": float(mspt_match.group(1)),
+                }
         except Exception as e:
-            logging.debug(f"Failed to get TPS for '{self.server_id}': {e}")
+            logging.debug(f"Failed to get tick stats for '{self.server_id}': {e}")
         return None
 
     def get_stats(self) -> dict | None:

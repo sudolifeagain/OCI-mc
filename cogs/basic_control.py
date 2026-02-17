@@ -22,6 +22,21 @@ def get_server_choices():
 # サーバー選択肢をグローバルに定義
 SERVER_CHOICES = get_server_choices()
 
+TICK_FOOTER = "TPS: 🟢 正常 (<40ms) | 🟡 注意 (40-50ms) | 🔴 危険 (>50ms)"
+
+
+def format_tick_stats(tick_stats: dict) -> str:
+    """TPS/MSPTをインジケーター付きでフォーマットする"""
+    tps = tick_stats["tps"]
+    mspt = tick_stats["mspt"]
+    if mspt < 40:
+        indicator = "🟢"
+    elif mspt <= 50:
+        indicator = "🟡"
+    else:
+        indicator = "🔴"
+    return f"{indicator} {tps} (MSPT: {mspt}ms)"
+
 
 class BasicControl(commands.Cog):
     def __init__(self, bot, server_manager):
@@ -203,12 +218,12 @@ class BasicControl(commands.Cog):
                         f"Uptime: {uptime_str}",
                     ]
 
-                    # TPS取得（RCON経由）
+                    # TPS/MSPT取得（RCON経由）
                     server_config = SERVERS_CONFIG.get(server_id, {})
                     rcon_client = get_rcon_client(server_config)
-                    tps = await server_instance.get_tps(rcon_client)
-                    if tps is not None:
-                        value_lines.append(f"TPS: {tps}")
+                    tick_stats = await server_instance.get_tick_stats(rcon_client)
+                    if tick_stats is not None:
+                        value_lines.append(f"TPS: {format_tick_stats(tick_stats)}")
 
                     embed.add_field(
                         name=f"🟢 {server_instance.name}",
@@ -222,6 +237,7 @@ class BasicControl(commands.Cog):
                         inline=True
                     )
 
+            embed.set_footer(text=TICK_FOOTER)
             await interaction.followup.send(embed=embed, silent=True)
         else:
             # 特定のサーバーのステータスを表示
@@ -247,13 +263,14 @@ class BasicControl(commands.Cog):
             embed.add_field(name="Uptime", value=uptime_str, inline=True)
             embed.add_field(name="Port", value=str(server_instance.port), inline=True)
 
-            # TPS取得（RCON経由）
+            # TPS/MSPT取得（RCON経由）
             server_config = SERVERS_CONFIG.get(server, {})
             rcon_client = get_rcon_client(server_config)
-            tps = await server_instance.get_tps(rcon_client)
-            if tps is not None:
-                embed.add_field(name="TPS", value=str(tps), inline=True)
+            tick_stats = await server_instance.get_tick_stats(rcon_client)
+            if tick_stats is not None:
+                embed.add_field(name="TPS", value=format_tick_stats(tick_stats), inline=True)
 
+            embed.set_footer(text=TICK_FOOTER)
             await interaction.followup.send(embed=embed, silent=True)
 
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status server={server}")
