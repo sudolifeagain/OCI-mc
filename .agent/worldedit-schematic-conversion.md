@@ -62,6 +62,10 @@ java.io.IOException: Schematic file is missing a "Rotation" tag of type com.sk89
 `//paste -e` でエンティティ付きペーストしても額縁・絵画が配置されない。ログにエラーは出ない。
 **原因**: 1.21+ のエンティティNBTは取り付け位置を `block_pos` (IntArray[3]) で格納するが、1.20.1 は `TileX`/`TileY`/`TileZ` (個別Int) を期待する。`block_pos` → `TileX`/`TileY`/`TileZ` の変換が必要。Paper固有タグ（`Paper.SpawnReason` 等）の除去も推奨。
 
+### 額縁が点滅後にアイテム化して落ちる
+`//paste -e` でエンティティは一瞬表示されるが、数秒後にアイテムとして地面に落ちる。
+**原因**: `Facing` の値が不正、またはエンティティの `Pos` が支持ブロックの位置と合っていない。1.20.1 Forge は `Facing` を 3D ordinals (0=DOWN,1=UP,2=NORTH,3=SOUTH,4=WEST,5=EAST) でそのまま解釈する。タグ名は `Facing` (大文字) が必要（1.21+ の絵画は `facing` 小文字を使用するため正規化が必要）。
+
 ### チェストの中身が空
 v3→v2 変換で BlockEntity の `Data` コンパウンドを展開していない、またはアイテム NBT 形式の変換が不足している場合に発生。
 
@@ -161,10 +165,12 @@ MC 1.20.5+ でエンティティNBT形式も変更された。特に額縁・絵
 | フィールド | 1.21+ | 1.20.1 |
 |-----------|-------|--------|
 | 取り付け位置 | `block_pos` (IntArray[3]) | `TileX`, `TileY`, `TileZ` (個別 Int) |
+| 向き | `facing` (小文字, 3D ordinal) | `Facing` (大文字, 3D ordinal — 値は同じ) |
 | 額縁のアイテム | `Item` (1.21+形式) | `Item` (1.20.1形式、count→Count変換必要) |
 
 - **`block_pos` は絶対座標（原本の `//copy` 位置）を格納している**。v2 の `TileX`/`TileY`/`TileZ` はスケマティック原点基準の相対座標である必要があるため、`block_pos` をそのまま変換すると座標不整合で額縁がサイレントにスキップされる（エラーログなし）
 - 正しい変換: エンティティの `Pos`（相対座標、List of Double）から `math.floor()` で `TileX`/`TileY`/`TileZ` を導出する
+- **`Facing` タグの値は 1.20.1 も 1.21+ も同じ 3D ordinals を使用する**（実機テストで確認済み）。値の変換は不要。ただしタグ名は `facing` (小文字, 1.21+ 絵画) → `Facing` (大文字) に正規化が必要
 - Paper/Bukkit/Spigot 固有タグ（`Paper.SpawnReason`, `Bukkit.updateLevel`, `Spigot.ticksLived` 等）はForge非互換のため除去
 
 ### 6. アイテムNBT形式の変換（MC 1.21+ → 1.20.1）
@@ -186,10 +192,11 @@ MC 1.20.5 でアイテムNBT形式が大きく変更された。
 3. `Blocks` コンパウンドを展開（Palette, Data→BlockData, BlockEntities）
 4. 各 BlockEntity の `Data` コンパウンドを展開
 5. 各 Entity の `Data` コンパウンドを展開（Rotation 等を親レベルに）
-6. エンティティNBTのバージョン変換（block_pos→TileX/Y/Z、Paper タグ除去、Item 変換）
-7. アイテムの `count`→`Count` 変換、`components` 削除
-8. `Version` を 2 に変更
-8. gzip 圧縮 NBT として書き出し
+6. エンティティ Pos の再構築（Data.Pos の精密座標を使用し、相対座標に変換）
+7. エンティティNBTのバージョン変換（block_pos→TileX/Y/Z、facing→Facing 正規化、Paper タグ除去、Item 変換）
+8. アイテムの `count`→`Count` 変換、`components` 削除
+9. `Version` を 2 に変更
+10. gzip 圧縮 NBT として書き出し
 
 ## 検証方法
 ```bash

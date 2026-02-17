@@ -117,6 +117,7 @@ def convert_entity_nbt(entries):
 
     - block_pos (IntArray[3]) -> TileX, TileY, TileZ (separate Int tags)
       block_pos contains absolute world coords; derive from relative Pos instead
+    - facing (lowercase, 1.21+) -> Facing (uppercase, 1.20.1); value unchanged (both use 3D ordinals)
     - Item compound: count->Count, strip components
     - Strip Paper/Bukkit/Spigot specific tags
     """
@@ -130,6 +131,9 @@ def convert_entity_nbt(entries):
             pos_values = [item[1] for item in cv[2]]
         if cn == 'block_pos' and cv[0] == 'int_array' and cv[1] == 3:
             has_block_pos = True
+            continue
+        if cn == 'facing' and cv[0] == 'byte':
+            new.append((1, 'Facing', ('byte', cv[1])))
             continue
         if cn == 'Item' and cv[0] == 'compound':
             new.append((ct, cn, ('compound', convert_item(cv[1]))))
