@@ -1,14 +1,13 @@
 import asyncio
-import os
 import subprocess
 import logging
 import discord
-import psutil
 from discord import app_commands
 from discord.ext import commands, tasks
 from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 from utils.rcon import get_rcon_client
+from cogs.status_display import get_machine_stats
 
 
 def get_server_choices():
@@ -185,18 +184,9 @@ class BasicControl(commands.Cog):
             embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
 
             # マシン統計
-            cpu = psutil.cpu_percent(interval=None)
-            mem = psutil.virtual_memory()
-            mem_used_gb = mem.used / (1024 ** 3)
-            mem_total_gb = mem.total / (1024 ** 3)
-            try:
-                load = os.getloadavg()[0]
-                load_str = f" | Load: {load:.2f}"
-            except (AttributeError, OSError):
-                load_str = ""
             embed.add_field(
                 name="マシン",
-                value=f"CPU: {cpu}% | Memory: {mem_used_gb:.1f}/{mem_total_gb:.1f} GB ({mem.percent}%){load_str}",
+                value=get_machine_stats(),
                 inline=False
             )
 
@@ -218,10 +208,15 @@ class BasicControl(commands.Cog):
                         f"Uptime: {uptime_str}",
                     ]
 
-                    # TPS/MSPT取得（RCON経由）
+                    # TPS/MSPT取得（RCON経由、3秒タイムアウト）
                     server_config = SERVERS_CONFIG.get(server_id, {})
                     rcon_client = get_rcon_client(server_config)
-                    tick_stats = await server_instance.get_tick_stats(rcon_client)
+                    try:
+                        tick_stats = await asyncio.wait_for(
+                            server_instance.get_tick_stats(rcon_client), timeout=3.0
+                        )
+                    except asyncio.TimeoutError:
+                        tick_stats = None
                     if tick_stats is not None:
                         value_lines.append(f"TPS: {format_tick_stats(tick_stats)}")
 
@@ -245,11 +240,11 @@ class BasicControl(commands.Cog):
             if not server_instance:
                 return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
+            await interaction.response.defer(thinking=True)
+
             stats = self.server_manager.get_server_stats(server)
             if not stats:
-                return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
-
-            await interaction.response.defer(thinking=True)
+                return await interaction.followup.send(f"{server_instance.name} は起動していません。", ephemeral=True)
 
             seconds = int(stats['uptime_seconds'])
             m, s = divmod(seconds, 60)
@@ -263,10 +258,15 @@ class BasicControl(commands.Cog):
             embed.add_field(name="Uptime", value=uptime_str, inline=True)
             embed.add_field(name="Port", value=str(server_instance.port), inline=True)
 
-            # TPS/MSPT取得（RCON経由）
+            # TPS/MSPT取得（RCON経由、3秒タイムアウト）
             server_config = SERVERS_CONFIG.get(server, {})
             rcon_client = get_rcon_client(server_config)
-            tick_stats = await server_instance.get_tick_stats(rcon_client)
+            try:
+                tick_stats = await asyncio.wait_for(
+                    server_instance.get_tick_stats(rcon_client), timeout=3.0
+                )
+            except asyncio.TimeoutError:
+                tick_stats = None
             if tick_stats is not None:
                 embed.add_field(name="TPS", value=format_tick_stats(tick_stats), inline=True)
 
