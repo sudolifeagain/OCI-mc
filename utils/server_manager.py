@@ -288,6 +288,21 @@ class ServerInstance:
         """サーバーが起動中かどうかを返す"""
         return self._get_process() is not None
 
+    async def get_tps(self, rcon_client) -> float | None:
+        """RCON経由でTPSを取得する"""
+        if not rcon_client:
+            return None
+        try:
+            success, response = await rcon_client.execute("forge tps")
+            if not success:
+                return None
+            match = re.search(r'Overall.*Mean TPS:\s*([\d.]+)', response)
+            if match:
+                return float(match.group(1))
+        except Exception as e:
+            logging.debug(f"Failed to get TPS for '{self.server_id}': {e}")
+        return None
+
     def get_stats(self) -> dict | None:
         """サーバーのステータス(CPU, Memory, Uptime)を取得"""
         proc = self._get_process()

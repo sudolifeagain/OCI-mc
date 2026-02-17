@@ -1,7 +1,9 @@
 import asyncio
+import os
 import subprocess
 import logging
 import discord
+import psutil
 from discord import app_commands
 from discord.ext import commands, tasks
 from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
@@ -163,7 +165,25 @@ class BasicControl(commands.Cog):
 
         # サーバー指定がない場合は全サーバーのステータスを表示
         if server is None:
-            embed = discord.Embed(title="🖥️ Minecraft Server Status", color=0x00ff00)
+            await interaction.response.defer(thinking=True)
+
+            embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
+
+            # マシン統計
+            cpu = psutil.cpu_percent(interval=None)
+            mem = psutil.virtual_memory()
+            mem_used_gb = mem.used / (1024 ** 3)
+            mem_total_gb = mem.total / (1024 ** 3)
+            try:
+                load = os.getloadavg()[0]
+                load_str = f" | Load: {load:.2f}"
+            except (AttributeError, OSError):
+                load_str = ""
+            embed.add_field(
+                name="マシン",
+                value=f"CPU: {cpu}% | Memory: {mem_used_gb:.1f}/{mem_total_gb:.1f} GB ({mem.percent}%){load_str}",
+                inline=False
+            )
 
             for server_id in SERVER_IDS:
                 server_instance = self.server_manager.get_server(server_id)
@@ -177,9 +197,22 @@ class BasicControl(commands.Cog):
                     h, m = divmod(m, 60)
                     uptime_str = f"{h}h {m}m {s}s"
 
+                    value_lines = [
+                        f"CPU: {stats['cpu_percent']}%",
+                        f"Memory: {stats['memory_mb']:.1f} MB",
+                        f"Uptime: {uptime_str}",
+                    ]
+
+                    # TPS取得（RCON経由）
+                    server_config = SERVERS_CONFIG.get(server_id, {})
+                    rcon_client = get_rcon_client(server_config)
+                    tps = await server_instance.get_tps(rcon_client)
+                    if tps is not None:
+                        value_lines.append(f"TPS: {tps}")
+
                     embed.add_field(
                         name=f"🟢 {server_instance.name}",
-                        value=f"CPU: {stats['cpu_percent']}%\nMemory: {stats['memory_mb']:.1f} MB\nUptime: {uptime_str}",
+                        value="\n".join(value_lines),
                         inline=True
                     )
                 else:
@@ -189,7 +222,7 @@ class BasicControl(commands.Cog):
                         inline=True
                     )
 
-            await interaction.response.send_message(embed=embed, silent=True)
+            await interaction.followup.send(embed=embed, silent=True)
         else:
             # 特定のサーバーのステータスを表示
             server_instance = self.server_manager.get_server(server)
@@ -200,19 +233,28 @@ class BasicControl(commands.Cog):
             if not stats:
                 return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
 
+            await interaction.response.defer(thinking=True)
+
             seconds = int(stats['uptime_seconds'])
             m, s = divmod(seconds, 60)
             h, m = divmod(m, 60)
             uptime_str = f"{h}h {m}m {s}s"
 
-            embed = discord.Embed(title=f"🖥️ {server_instance.name} Status", color=0x00ff00)
+            embed = discord.Embed(title=f"{server_instance.name} Status", color=0x00ff00)
             embed.add_field(name="Status", value="🟢 Running", inline=False)
             embed.add_field(name="CPU Usage", value=f"{stats['cpu_percent']}%", inline=True)
             embed.add_field(name="Memory Usage", value=f"{stats['memory_mb']:.1f} MB", inline=True)
             embed.add_field(name="Uptime", value=uptime_str, inline=True)
             embed.add_field(name="Port", value=str(server_instance.port), inline=True)
 
-            await interaction.response.send_message(embed=embed, silent=True)
+            # TPS取得（RCON経由）
+            server_config = SERVERS_CONFIG.get(server, {})
+            rcon_client = get_rcon_client(server_config)
+            tps = await server_instance.get_tps(rcon_client)
+            if tps is not None:
+                embed.add_field(name="TPS", value=str(tps), inline=True)
+
+            await interaction.followup.send(embed=embed, silent=True)
 
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status server={server}")
 

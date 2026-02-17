@@ -1,4 +1,6 @@
+import os
 import discord
+import psutil
 from discord.ext import commands, tasks
 from settings import STATUS_CHANNEL_ID
 import time
@@ -6,6 +8,30 @@ from datetime import datetime
 import zoneinfo
 
 JST = zoneinfo.ZoneInfo("Asia/Tokyo")
+
+
+def get_machine_stats() -> str:
+    """マシン全体のCPU/メモリ/ロードアベレージを1行で返す"""
+    cpu = psutil.cpu_percent(interval=None)
+    mem = psutil.virtual_memory()
+    mem_used_gb = mem.used / (1024 ** 3)
+    mem_total_gb = mem.total / (1024 ** 3)
+    try:
+        load = os.getloadavg()[0]
+        load_str = f" | Load: {load:.2f}"
+    except (AttributeError, OSError):
+        load_str = ""
+    return f"CPU: {cpu}% | Mem: {mem_used_gb:.1f}/{mem_total_gb:.1f} GB ({mem.percent}%){load_str}"
+
+
+def format_process_stats(stats: dict) -> str:
+    """プロセス統計を1行で返す"""
+    mem_gb = stats['memory_mb'] / 1024
+    seconds = int(stats['uptime_seconds'])
+    m, _ = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return f"CPU: {stats['cpu_percent']}% | Mem: {mem_gb:.1f} GB | Up: {h}h {m}m"
+
 
 class StatusDisplay(commands.Cog):
     def __init__(self, bot):
@@ -25,9 +51,12 @@ class StatusDisplay(commands.Cog):
             return
 
         now = datetime.now(JST)
+        machine = get_machine_stats()
+        description = f"最終更新: {now.strftime('%Y/%m/%d %H:%M:%S')} (JST)\n{machine}"
+
         embed = discord.Embed(
             title="サーバー参加状況",
-            description=f"最終更新: {now.strftime('%Y/%m/%d %H:%M:%S')} (JST)",
+            description=description,
             color=0x00ff00
         )
 
@@ -37,26 +66,32 @@ class StatusDisplay(commands.Cog):
                 continue
 
             lines = []
+
+            # プロセス統計
+            stats = server.get_stats()
+            if stats:
+                lines.append(format_process_stats(stats))
+
             players = server.online_players
             if players:
-                # 参加時間の古い順（長く居る順）にソート
                 sorted_players = sorted(players.items(), key=lambda item: item[1])
-
                 for name, join_time in sorted_players:
                     elapsed_seconds = int(time.time() - join_time)
                     lines.append(f"👤 **{name}** ({self.format_duration(elapsed_seconds)})")
-                value = "\n".join(lines)
             else:
-                value = "参加者なし"
+                lines.append("参加者なし")
 
-            embed.add_field(name=f"{server.name} (稼働中・{len(players)}人)", value=value, inline=False)
+            embed.add_field(
+                name=f"{server.name} (稼働中・{len(players)}人)",
+                value="\n".join(lines),
+                inline=False
+            )
 
         # メッセージの送信または編集
         if self.message:
             try:
                 await self.message.edit(embed=embed)
             except discord.NotFound:
-                # メッセージが消されていた場合は再検索または新規送信
                 self.message = await self.find_or_send_message(channel, embed)
         else:
             self.message = await self.find_or_send_message(channel, embed)
