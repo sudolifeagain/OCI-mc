@@ -7,6 +7,7 @@ from discord.ext import commands, tasks
 from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 from utils.rcon import get_rcon_client
+from cogs.status_display import get_machine_stats
 
 
 def get_server_choices():
@@ -19,6 +20,21 @@ def get_server_choices():
 
 # サーバー選択肢をグローバルに定義
 SERVER_CHOICES = get_server_choices()
+
+TICK_FOOTER = "TPS: 🟢 正常 (<40ms) | 🟡 注意 (40-50ms) | 🔴 危険 (>50ms)"
+
+
+def format_tick_stats(tick_stats: dict) -> str:
+    """TPS/MSPTをインジケーター付きでフォーマットする"""
+    tps = tick_stats["tps"]
+    mspt = tick_stats["mspt"]
+    if mspt < 40:
+        indicator = "🟢"
+    elif mspt <= 50:
+        indicator = "🟡"
+    else:
+        indicator = "🔴"
+    return f"{indicator} {tps} (MSPT: {mspt}ms)"
 
 
 class BasicControl(commands.Cog):
@@ -163,7 +179,16 @@ class BasicControl(commands.Cog):
 
         # サーバー指定がない場合は全サーバーのステータスを表示
         if server is None:
-            embed = discord.Embed(title="🖥️ Minecraft Server Status", color=0x00ff00)
+            await interaction.response.defer(thinking=True)
+
+            embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
+
+            # マシン統計
+            embed.add_field(
+                name="マシン",
+                value=get_machine_stats(),
+                inline=False
+            )
 
             for server_id in SERVER_IDS:
                 server_instance = self.server_manager.get_server(server_id)
@@ -177,9 +202,27 @@ class BasicControl(commands.Cog):
                     h, m = divmod(m, 60)
                     uptime_str = f"{h}h {m}m {s}s"
 
+                    value_lines = [
+                        f"CPU: {stats['cpu_percent']}%",
+                        f"Memory: {stats['memory_mb']:.1f} MB",
+                        f"Uptime: {uptime_str}",
+                    ]
+
+                    # TPS/MSPT取得（RCON経由、3秒タイムアウト）
+                    server_config = SERVERS_CONFIG.get(server_id, {})
+                    rcon_client = get_rcon_client(server_config)
+                    try:
+                        tick_stats = await asyncio.wait_for(
+                            server_instance.get_tick_stats(rcon_client), timeout=3.0
+                        )
+                    except asyncio.TimeoutError:
+                        tick_stats = None
+                    if tick_stats is not None:
+                        value_lines.append(f"TPS: {format_tick_stats(tick_stats)}")
+
                     embed.add_field(
                         name=f"🟢 {server_instance.name}",
-                        value=f"CPU: {stats['cpu_percent']}%\nMemory: {stats['memory_mb']:.1f} MB\nUptime: {uptime_str}",
+                        value="\n".join(value_lines),
                         inline=True
                     )
                 else:
@@ -189,30 +232,46 @@ class BasicControl(commands.Cog):
                         inline=True
                     )
 
-            await interaction.response.send_message(embed=embed, silent=True)
+            embed.set_footer(text=TICK_FOOTER)
+            await interaction.followup.send(embed=embed, silent=True)
         else:
             # 特定のサーバーのステータスを表示
             server_instance = self.server_manager.get_server(server)
             if not server_instance:
                 return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
+            await interaction.response.defer(thinking=True)
+
             stats = self.server_manager.get_server_stats(server)
             if not stats:
-                return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+                return await interaction.followup.send(f"{server_instance.name} は起動していません。", ephemeral=True)
 
             seconds = int(stats['uptime_seconds'])
             m, s = divmod(seconds, 60)
             h, m = divmod(m, 60)
             uptime_str = f"{h}h {m}m {s}s"
 
-            embed = discord.Embed(title=f"🖥️ {server_instance.name} Status", color=0x00ff00)
+            embed = discord.Embed(title=f"{server_instance.name} Status", color=0x00ff00)
             embed.add_field(name="Status", value="🟢 Running", inline=False)
             embed.add_field(name="CPU Usage", value=f"{stats['cpu_percent']}%", inline=True)
             embed.add_field(name="Memory Usage", value=f"{stats['memory_mb']:.1f} MB", inline=True)
             embed.add_field(name="Uptime", value=uptime_str, inline=True)
             embed.add_field(name="Port", value=str(server_instance.port), inline=True)
 
-            await interaction.response.send_message(embed=embed, silent=True)
+            # TPS/MSPT取得（RCON経由、3秒タイムアウト）
+            server_config = SERVERS_CONFIG.get(server, {})
+            rcon_client = get_rcon_client(server_config)
+            try:
+                tick_stats = await asyncio.wait_for(
+                    server_instance.get_tick_stats(rcon_client), timeout=3.0
+                )
+            except asyncio.TimeoutError:
+                tick_stats = None
+            if tick_stats is not None:
+                embed.add_field(name="TPS", value=format_tick_stats(tick_stats), inline=True)
+
+            embed.set_footer(text=TICK_FOOTER)
+            await interaction.followup.send(embed=embed, silent=True)
 
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status server={server}")
 
