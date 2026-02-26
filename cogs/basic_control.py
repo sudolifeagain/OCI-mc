@@ -124,7 +124,7 @@ class BasicControl(commands.Cog):
                 ephemeral=True
             )
 
-        await interaction.response.defer(thinking=True)
+        await interaction.response.defer(thinking=False)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /cmd server={server} {command_str}")
 
         # RCONでコマンド実行
@@ -179,7 +179,7 @@ class BasicControl(commands.Cog):
 
         # サーバー指定がない場合は全サーバーのステータスを表示
         if server is None:
-            await interaction.response.defer(thinking=True)
+            await interaction.response.defer(thinking=False)
 
             embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
 
@@ -240,7 +240,7 @@ class BasicControl(commands.Cog):
             if not server_instance:
                 return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
-            await interaction.response.defer(thinking=True)
+            await interaction.response.defer(thinking=False)
 
             stats = self.server_manager.get_server_stats(server)
             if not stats:
