@@ -24,4 +24,7 @@ ref/
 # Dynamic permissions (server-specific)
 user_permissions.json
 
+# Backup fingerprints (server-specific)
+.backup_fingerprints.json
+
 

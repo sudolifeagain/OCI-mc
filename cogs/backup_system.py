@@ -1,4 +1,6 @@
 import os
+import json
+import hashlib
 import tempfile
 import shutil
 import zipfile
@@ -11,6 +13,8 @@ from discord.ext import commands, tasks
 from settings import CONFIG, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER
 from utils.permissions import check_role
 from utils.notion_api import upload_to_notion, register_to_database, get_backups_list, download_file
+
+FINGERPRINT_FILE = ".backup_fingerprints.json"
 
 
 def get_server_choices():
@@ -51,7 +55,56 @@ class BackupSystem(commands.Cog):
             return server.cwd
         return "/opt/minecraft"
 
-    async def perform_backup(self, channel, server_id: str = None):
+    def _load_fingerprints(self) -> dict:
+        """保存済みフィンガープリントを読み込む"""
+        try:
+            with open(FINGERPRINT_FILE, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _save_fingerprints(self, data: dict) -> None:
+        """フィンガープリントをファイルに保存する"""
+        with open(FINGERPRINT_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def _compute_fingerprint(self, base_dir: str, target_dirs: list[str]) -> str:
+        """バックアップ対象ディレクトリのメタデータからフィンガープリントを計算する"""
+        entries = []
+        for d in sorted(target_dirs):
+            full_path = os.path.join(base_dir, d)
+            if not os.path.exists(full_path):
+                continue
+            if os.path.isdir(full_path):
+                for root, dirs, files in os.walk(full_path):
+                    dirs.sort()
+                    for fname in sorted(files):
+                        file_path = os.path.join(root, fname)
+                        rel_path = os.path.relpath(file_path, base_dir)
+                        stat = os.stat(file_path)
+                        entries.append(f"{rel_path}|{stat.st_size}|{int(stat.st_mtime)}")
+            else:
+                stat = os.stat(full_path)
+                entries.append(f"{d}|{stat.st_size}|{int(stat.st_mtime)}")
+        return hashlib.sha256("\n".join(entries).encode()).hexdigest()
+
+    def _has_changes(self, server_id: str, base_dir: str, target_dirs: list[str]) -> bool:
+        """前回バックアップから変更があるか判定する"""
+        current_fp = self._compute_fingerprint(base_dir, target_dirs)
+        saved = self._load_fingerprints()
+        prev_fp = saved.get(server_id)
+        if prev_fp is None:
+            return True
+        return current_fp != prev_fp
+
+    def _update_fingerprint(self, server_id: str, base_dir: str, target_dirs: list[str]) -> None:
+        """フィンガープリントを計算して保存する。サーバー停止後に呼ぶこと"""
+        fp = self._compute_fingerprint(base_dir, target_dirs)
+        saved = self._load_fingerprints()
+        saved[server_id] = fp
+        self._save_fingerprints(saved)
+
+    async def perform_backup(self, channel, server_id: str = None, *, force: bool = False):
         """バックアップを実行する"""
         # サーバー指定がない場合は全サーバーをバックアップ
         if server_id is None:
@@ -60,30 +113,21 @@ class BackupSystem(commands.Cog):
             servers_to_backup = [server_id]
 
         for srv_id in servers_to_backup:
-            await self._backup_single_server(channel, srv_id)
+            await self._backup_single_server(channel, srv_id, force=force)
 
-    async def _backup_single_server(self, channel, server_id: str):
+    async def _backup_single_server(self, channel, server_id: str, *, force: bool = False):
         """単一サーバーのバックアップを実行する"""
         server_instance = self.server_manager.get_server(server_id)
         if not server_instance:
             if channel:
-                await channel.send(f"❌ サーバー '{server_id}' が見つかりません。", silent=True)
+                await channel.send(f"サーバー '{server_id}' が見つかりません。", silent=True)
             return
 
         server_name = server_instance.name
         mc_dir = server_instance.cwd
 
         try:
-            # 1. サーバー停止と待機
-            was_running = False
-            if self.server_manager.is_running(server_id):
-                was_running = True
-                if channel:
-                    await channel.send(f"[{server_name}] サーバーを停止してデータを保存します...", silent=True)
-                await self.server_manager.stop_server(server_id)
-                await self.server_manager.wait_for_exit(server_id)
-
-            # 2. バックアップ対象の確認
+            # 1. バックアップ対象の確認
             backup_dirs = self.get_backup_dirs(server_id)
             existing_dirs = []
             for d in backup_dirs:
@@ -93,13 +137,33 @@ class BackupSystem(commands.Cog):
 
             if not existing_dirs:
                 if channel:
-                    await channel.send(f"[{server_name}] ⚠️ バックアップ対象のデータが存在しません（{', '.join(backup_dirs)}）", silent=True)
-                # サーバーが動いていたら再起動
-                if was_running:
-                    await self.server_manager.start_server(server_id)
+                    await channel.send(f"[{server_name}] バックアップ対象のデータが存在しません（{', '.join(backup_dirs)}）", silent=True)
                 return
 
-            # 3. 圧縮 (ZIP) - 一時ディレクトリを使用
+            # 2. 変更検出（定期バックアップのみ）
+            loop = asyncio.get_event_loop()
+            if not force:
+                changed = await loop.run_in_executor(
+                    None, self._has_changes, server_id, mc_dir, existing_dirs
+                )
+                if not changed:
+                    if channel:
+                        await channel.send(
+                            f"[{server_name}] 前回のバックアップから変更なし。スキップ。",
+                            silent=True,
+                        )
+                    return
+
+            # 3. サーバー停止と待機
+            was_running = False
+            if self.server_manager.is_running(server_id):
+                was_running = True
+                if channel:
+                    await channel.send(f"[{server_name}] サーバーを停止してデータを保存します...", silent=True)
+                await self.server_manager.stop_server(server_id)
+                await self.server_manager.wait_for_exit(server_id)
+
+            # 4. 圧縮 (ZIP) - 一時ディレクトリを使用
             if channel:
                 await channel.send(f"[{server_name}] ワールドデータを圧縮中...", silent=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
@@ -119,12 +183,11 @@ class BackupSystem(commands.Cog):
                         else:
                             zipf.write(full_path, os.path.basename(full_path))
 
-            loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, create_zip)
 
             size_mb = os.path.getsize(zip_path) / (1024 * 1024)
 
-            # 3. Notion Upload
+            # 5. Notion Upload
             if channel:
                 await channel.send(f"[{server_name}] Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
@@ -135,12 +198,17 @@ class BackupSystem(commands.Cog):
             await loop.run_in_executor(None, register_to_database, file_id, zip_name, size_mb)
 
             if channel:
-                await channel.send(f"[{server_name}] ✅ バックアップ完了！", silent=True)
+                await channel.send(f"[{server_name}] バックアップ完了", silent=True)
 
-            # 4. 一時ファイル削除
+            # 6. フィンガープリント更新（サーバー停止後の安定状態で計算）
+            await loop.run_in_executor(
+                None, self._update_fingerprint, server_id, mc_dir, existing_dirs
+            )
+
+            # 7. 一時ファイル削除
             os.remove(zip_path)
 
-            # 5. 再起動
+            # 8. 再起動
             if was_running:
                 if channel:
                     await channel.send(f"[{server_name}] サーバーを再起動します。", silent=True)
@@ -165,7 +233,7 @@ class BackupSystem(commands.Cog):
             msg = "全サーバーのバックアップ処理を開始します..."
 
         await interaction.response.send_message(msg, silent=True)
-        await self.perform_backup(interaction.channel, server)
+        await self.perform_backup(interaction.channel, server, force=True)
 
     @app_commands.command(name="backups", description="Notionにある最新のバックアップリストを表示します")
     async def backups(self, interaction: discord.Interaction):
