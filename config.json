@@ -19,6 +19,16 @@
 			"log_forwarding": false,
 			"rcon_port": 25576,
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
+		},
+		"forge-alt": {
+			"name": "Forge (Alt)",
+			"use_script": "./run.sh",
+			"cwd": "/opt/minecraft/forge-alt",
+			"port": 25565,
+			"auto_start": false,
+			"log_forwarding": false,
+			"rcon_port": 25577,
+			"rcon_password_env": "FORGE_ALT_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
