@@ -7,6 +7,9 @@ import psutil
 import re
 
 
+MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動拒否
+
+
 class ServerInstance:
     """個別のMinecraftサーバーインスタンスを管理するクラス"""
 
@@ -26,6 +29,58 @@ class ServerInstance:
         # Regex patterns for join/leave
         self.join_pattern = re.compile(r': (.+) joined the game')
         self.leave_pattern = re.compile(r': (.+) left the game')
+
+    @staticmethod
+    def _parse_memory_value(value: str) -> int | None:
+        """メモリ指定文字列をMB単位の整数に変換する (例: "4G"→4096, "2500M"→2500)"""
+        match = re.match(r'^(\d+)\s*([gGmM])$', value.strip())
+        if not match:
+            return None
+        num = int(match.group(1))
+        unit = match.group(2).upper()
+        return num * 1024 if unit == 'G' else num
+
+    def _get_allocated_memory_mb(self) -> int | None:
+        """サーバーに割り当てられた最大メモリ(MB)を取得する"""
+        if self.use_script:
+            # スクリプト起動: user_jvm_args.txt から -Xmx を読み取る
+            jvm_args_path = os.path.join(self.cwd, 'user_jvm_args.txt')
+            try:
+                with open(jvm_args_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith('#') or not line:
+                            continue
+                        match = re.match(r'-Xmx(\d+[gGmM])', line)
+                        if match:
+                            return self._parse_memory_value(match.group(1))
+            except FileNotFoundError:
+                logging.warning(f"JVM args file not found: {jvm_args_path}")
+            return None
+        else:
+            # jar直接起動: config の memory 値を使用
+            return self._parse_memory_value(self.memory)
+
+    def check_memory_available(self) -> tuple[bool, str]:
+        """システム空きメモリが割り当ての80%以上あるか確認する"""
+        allocated_mb = self._get_allocated_memory_mb()
+        if allocated_mb is None:
+            logging.warning(f"Server '{self.server_id}': メモリ割り当て値を取得できないため、チェックをスキップ")
+            return True, ""
+
+        available_mb = psutil.virtual_memory().available / (1024 * 1024)
+        required_mb = allocated_mb * MEMORY_THRESHOLD
+
+        if available_mb < required_mb:
+            msg = (
+                f"メモリ不足: 空き {available_mb:.0f}MB < "
+                f"必要 {required_mb:.0f}MB "
+                f"(割り当て {allocated_mb}MB の {int(MEMORY_THRESHOLD * 100)}%)"
+            )
+            logging.warning(f"Server '{self.server_id}': {msg}")
+            return False, msg
+
+        return True, ""
 
     def _get_pid_file_path(self) -> str:
         """PIDファイルのパスを返す"""

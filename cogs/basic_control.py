@@ -60,6 +60,13 @@ class BasicControl(commands.Cog):
         if self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は既に起動しています。", ephemeral=True)
 
+        mem_ok, mem_msg = server_instance.check_memory_available()
+        if not mem_ok:
+            return await interaction.response.send_message(
+                f"⚠️ {server_instance.name} を起動できません: {mem_msg}",
+                ephemeral=True
+            )
+
         await interaction.response.send_message(f"🚀 {server_instance.name} の起動コマンドを送信しました。", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /start server={server}")
         await self.server_manager.start_server(server)
@@ -99,6 +106,13 @@ class BasicControl(commands.Cog):
         if self.server_manager.is_running(server):
             await self.server_manager.stop_server(server)
             await self.server_manager.wait_for_exit(server)
+
+        mem_ok, mem_msg = server_instance.check_memory_available()
+        if not mem_ok:
+            return await interaction.followup.send(
+                f"⚠️ {server_instance.name} の再起動を中止: {mem_msg}",
+                silent=True
+            )
 
         await self.server_manager.start_server(server)
         await interaction.followup.send(f"✅ {server_instance.name} の再起動を開始しました。", silent=True)
