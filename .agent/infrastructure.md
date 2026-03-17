@@ -16,7 +16,12 @@
     - `run.sh`, `mods/` (~590 mods, 1.1GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
-    - Memory: 10G, Port: 25566
+    - Memory: 14G, Port: 25566
+  - **neoforge/**: NeoForge server (21.1.219)
+    - `run.sh`, `mods/`, `world/`
+    - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
+    - `.neoforge.pid` - PIDファイル
+    - Memory: 4G, Port: 25567
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
 
@@ -67,12 +72,18 @@ rcon.password=<secure_password>
 enable-rcon=true
 rcon.port=25576
 rcon.password=<secure_password>
+
+# NeoForge (port 25577)
+enable-rcon=true
+rcon.port=25577
+rcon.password=<secure_password>
 ```
 
 #### Bot側設定 (.env)
 ```bash
 PAPER_RCON_PASSWORD=<password>
 FORGE_RCON_PASSWORD=<password>
+NEOFORGE_RCON_PASSWORD=<password>
 ```
 
 #### config.json
@@ -143,7 +154,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 #### 注意点
 - **OOM Killer**: メモリ枯渇時はスワップへの退避ではなくプロセス強制終了が発生
 - **監視推奨**: `free -h`でメモリ使用量を定期確認
-- 現在のメモリ構成: 17GB（Forge 10GB + Paper 4GB + Bot + OS）
+- 現在のメモリ構成: 22GB+（Forge 14GB + NeoForge 4GB + Paper 4GB + Bot + OS）※同時起動注意
 
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
@@ -169,6 +180,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_CHANNEL_ID`: Default log channel (fallback)
 - `DISCORD_PAPER_LOG_CHANNEL_ID`: Paper server log channel (optional)
 - `DISCORD_FORGE_LOG_CHANNEL_ID`: Forge server log channel (optional)
+- `DISCORD_NEOFORGE_LOG_CHANNEL_ID`: NeoForge server log channel (optional)
 - `DISCORD_STATUS_CHANNEL_ID`: Real-time status display channel (optional)
 
 ### Roles/Users
@@ -184,6 +196,49 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 ### Notion (Backup)
 - `NOTION_TOKEN`: Notion API token
 - `NOTION_DB_ID`: Notion database ID for backups
+
+### Notion API でバックアップファイルをダウンロード
+
+NotionにアップロードされたバックアップファイルをAPI経由でダウンロードする手順:
+
+#### 1. ページIDを取得
+Notion URLからページIDを抽出（`?p=`パラメータの値）:
+```
+https://re4rity.notion.site/...?p=2ff8e4f849c181aead25e6194692d944
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  これがページID
+```
+
+#### 2. ページ情報を取得
+```bash
+curl -s -X GET "https://api.notion.com/v1/pages/<PAGE_ID>" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2022-06-28"
+```
+
+#### 3. ファイルURLを抽出
+レスポンスの `properties.File.files[0].file.url` に署名付きS3 URLが含まれる。
+
+#### 4. ファイルをダウンロード
+```bash
+curl -L -o "backup.zip" "<S3_URL>"
+```
+
+**注意**: 署名付きURLは1時間で期限切れ。期限切れ後は再度ページ情報を取得する。
+
+## BlueMap (Paper)
+Paperサーバーで3DマップをWebブラウザで表示するプラグイン。
+
+- **Webポート**: 8100
+- **タイル保存先**: `/opt/minecraft/paper/bluemap/web/maps/`
+- **設定**: `/opt/minecraft/paper/plugins/BlueMap/`
+
+### 現在の設定
+- `player-render-limit: 1` - プレイヤーオンライン中は自動レンダリング停止
+- 手動更新: `/bluemap update world`
+
+### トラブルシューティング
+高CPU使用率などの問題は `.agent/bluemap-troubleshooting.md` を参照。
 
 ## Sensitive Data Handling
 - **Public Repo**: This codebase is public.

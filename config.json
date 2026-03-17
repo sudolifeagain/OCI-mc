@@ -1,21 +1,21 @@
 {
 	"servers": {
 		"paper": {
-			"name": "Paper (Vanilla)",
+			"name": "Paper",
 			"jar": "paper.jar",
 			"cwd": "/opt/minecraft/paper",
 			"memory": "4G",
 			"port": 25565,
-			"auto_start": true,
+			"auto_start": false,
 			"rcon_port": 25575,
 			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		},
 		"forge": {
-			"name": "Forge (Better MC)",
+			"name": "Forge",
 			"use_script": "./run.sh",
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
-			"auto_start": true,
+			"auto_start": false,
 			"log_forwarding": false,
 			"rcon_port": 25576,
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
@@ -69,6 +69,9 @@
 				"world_the_end"
 			],
 			"forge": [
+				"world"
+			],
+			"forge-alt": [
 				"world"
 			]
 		},

@@ -1,6 +1,6 @@
 # 技術的な意思決定の記録
 
-このドキュメントは、設計上の意思決定とその背景を記録し、将来のAIエージェントが同じ試行錯誤を繰り返さないようにするためのものです。
+このドキュメントは、設計上の意思決定とその背景を記録し、将来のAIエージェントが同じ試行錯誤を繰り返さないようにすることを目的とする。
 
 ---
 
@@ -272,3 +272,84 @@ await interaction.response.send_message(
 - `config.json` - `permissions`セクション（永続的なロール権限）
 - `.gitignore` - `user_permissions.json`
 - `.github/workflows/deploy.yml` - rsync除外設定
+
+---
+
+## BlueMap高CPU使用率の解決 (2025-02)
+
+### 問題
+Paperサーバーが常時CPU 150%以上を消費。`BlueMap-RenderThread`が97%を占有。
+
+### 原因
+Minecraftの`autosave`とBlueMapのファイル監視機能が競合し、無限レンダリングループが発生。
+
+```
+autosave (60秒間隔)
+    ↓
+リージョンファイル更新
+    ↓
+BlueMapがタイムスタンプ変更を検出
+    ↓
+レンダリングキューに追加
+    ↓
+レンダリング完了前に次のautosave
+    ↓
+キューが永遠に空にならない
+```
+
+### 検証方法
+```bash
+# スレッド別CPU使用時間
+ps -T -p <PID> -o tid,comm,cputime | grep -i bluemap
+
+# リアルタイムCPU使用率
+top -H -b -n 1 -p <PID> | head -30
+
+# タイル生成速度
+find /opt/minecraft/paper/bluemap/web/maps/world/tiles -type f -name '*.gz' -mmin -1 | wc -l
+```
+
+### 検討した選択肢
+
+| 方式 | 内容 | 結果 |
+|------|------|------|
+| autosave間隔延長 | 60秒→5分に変更 | △ 改善するが根本解決にならない |
+| render-thread-count: 0 | レンダリング完全無効化 | ❌ マップ更新が一切されない |
+| /bluemap pause | 一時停止 | ❌ 手動再開が必要、忘れやすい |
+| player-render-limit: 1 | プレイヤーオンライン中は停止 | ✅ 採用 |
+
+### 採用した解決策
+
+**`player-render-limit: 1`の設定**
+
+```conf
+# /opt/minecraft/paper/plugins/BlueMap/plugin.conf
+player-render-limit: 1
+```
+
+- プレイヤーが1人以上オンライン → 自動レンダリング停止
+- 全員ログアウト → 自動レンダリング再開
+- 手動コマンド `/bluemap update world` は引き続き使用可能
+
+### 結果
+- CPU使用率: 167% → 18%（Server threadのみ）
+- `BlueMap-RenderThread`が完全に停止
+
+### 補足設定
+autosave間隔も延長済み（副次的な改善）:
+```yaml
+# /opt/minecraft/paper/bukkit.yml
+ticks-per:
+  autosave: 6000  # 5分（6000 ticks）
+```
+
+### 運用方法
+- 通常プレイ中: マップは更新されない
+- マップ更新が必要な場合: ゲーム内で `/bluemap update world` を実行
+- ログアウト後: 自動的にレンダリング開始
+
+### 関連ファイル
+- `/opt/minecraft/paper/plugins/BlueMap/plugin.conf` - player-render-limit設定
+- `/opt/minecraft/paper/plugins/BlueMap/core.conf` - render-thread-count設定
+- `/opt/minecraft/paper/bukkit.yml` - autosave設定
+- `.agent/bluemap-troubleshooting.md` - 詳細なトラブルシューティングガイド
