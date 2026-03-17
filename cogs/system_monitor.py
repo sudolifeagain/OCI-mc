@@ -139,9 +139,8 @@ class SystemMonitor(commands.Cog):
             embed.set_footer(text="OOM Killer")
 
             try:
-                # Owner にメンションして通知（サイレントなし）
                 mention = f"<@{DISCORD_OWNER_ID}>" if DISCORD_OWNER_ID else ""
-                await channel.send(content=mention, embed=embed)
+                await channel.send(content=mention, embed=embed, silent=True)
                 logging.info(f"Sent OOM alert for process {event['process']} (PID: {event['pid']})")
             except Exception as e:
                 logging.error(f"Failed to send OOM alert: {e}")
