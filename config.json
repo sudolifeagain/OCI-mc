@@ -20,15 +20,15 @@
 			"rcon_port": 25576,
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
 		},
-		"neoforge": {
-			"name": "NeoForge",
+		"forge-alt": {
+			"name": "Forge (Alt)",
 			"use_script": "./run.sh",
-			"cwd": "/opt/minecraft/neoforge",
+			"cwd": "/opt/minecraft/forge-alt",
 			"port": 25567,
 			"auto_start": false,
 			"log_forwarding": false,
 			"rcon_port": 25577,
-			"rcon_password_env": "NEOFORGE_RCON_PASSWORD"
+			"rcon_password_env": "FORGE_ALT_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
@@ -71,7 +71,7 @@
 			"forge": [
 				"world"
 			],
-			"neoforge": [
+			"forge-alt": [
 				"world"
 			]
 		},
