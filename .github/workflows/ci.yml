@@ -6,14 +6,17 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
       with:
         python-version: '3.11'
 
@@ -66,7 +69,9 @@ jobs:
         COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         BRANCH: ${{ github.ref_name }}
       run: |
-        TITLE=$(echo "$COMMIT_MSG" | head -n 1 | sed 's/"/\\"/g')
-        curl -H "Content-Type: application/json" \
-          -d "{\"flags\":4096,\"embeds\":[{\"title\":\"⚠️ CI Failed ($BRANCH)\",\"description\":\"[$TITLE]($COMMIT_URL)\",\"color\":15105570}]}" \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
+        TITLE=$(echo "$COMMIT_MSG" | head -n 1)
+        jq -n \
+          --arg title "⚠️ CI Failed ($BRANCH)" \
+          --arg desc "[$TITLE]($COMMIT_URL)" \
+          '{flags:4096,embeds:[{title:$title,description:$desc,color:15105570}]}' \
+          | curl -s -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
