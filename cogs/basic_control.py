@@ -60,10 +60,10 @@ class BasicControl(commands.Cog):
         if self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は既に起動しています。", ephemeral=True)
 
-        mem_ok, mem_msg = server_instance.check_memory_available()
+        mem_ok, mem_msg = self.server_manager.check_memory_for_start(server)
         if not mem_ok:
             return await interaction.response.send_message(
-                f"⚠️ {server_instance.name} を起動できません: {mem_msg}",
+                f"⚠️ {server_instance.name} を起動できません:\n```\n{mem_msg}\n```",
                 ephemeral=True
             )
 
@@ -107,10 +107,10 @@ class BasicControl(commands.Cog):
             await self.server_manager.stop_server(server)
             await self.server_manager.wait_for_exit(server)
 
-        mem_ok, mem_msg = server_instance.check_memory_available()
+        mem_ok, mem_msg = self.server_manager.check_memory_for_start(server)
         if not mem_ok:
             return await interaction.followup.send(
-                f"⚠️ {server_instance.name} の再起動を中止: {mem_msg}",
+                f"⚠️ {server_instance.name} の再起動を中止:\n```\n{mem_msg}\n```",
                 silent=True
             )
 
