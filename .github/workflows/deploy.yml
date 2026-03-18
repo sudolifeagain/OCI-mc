@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
     # 0. rsyncのインストール
     - name: Install rsync
@@ -71,6 +71,8 @@ jobs:
           sudo systemctl stop discord-bot || true
           sudo systemctl daemon-reload
           sudo systemctl start discord-bot
+          sleep 3
+          sudo systemctl is-active discord-bot
         EOF
 
     # 7. デプロイ成功通知
@@ -90,7 +92,7 @@ jobs:
         jq -n \
           --arg desc "$DESC" \
           '{flags:4096,embeds:[{title:"✅ デプロイ成功",description:$desc,color:3066993}]}' \
-          | curl -s -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
+          | curl -sS -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
 
     # 8. デプロイ失敗通知
     - name: Notify Discord on Failure
@@ -109,4 +111,4 @@ jobs:
         jq -n \
           --arg desc "$DESC" \
           '{flags:4096,embeds:[{title:"❌ デプロイ失敗",description:$desc,color:15158332}]}' \
-          | curl -s -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
+          | curl -sS -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
