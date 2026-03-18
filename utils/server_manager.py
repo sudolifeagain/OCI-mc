@@ -61,7 +61,7 @@ class ServerInstance:
             # jar直接起動: config の memory 値を使用
             return self._parse_memory_value(self.memory)
 
-    def check_memory_available(self) -> tuple[bool, str, dict]:
+    def _check_memory_available(self) -> tuple[bool, str, dict]:
         """システム空きメモリが割り当ての80%以上あるか確認する
 
         Returns:
@@ -468,7 +468,7 @@ class MultiServerManager:
         if not server:
             return False, f"サーバー '{server_id}' が見つからない"
 
-        mem_ok, mem_msg, details = server.check_memory_available()
+        mem_ok, mem_msg, details = server._check_memory_available()
         if mem_ok:
             return True, ""
 
