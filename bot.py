@@ -2,7 +2,7 @@ import asyncio
 import logging
 import discord
 from discord.ext import commands
-from settings import DISCORD_TOKEN, SERVERS_CONFIG
+from settings import DISCORD_TOKEN, NOTION_TOKEN, SERVERS_CONFIG
 from utils.server_manager import MultiServerManager
 
 # Bot Class Definition
@@ -35,6 +35,16 @@ class MyBot(commands.Bot):
         print("Syncing commands...")
         await self.tree.sync()
         print("Commands synced.")
+
+        # Notion API の data_source_id を事前解決（設定不備の早期検出）
+        if NOTION_TOKEN:
+            try:
+                from utils.notion_api import get_data_source_id
+                loop = asyncio.get_event_loop()
+                ds_id = await loop.run_in_executor(None, get_data_source_id)
+                logging.info(f"Notion API: data_source_id resolved ({ds_id[:8]}...)")
+            except Exception as e:
+                logging.warning(f"Notion API: data_source_id resolution failed: {e}")
 
     async def on_ready(self):
         print(f'Logged in as {self.user}')

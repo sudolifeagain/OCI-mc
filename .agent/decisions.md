@@ -275,6 +275,39 @@ await interaction.response.send_message(
 
 ---
 
+## Notion API バージョン移行: 2022-06-28 → 2026-03-11 (2026-03)
+
+### 問題
+Notion API バージョン `2022-06-28` を使用中。`.zip` ファイルを直接アップロードできず、`.pdf` に偽装するワークアラウンドを使用していた。
+
+### 動機
+1. `.zip` ファイルの直接アップロード（PDF 偽装の廃止）
+2. 非推奨化に備えた最新 API への追従
+
+### 破壊的変更への対応
+
+| 変更 (API バージョン) | 対応内容 |
+|----------------------|---------|
+| `parent` が `data_source_id` に変更 (`2025-09-03`) | `register_to_database()` の parent を `{"type": "data_source_id", "data_source_id": ...}` に変更 |
+| Database query エンドポイント変更 (`2025-09-03`) | `/v1/databases/{id}/query` → `/v1/data_sources/{ds_id}/query` |
+| クエリ結果に data_source オブジェクト混在 (`2025-09-03`) | `object == "page"` ガード追加 |
+
+### data_source_id の解決方法
+- `NOTION_DS_ID` 環境変数があればそちらを優先（API 呼び出し不要）
+- なければ `GET /v1/databases/{id}` から `data_sources[0].id` を実行時に解決
+- 結果はモジュールレベル変数にキャッシュ
+
+### PDF 偽装ワークアラウンドの削除
+- `cogs/backup_system.py`: `.zip→.pdf` リネームと `content_type="application/pdf"` を削除
+- リストア互換性: `zipfile.is_zipfile()` がマジックバイト判定のため、拡張子変更の影響なし
+
+### 関連ファイル
+- `utils/notion_api.py` - API バージョン・エンドポイント・ペイロード変更
+- `cogs/backup_system.py` - PDF 偽装削除
+- `settings.py` - `NOTION_DS_ID` 環境変数追加
+
+---
+
 ## BlueMap高CPU使用率の解決 (2025-02)
 
 ### 問題
