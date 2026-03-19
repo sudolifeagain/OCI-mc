@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 from datetime import datetime
@@ -26,7 +27,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     is_multi_part = file_size > UPLOAD_THRESHOLD
     mode = "multi_part" if is_multi_part else "single_part"
 
-    print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
+    logging.info(f"[Notion] Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}")
     init_payload = {
         "filename": filename,
         "content_type": content_type,
@@ -65,7 +66,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
                 chunk = f.read(chunk_size)
                 if not chunk:
                     break
-                print(f"Uploading part {part_num}...")
+                logging.info(f"[Notion] Uploading part {part_num}")
                 resp = requests.post(
                     upload_url,
                     headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": "2022-06-28"},
@@ -169,7 +170,7 @@ def get_backups_list(limit=10):
 
 def download_file(url, save_path):
     """URLからファイルをダウンロード"""
-    print(f"Downloading to {save_path}...")
+    logging.info(f"[Notion] Downloading to {save_path}")
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(save_path, 'wb') as f:

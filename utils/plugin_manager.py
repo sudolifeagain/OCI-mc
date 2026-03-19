@@ -4,6 +4,7 @@ Plugin Manager Utility
 """
 import fnmatch
 import hashlib
+import logging
 import os
 import shutil
 import tempfile
@@ -180,7 +181,7 @@ def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
                 os.remove(filepath)
                 deleted += 1
             except Exception as e:
-                print(f"Failed to delete {filepath}: {e}")
+                logging.error(f"Failed to delete {filepath}: {e}")
 
     return deleted
 
@@ -220,7 +221,7 @@ def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[d
 
         return None
     except Exception as e:
-        print(f"GitHub API error: {e}")
+        logging.error(f"GitHub API error ({repo}): {e}")
         return None
 
 
@@ -243,7 +244,7 @@ def download_file(url: str, dest_path: str, timeout: int = 300) -> bool:
                 shutil.copyfileobj(resp.raw, f)
         return True
     except Exception as e:
-        print(f"Download error: {e}")
+        logging.error(f"Download error ({url}): {e}")
         return False
 
 
@@ -381,7 +382,7 @@ def compute_file_sha256(filepath: str) -> Optional[str]:
                 sha256_hash.update(chunk)
         return sha256_hash.hexdigest()
     except Exception as e:
-        print(f"SHA256 calculation error: {e}")
+        logging.error(f"SHA256 calculation error ({filepath}): {e}")
         return None
 
 
@@ -421,7 +422,7 @@ def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
             "filename": platform_info.get("name", ""),
         }
     except Exception as e:
-        print(f"GeyserMC API error: {e}")
+        logging.error(f"GeyserMC API error ({project}/{platform}): {e}")
         return None
 
 
@@ -467,7 +468,7 @@ def get_github_latest_info(repo: str, asset_pattern: str) -> Optional[dict]:
 
         return None
     except Exception as e:
-        print(f"GitHub API error: {e}")
+        logging.error(f"GitHub API error ({repo}): {e}")
         return None
 
 
