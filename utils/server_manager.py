@@ -7,6 +7,8 @@ from collections.abc import Awaitable, Callable
 import psutil
 import re
 
+from utils.rcon import RconClient, get_rcon_client
+
 
 MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動拒否
 
@@ -424,9 +426,8 @@ class MultiServerManager:
             return False
         return await server.start()
 
-    def _get_rcon_client(self, server_id: str):
+    def _get_rcon_client(self, server_id: str) -> RconClient | None:
         """サーバーIDからRCONクライアントを取得"""
-        from utils.rcon import get_rcon_client
         config = self._servers_config.get(server_id, {})
         return get_rcon_client(config)
 
@@ -486,11 +487,9 @@ class MultiServerManager:
 
                             # 10秒前アナウンス
                             try:
-                                rcon_client2 = self._get_rcon_client(server_id)
-                                if rcon_client2:
-                                    await rcon_client2.execute(
-                                        "say サーバーが10秒後にシャットダウンします"
-                                    )
+                                await rcon_client.execute(
+                                    "say サーバーが10秒後にシャットダウンします"
+                                )
                             except Exception as e:
                                 logging.warning(f"Failed to send 10s announcement: {e}")
 
@@ -503,7 +502,7 @@ class MultiServerManager:
                         logging.warning(
                             f"Server '{server_id}': RCON list command failed: {response}"
                         )
-                except (asyncio.TimeoutError, Exception) as e:
+                except Exception as e:
                     logging.warning(
                         f"Server '{server_id}': RCON check failed, stopping immediately: {e}"
                     )
