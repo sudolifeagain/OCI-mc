@@ -38,6 +38,7 @@ jobs:
           --exclude 'venv' \
           --exclude 'user_permissions.json' \
           --exclude '.backup_fingerprints.json' \
+          --exclude 'logs' \
           -e "ssh -i ~/.ssh/id_rsa" \
           ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
 
