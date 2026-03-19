@@ -217,7 +217,7 @@ class BackupSystem(commands.Cog):
         except Exception as e:
             if channel:
                 await channel.send(f"[{server_name}] バックアップエラー: {str(e)}", silent=True)
-            logging.exception(f"[Backup] {server_id} backup failed: {e}")
+            logging.exception(f"[Backup] {server_id} backup failed")
 
     @app_commands.command(name="backup", description="手動バックアップを実行します")
     @app_commands.describe(server="バックアップするサーバー（省略時は全サーバー）")
@@ -264,7 +264,7 @@ class BackupSystem(commands.Cog):
             await msg.edit(content=text)
 
         except Exception as e:
-            logging.exception(f"Backup list error: {e}")
+            logging.exception(f"[Backup] User {interaction.user} ({interaction.user.id}) /backups error")
             await msg.edit(content=f"エラーが発生しました: {e}")
 
     @app_commands.command(name="rollback", description="指定したバックアップにロールバックします")
@@ -417,7 +417,7 @@ class BackupSystem(commands.Cog):
             await self.server_manager.start_server(detected_server_id)
 
         except Exception as e:
-            logging.exception(f"[Rollback] Critical error: {e}")
+            logging.exception("[Rollback] Critical error")
             await status_msg.edit(content=f"重大なエラーが発生しました: {e}")
 
     @tasks.loop(minutes=1)
