@@ -1,4 +1,5 @@
 import os
+import threading
 import requests
 from datetime import datetime
 from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
@@ -6,48 +7,59 @@ from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
 NOTION_API_VERSION = "2026-03-11"
 
 _data_source_id = None
+_ds_lock = threading.Lock()
+
+
+class NotionAPIError(RuntimeError):
+    """Notion API 呼び出しに関するエラー"""
+    pass
 
 
 def get_data_source_id():
-    """NOTION_DB_ID から data_source_id を解決する。結果はキャッシュされる。"""
+    """NOTION_DB_ID から data_source_id を解決する。結果はキャッシュされる（スレッドセーフ）。"""
     global _data_source_id
+
     if _data_source_id:
         return _data_source_id
 
-    if NOTION_DS_ID:
-        _data_source_id = NOTION_DS_ID
+    with _ds_lock:
+        # ロック取得後に再チェック（別スレッドが先に解決済みの場合）
+        if _data_source_id:
+            return _data_source_id
+
+        if NOTION_DS_ID:
+            _data_source_id = NOTION_DS_ID
+            return _data_source_id
+
+        headers = {
+            "Authorization": f"Bearer {NOTION_TOKEN}",
+            "Notion-Version": NOTION_API_VERSION,
+        }
+        res = requests.get(
+            f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
+            headers=headers,
+        )
+        if res.status_code != 200:
+            raise NotionAPIError(f"Failed to retrieve database: {res.text}")
+
+        data_sources = res.json().get("data_sources", [])
+        if not data_sources:
+            raise NotionAPIError("No data sources found for database")
+
+        _data_source_id = data_sources[0]["id"]
         return _data_source_id
 
-    headers = {
-        "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": NOTION_API_VERSION,
-    }
-    res = requests.get(
-        f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
-        headers=headers,
-    )
-    if res.status_code != 200:
-        raise Exception(f"Failed to retrieve database: {res.text}")
 
-    data_sources = res.json().get("data_sources", [])
-    if not data_sources:
-        raise Exception("No data sources found for database")
-
-    _data_source_id = data_sources[0]["id"]
-    return _data_source_id
-
-
-def upload_to_notion(file_path, custom_filename=None, content_type="application/zip"):
+def upload_to_notion(file_path):
     """
     Notion APIを使用してファイルをアップロードし、File IDを返す。
     20MBを超えるファイルは自動的にマルチパートアップロードとして処理する。
-    custom_filenameが指定された場合、その名前でアップロードを初期化する。
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"{file_path} not found.")
 
     file_size = os.path.getsize(file_path)
-    filename = custom_filename if custom_filename else os.path.basename(file_path)
+    filename = os.path.basename(file_path)
 
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
@@ -63,7 +75,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
     init_payload = {
         "filename": filename,
-        "content_type": content_type,
+        "content_type": "application/zip",
         "mode": mode
     }
 
