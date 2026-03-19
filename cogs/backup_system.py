@@ -69,7 +69,7 @@ class BackupSystem(commands.Cog):
             json.dump(data, f, indent=2)
 
     def _compute_fingerprint(self, base_dir: str, target_dirs: list[str]) -> str:
-        """バックアップ対象ディレクトリのメタデータからフィンガープリントを計算する"""
+        """バックアップ対象ディレクトリのファイルサイズからフィンガープリントを計算する"""
         entries = []
         for d in sorted(target_dirs):
             full_path = os.path.join(base_dir, d)
@@ -82,10 +82,10 @@ class BackupSystem(commands.Cog):
                         file_path = os.path.join(root, fname)
                         rel_path = os.path.relpath(file_path, base_dir)
                         stat = os.stat(file_path)
-                        entries.append(f"{rel_path}|{stat.st_size}|{int(stat.st_mtime)}")
+                        entries.append(f"{rel_path}|{stat.st_size}")
             else:
                 stat = os.stat(full_path)
-                entries.append(f"{d}|{stat.st_size}|{int(stat.st_mtime)}")
+                entries.append(f"{d}|{stat.st_size}")
         return hashlib.sha256("\n".join(entries).encode()).hexdigest()
 
     def _has_changes(self, server_id: str, base_dir: str, target_dirs: list[str]) -> bool:
