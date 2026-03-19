@@ -216,8 +216,8 @@ class BackupSystem(commands.Cog):
 
         except Exception as e:
             if channel:
-                await channel.send(f"[{server_name}] ❌ バックアップエラー: {str(e)}", silent=True)
-            logging.error(e)
+                await channel.send(f"[{server_name}] バックアップエラー: {str(e)}", silent=True)
+            logging.exception(f"[Backup] {server_id} backup failed: {e}")
 
     @app_commands.command(name="backup", description="手動バックアップを実行します")
     @app_commands.describe(server="バックアップするサーバー（省略時は全サーバー）")
@@ -225,6 +225,8 @@ class BackupSystem(commands.Cog):
     async def backup(self, interaction: discord.Interaction, server: str | None = None):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /backup server={server}")
 
         if server:
             server_instance = self.server_manager.get_server(server)
@@ -240,6 +242,8 @@ class BackupSystem(commands.Cog):
         """Notionにある最新のバックアップリストを表示"""
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /backups")
 
         await interaction.response.send_message("Notionからバックアップリストを取得中...", silent=True)
         msg = await interaction.original_response()
@@ -260,6 +264,7 @@ class BackupSystem(commands.Cog):
             await msg.edit(content=text)
 
         except Exception as e:
+            logging.exception(f"Backup list error: {e}")
             await msg.edit(content=f"エラーが発生しました: {e}")
 
     @app_commands.command(name="rollback", description="指定したバックアップにロールバックします")
@@ -268,6 +273,8 @@ class BackupSystem(commands.Cog):
         """指定した番号のバックアップにロールバックする"""
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /rollback index={index}")
 
         await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。", silent=True)
         status_msg = await interaction.original_response()
@@ -410,9 +417,8 @@ class BackupSystem(commands.Cog):
             await self.server_manager.start_server(detected_server_id)
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            await status_msg.edit(content=f"❌ 重大なエラーが発生しました: {e}")
+            logging.exception(f"[Rollback] Critical error: {e}")
+            await status_msg.edit(content=f"重大なエラーが発生しました: {e}")
 
     @tasks.loop(minutes=1)
     async def scheduler(self):

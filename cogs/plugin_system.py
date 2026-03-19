@@ -81,7 +81,7 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /plugins server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin list error: {e}")
+            logging.exception(f"User {interaction.user} ({interaction.user.id}) /plugins server={server} error: {e}")
             await interaction.followup.send(f"エラーが発生しました: {e}", silent=True)
 
     @app_commands.command(name="update_plugins", description="設定されたプラグインを最新版に更新します")
@@ -182,7 +182,7 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /update_plugins server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin update error: {e}")
+            logging.exception(f"User {interaction.user} ({interaction.user.id}) /update_plugins server={server} error: {e}")
             await interaction.edit_original_response(
                 content=f"❌ [{server_name}] プラグイン更新中にエラーが発生しました: {e}"
             )
@@ -254,7 +254,7 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /check_updates server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin check error: {e}")
+            logging.exception(f"User {interaction.user} ({interaction.user.id}) /check_updates server={server} error: {e}")
             await interaction.edit_original_response(
                 content=f"❌ [{server_name}] 更新チェック中にエラーが発生しました: {e}"
             )
