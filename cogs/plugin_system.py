@@ -81,7 +81,7 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /plugins server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin list error: {e}")
+            logging.exception(f"[Plugin] User {interaction.user} ({interaction.user.id}) /plugins server={server} error")
             await interaction.followup.send(f"エラーが発生しました: {e}", silent=True)
 
     @app_commands.command(name="update_plugins", description="設定されたプラグインを最新版に更新します")
@@ -145,7 +145,13 @@ class PluginSystem(commands.Cog):
                 await interaction.edit_original_response(
                     content=f"🔄 [{server_name}] サーバーを停止中..."
                 )
-                await self.server_manager.stop_server(server)
+
+                async def plugin_progress(msg: str) -> None:
+                    await interaction.edit_original_response(
+                        content=f"🔄 [{server_name}] {msg}"
+                    )
+
+                await self.server_manager.stop_server(server, progress_callback=plugin_progress)
                 await self.server_manager.wait_for_exit(server)
 
             # 3. 更新が必要なプラグインのみダウンロード
@@ -182,9 +188,9 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /update_plugins server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin update error: {e}")
+            logging.exception(f"[Plugin] User {interaction.user} ({interaction.user.id}) /update_plugins server={server} error")
             await interaction.edit_original_response(
-                content=f"❌ [{server_name}] プラグイン更新中にエラーが発生しました: {e}"
+                content=f"[{server_name}] プラグイン更新中にエラーが発生しました: {e}"
             )
 
     @app_commands.command(name="check_updates", description="プラグインの更新状況を確認します（サーバー停止不要）")
@@ -254,9 +260,9 @@ class PluginSystem(commands.Cog):
             logging.info(f"User {interaction.user} ({interaction.user.id}) executed /check_updates server={server}")
 
         except Exception as e:
-            logging.error(f"Plugin check error: {e}")
+            logging.exception(f"[Plugin] User {interaction.user} ({interaction.user.id}) /check_updates server={server} error")
             await interaction.edit_original_response(
-                content=f"❌ [{server_name}] 更新チェック中にエラーが発生しました: {e}"
+                content=f"[{server_name}] 更新チェック中にエラーが発生しました: {e}"
             )
 
 

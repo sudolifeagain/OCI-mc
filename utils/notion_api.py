@@ -1,23 +1,70 @@
+import logging
 import os
+import threading
 import requests
 from datetime import datetime
-from settings import NOTION_TOKEN, NOTION_DB_ID
+from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
 
-def upload_to_notion(file_path, custom_filename=None, content_type="application/zip"):
+NOTION_API_VERSION = "2026-03-11"
+
+_data_source_id = None
+_ds_lock = threading.Lock()
+
+
+class NotionAPIError(RuntimeError):
+    """Notion API 呼び出しに関するエラー"""
+    pass
+
+
+def get_data_source_id():
+    """NOTION_DB_ID から data_source_id を解決する。結果はキャッシュされる（スレッドセーフ）。"""
+    global _data_source_id
+
+    if _data_source_id:
+        return _data_source_id
+
+    with _ds_lock:
+        # ロック取得後に再チェック（別スレッドが先に解決済みの場合）
+        if _data_source_id:
+            return _data_source_id
+
+        if NOTION_DS_ID:
+            _data_source_id = NOTION_DS_ID
+            return _data_source_id
+
+        headers = {
+            "Authorization": f"Bearer {NOTION_TOKEN}",
+            "Notion-Version": NOTION_API_VERSION,
+        }
+        res = requests.get(
+            f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
+            headers=headers,
+        )
+        if res.status_code != 200:
+            raise NotionAPIError(f"Failed to retrieve database: {res.text}")
+
+        data_sources = res.json().get("data_sources", [])
+        if not data_sources:
+            raise NotionAPIError("No data sources found for database")
+
+        _data_source_id = data_sources[0]["id"]
+        return _data_source_id
+
+
+def upload_to_notion(file_path):
     """
-    Notion APIを使用してファイルをアップロードし、File IDを返します。
-    20MBを超えるファイルは自動的にマルチパートアップロードとして処理します。
-    custom_filenameが指定された場合、その名前でアップロードを初期化します（拡張子制限回避用）。
+    Notion APIを使用してファイルをアップロードし、File IDを返す。
+    20MBを超えるファイルは自動的にマルチパートアップロードとして処理する。
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"{file_path} not found.")
 
     file_size = os.path.getsize(file_path)
-    filename = custom_filename if custom_filename else os.path.basename(file_path)
+    filename = os.path.basename(file_path)
 
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
 
@@ -26,10 +73,10 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     is_multi_part = file_size > UPLOAD_THRESHOLD
     mode = "multi_part" if is_multi_part else "single_part"
 
-    print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
+    logging.info(f"[Notion] Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}")
     init_payload = {
         "filename": filename,
-        "content_type": content_type,
+        "content_type": "application/zip",
         "mode": mode
     }
 
@@ -52,7 +99,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
             upload_url = upload_data.get('upload_url') or f"https://api.notion.com/v1/file_uploads/{file_upload_id}/send"
             resp = requests.post(
                 upload_url,
-                headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": "2022-06-28"},
+                headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION},
                 files={'file': (filename, f)}
             )
             if resp.status_code not in (200, 201):
@@ -65,10 +112,10 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
                 chunk = f.read(chunk_size)
                 if not chunk:
                     break
-                print(f"Uploading part {part_num}...")
+                logging.info(f"[Notion] Uploading part {part_num}")
                 resp = requests.post(
                     upload_url,
-                    headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": "2022-06-28"},
+                    headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION},
                     files={'file': (filename, chunk)},
                     data={'part_number': str(part_num)}
                 )
@@ -93,12 +140,12 @@ def register_to_database(file_upload_id, filename, size_mb):
     """アップロードしたファイルをDatabaseに登録"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
 
     payload = {
-        "parent": {"database_id": NOTION_DB_ID},
+        "parent": {"type": "data_source_id", "data_source_id": get_data_source_id()},
         "properties": {
             "Backup Name": {"title": [{"text": {"content": filename}}]},
             "Date": {"date": {"start": datetime.now().isoformat()}},
@@ -123,7 +170,7 @@ def get_backups_list(limit=10):
     """Notion DBから最新のバックアップリストを取得"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
     payload = {
@@ -136,7 +183,8 @@ def get_backups_list(limit=10):
         "page_size": limit
     }
 
-    res = requests.post(f"https://api.notion.com/v1/databases/{NOTION_DB_ID}/query", headers=headers, json=payload)
+    ds_id = get_data_source_id()
+    res = requests.post(f"https://api.notion.com/v1/data_sources/{ds_id}/query", headers=headers, json=payload)
     if res.status_code != 200:
         raise Exception(f"Failed to fetch backups: {res.text}")
 
@@ -144,6 +192,8 @@ def get_backups_list(limit=10):
     backups = []
 
     for page in results:
+        if page.get("object") != "page":
+            continue
         props = page["properties"]
         # プロパティ構造の解析
         title_list = props.get("Backup Name", {}).get("title", [])
@@ -169,7 +219,7 @@ def get_backups_list(limit=10):
 
 def download_file(url, save_path):
     """URLからファイルをダウンロード"""
-    print(f"Downloading to {save_path}...")
+    logging.info(f"[Notion] Downloading to {save_path}")
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(save_path, 'wb') as f:

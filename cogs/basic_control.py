@@ -82,12 +82,20 @@ class BasicControl(commands.Cog):
         if not server_instance:
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
-        if self.server_manager.is_running(server):
-            await self.server_manager.stop_server(server)
-            logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop server={server}")
-            await interaction.response.send_message(f"🛑 {server_instance.name} の停止コマンドを送信しました。", silent=True)
+        if not self.server_manager.is_running(server):
+            return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+
+        await interaction.response.defer(thinking=False)
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop server={server}")
+
+        async def progress_callback(msg: str) -> None:
+            await interaction.followup.send(msg, silent=True)
+
+        result = await self.server_manager.stop_server(server, progress_callback=progress_callback)
+        if result:
+            await interaction.followup.send(f"🛑 {server_instance.name} を停止しました。", silent=True)
         else:
-            await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+            await interaction.followup.send(f"{server_instance.name} の停止に失敗しました。", silent=True)
 
     @app_commands.command(name="restart", description="Minecraftサーバーを再起動します")
     @app_commands.describe(server="再起動するサーバー")
@@ -103,8 +111,11 @@ class BasicControl(commands.Cog):
         await interaction.response.send_message(f"🔄 {server_instance.name} を再起動しています...", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /restart server={server}")
 
+        async def progress_callback(msg: str) -> None:
+            await interaction.followup.send(msg, silent=True)
+
         if self.server_manager.is_running(server):
-            await self.server_manager.stop_server(server)
+            await self.server_manager.stop_server(server, progress_callback=progress_callback)
             await self.server_manager.wait_for_exit(server)
 
         mem_ok, mem_msg = self.server_manager.check_memory_for_start(server)
