@@ -160,7 +160,12 @@ class BackupSystem(commands.Cog):
                 was_running = True
                 if channel:
                     await channel.send(f"[{server_name}] サーバーを停止してデータを保存します...", silent=True)
-                await self.server_manager.stop_server(server_id)
+
+                async def backup_progress(msg: str) -> None:
+                    if channel:
+                        await channel.send(f"[{server_name}] {msg}", silent=True)
+
+                await self.server_manager.stop_server(server_id, progress_callback=backup_progress)
                 await self.server_manager.wait_for_exit(server_id)
 
             # 4. 圧縮 (ZIP) - 一時ディレクトリを使用
@@ -315,7 +320,10 @@ class BackupSystem(commands.Cog):
             # --- 1. サーバー停止 ---
             if self.server_manager.is_running(detected_server_id):
                 await update_status(f"⏹️ {server_name} を停止しています...")
-                await self.server_manager.stop_server(detected_server_id)
+                await self.server_manager.stop_server(
+                    detected_server_id,
+                    progress_callback=update_status,
+                )
                 await self.server_manager.wait_for_exit(detected_server_id)
                 await update_status("サーバー停止を確認しました。")
 

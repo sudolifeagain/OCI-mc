@@ -145,7 +145,13 @@ class PluginSystem(commands.Cog):
                 await interaction.edit_original_response(
                     content=f"🔄 [{server_name}] サーバーを停止中..."
                 )
-                await self.server_manager.stop_server(server)
+
+                async def plugin_progress(msg: str) -> None:
+                    await interaction.edit_original_response(
+                        content=f"🔄 [{server_name}] {msg}"
+                    )
+
+                await self.server_manager.stop_server(server, progress_callback=plugin_progress)
                 await self.server_manager.wait_for_exit(server)
 
             # 3. 更新が必要なプラグインのみダウンロード
