@@ -191,8 +191,7 @@ class BackupSystem(commands.Cog):
             if channel:
                 await channel.send(f"[{server_name}] Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
-            upload_name = zip_name.replace(".zip", ".pdf")
-            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path, upload_name, "application/pdf")
+            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path)
 
             # DB登録（サーバー名を含める）
             await loop.run_in_executor(None, register_to_database, file_id, zip_name, size_mb)
