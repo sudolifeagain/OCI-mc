@@ -1,9 +1,18 @@
 import logging
 import os
 import threading
+import time
 import requests
 from datetime import datetime
 from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
+
+# リトライ設定
+MAX_RETRIES = 3
+RETRY_BACKOFF = 2  # 指数バックオフの基数（秒）
+RETRYABLE_STATUS_CODES = {502, 503, 504, 429}
+RETRY_AFTER_CAP = 60  # Retry-Afterの上限（秒）
+UPLOAD_TIMEOUT = 120  # アップロードのタイムアウト（秒）
+API_TIMEOUT = 30  # 通常APIコールのタイムアウト（秒）
 
 NOTION_API_VERSION = "2026-03-11"
 
@@ -14,6 +23,41 @@ _ds_lock = threading.Lock()
 class NotionAPIError(RuntimeError):
     """Notion API 呼び出しに関するエラー"""
     pass
+
+
+def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
+    """リトライ付きHTTPリクエスト。502/503/504/429を自動リトライする。"""
+    last_exc = None
+    resp = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = method(url, timeout=timeout, **kwargs)
+            if resp.status_code not in RETRYABLE_STATUS_CODES:
+                return resp
+            # 429の場合はRetry-Afterヘッダーを尊重
+            if resp.status_code == 429:
+                try:
+                    wait = min(int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1))), RETRY_AFTER_CAP)
+                except (ValueError, TypeError):
+                    wait = RETRY_BACKOFF ** (attempt + 1)
+            else:
+                wait = RETRY_BACKOFF ** (attempt + 1)
+            logging.warning(f"[Notion] HTTP {resp.status_code} - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            last_exc = None
+        except requests.exceptions.Timeout:
+            wait = RETRY_BACKOFF ** (attempt + 1)
+            logging.warning(f"[Notion] タイムアウト - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            last_exc = requests.exceptions.Timeout(f"Timeout after {timeout}s")
+        except requests.exceptions.ConnectionError as e:
+            wait = RETRY_BACKOFF ** (attempt + 1)
+            logging.warning(f"[Notion] 接続エラー - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            last_exc = e
+    if last_exc:
+        raise last_exc
+    return resp
 
 
 def get_data_source_id():
@@ -36,9 +80,9 @@ def get_data_source_id():
             "Authorization": f"Bearer {NOTION_TOKEN}",
             "Notion-Version": NOTION_API_VERSION,
         }
-        res = requests.get(
-            f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
-            headers=headers,
+        res = _request_with_retry(
+            requests.get, f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
+            headers=headers
         )
         if res.status_code != 200:
             raise NotionAPIError(f"Failed to retrieve database: {res.text}")
@@ -85,7 +129,10 @@ def upload_to_notion(file_path):
         chunk_size = 10 * 1024 * 1024
         init_payload["number_of_parts"] = (file_size // chunk_size) + (1 if file_size % chunk_size else 0)
 
-    res = requests.post("https://api.notion.com/v1/file_uploads", headers=headers, json=init_payload)
+    res = _request_with_retry(
+        requests.post, "https://api.notion.com/v1/file_uploads",
+        headers=headers, json=init_payload
+    )
     if res.status_code not in (200, 201):
         raise Exception(f"Failed to initiate upload: {res.text}")
 
@@ -93,14 +140,18 @@ def upload_to_notion(file_path):
     file_upload_id = upload_data['id']
 
     # 2. ファイルデータの送信
+    upload_headers = {"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION}
     with open(file_path, 'rb') as f:
         if not is_multi_part:
             # single_part: upload_urlを使う
+            # リトライ時にファイルポインタを巻き戻す必要があるため、全データをメモリに読み込む
+            file_data = f.read()
             upload_url = upload_data.get('upload_url') or f"https://api.notion.com/v1/file_uploads/{file_upload_id}/send"
-            resp = requests.post(
-                upload_url,
-                headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION},
-                files={'file': (filename, f)}
+            resp = _request_with_retry(
+                requests.post, upload_url,
+                timeout=UPLOAD_TIMEOUT,
+                headers=upload_headers,
+                files={'file': (filename, file_data)}
             )
             if resp.status_code not in (200, 201):
                 raise Exception(f"Failed to upload file: {resp.text}")
@@ -113,9 +164,10 @@ def upload_to_notion(file_path):
                 if not chunk:
                     break
                 logging.info(f"[Notion] Uploading part {part_num}")
-                resp = requests.post(
-                    upload_url,
-                    headers={"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION},
+                resp = _request_with_retry(
+                    requests.post, upload_url,
+                    timeout=UPLOAD_TIMEOUT,
+                    headers=upload_headers,
                     files={'file': (filename, chunk)},
                     data={'part_number': str(part_num)}
                 )
@@ -126,10 +178,9 @@ def upload_to_notion(file_path):
     # 3. アップロード完了通知 (multi_partのみ必要)
     if is_multi_part:
         complete_url = upload_data.get('complete_url') or f"https://api.notion.com/v1/file_uploads/{file_upload_id}/complete"
-        resp = requests.post(
-            complete_url,
-            headers=headers,
-            json={}
+        resp = _request_with_retry(
+            requests.post, complete_url,
+            headers=headers, json={}
         )
         if resp.status_code not in (200, 201):
             raise Exception(f"Failed to complete upload: {resp.text}")
@@ -161,7 +212,7 @@ def register_to_database(file_upload_id, filename, size_mb):
             }
         }
     }
-    res = requests.post("https://api.notion.com/v1/pages", headers=headers, json=payload)
+    res = _request_with_retry(requests.post, "https://api.notion.com/v1/pages", headers=headers, json=payload)
     if res.status_code not in (200, 201):
         raise Exception(f"Failed to register to Notion DB: {res.text}")
     return True
@@ -184,7 +235,10 @@ def get_backups_list(limit=10):
     }
 
     ds_id = get_data_source_id()
-    res = requests.post(f"https://api.notion.com/v1/data_sources/{ds_id}/query", headers=headers, json=payload)
+    res = _request_with_retry(
+        requests.post, f"https://api.notion.com/v1/data_sources/{ds_id}/query",
+        headers=headers, json=payload
+    )
     if res.status_code != 200:
         raise Exception(f"Failed to fetch backups: {res.text}")
 
@@ -218,10 +272,20 @@ def get_backups_list(limit=10):
     return backups
 
 def download_file(url, save_path):
-    """URLからファイルをダウンロード"""
+    """URLからファイルをダウンロード。接続エラー・タイムアウト時はリトライする。"""
     logging.info(f"[Notion] Downloading to {save_path}")
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(save_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    last_exc = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            with requests.get(url, stream=True, timeout=(30, 300)) as r:
+                r.raise_for_status()
+                with open(save_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            return
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            wait = RETRY_BACKOFF ** (attempt + 1)
+            logging.warning(f"[Notion] ダウンロードエラー - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            last_exc = e
+    raise last_exc
