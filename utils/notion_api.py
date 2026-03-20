@@ -22,7 +22,10 @@ def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
                 return resp
             # 429の場合はRetry-Afterヘッダーを尊重
             if resp.status_code == 429:
-                wait = int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1)))
+                try:
+                    wait = int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1)))
+                except (ValueError, TypeError):
+                    wait = RETRY_BACKOFF ** (attempt + 1)
             else:
                 wait = RETRY_BACKOFF ** (attempt + 1)
             print(f"  HTTP {resp.status_code} - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
@@ -219,7 +222,7 @@ def get_backups_list(limit=10):
 def download_file(url, save_path):
     """URLからファイルをダウンロード"""
     print(f"Downloading to {save_path}...")
-    with requests.get(url, stream=True) as r:
+    with requests.get(url, stream=True, timeout=(30, 300)) as r:
         r.raise_for_status()
         with open(save_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
