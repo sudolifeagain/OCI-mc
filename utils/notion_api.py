@@ -10,6 +10,7 @@ from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
 MAX_RETRIES = 3
 RETRY_BACKOFF = 2  # 指数バックオフの基数（秒）
 RETRYABLE_STATUS_CODES = {502, 503, 504, 429}
+RETRY_AFTER_CAP = 60  # Retry-Afterの上限（秒）
 UPLOAD_TIMEOUT = 120  # アップロードのタイムアウト（秒）
 API_TIMEOUT = 30  # 通常APIコールのタイムアウト（秒）
 
@@ -27,6 +28,7 @@ class NotionAPIError(RuntimeError):
 def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
     """リトライ付きHTTPリクエスト。502/503/504/429を自動リトライする。"""
     last_exc = None
+    resp = None
     for attempt in range(MAX_RETRIES):
         try:
             resp = method(url, timeout=timeout, **kwargs)
@@ -35,7 +37,7 @@ def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
             # 429の場合はRetry-Afterヘッダーを尊重
             if resp.status_code == 429:
                 try:
-                    wait = int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1)))
+                    wait = min(int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1))), RETRY_AFTER_CAP)
                 except (ValueError, TypeError):
                     wait = RETRY_BACKOFF ** (attempt + 1)
             else:
@@ -270,10 +272,20 @@ def get_backups_list(limit=10):
     return backups
 
 def download_file(url, save_path):
-    """URLからファイルをダウンロード"""
+    """URLからファイルをダウンロード。接続エラー・タイムアウト時はリトライする。"""
     logging.info(f"[Notion] Downloading to {save_path}")
-    with requests.get(url, stream=True, timeout=(30, 300)) as r:
-        r.raise_for_status()
-        with open(save_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    last_exc = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            with requests.get(url, stream=True, timeout=(30, 300)) as r:
+                r.raise_for_status()
+                with open(save_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            return
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            wait = RETRY_BACKOFF ** (attempt + 1)
+            logging.warning(f"[Notion] ダウンロードエラー - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            last_exc = e
+    raise last_exc
