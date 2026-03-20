@@ -33,6 +33,7 @@ CONFIG['user_permissions'] = USER_PERMISSIONS
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NOTION_TOKEN = os.getenv('NOTION_TOKEN')
 NOTION_DB_ID = os.getenv('NOTION_DB_ID')
+NOTION_DS_ID = os.getenv('NOTION_DS_ID')
 
 def parse_ids(env_val):
     if not env_val:

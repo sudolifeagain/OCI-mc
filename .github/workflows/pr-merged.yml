@@ -5,12 +5,16 @@ on:
     types: [closed]
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   notify:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
@@ -24,7 +28,6 @@ jobs:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           # コミット一覧を取得（最大10件）、リンク付き
-          # gh pr viewの出力をjqにパイプして--argを使用
           COMMITS=$(gh pr view $PR_NUMBER --json commits \
             | jq -r --arg repo "$REPO_URL" '.commits[:10] | .[] | "├─ [" + .messageHeadline + "](" + $repo + "/commit/" + .oid + ")"' \
             | sed '$ s/├─/└─/')

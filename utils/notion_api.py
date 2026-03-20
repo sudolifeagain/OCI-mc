@@ -1,8 +1,10 @@
+import logging
 import os
+import threading
 import time
 import requests
 from datetime import datetime
-from settings import NOTION_TOKEN, NOTION_DB_ID
+from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
 
 # リトライ設定
 MAX_RETRIES = 3
@@ -10,6 +12,16 @@ RETRY_BACKOFF = 2  # 指数バックオフの基数（秒）
 RETRYABLE_STATUS_CODES = {502, 503, 504, 429}
 UPLOAD_TIMEOUT = 120  # アップロードのタイムアウト（秒）
 API_TIMEOUT = 30  # 通常APIコールのタイムアウト（秒）
+
+NOTION_API_VERSION = "2026-03-11"
+
+_data_source_id = None
+_ds_lock = threading.Lock()
+
+
+class NotionAPIError(RuntimeError):
+    """Notion API 呼び出しに関するエラー"""
+    pass
 
 
 def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
@@ -28,38 +40,73 @@ def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
                     wait = RETRY_BACKOFF ** (attempt + 1)
             else:
                 wait = RETRY_BACKOFF ** (attempt + 1)
-            print(f"  HTTP {resp.status_code} - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            logging.warning(f"[Notion] HTTP {resp.status_code} - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
             time.sleep(wait)
             last_exc = None
         except requests.exceptions.Timeout:
             wait = RETRY_BACKOFF ** (attempt + 1)
-            print(f"  タイムアウト - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            logging.warning(f"[Notion] タイムアウト - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
             time.sleep(wait)
             last_exc = requests.exceptions.Timeout(f"Timeout after {timeout}s")
         except requests.exceptions.ConnectionError as e:
             wait = RETRY_BACKOFF ** (attempt + 1)
-            print(f"  接続エラー - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
+            logging.warning(f"[Notion] 接続エラー - {wait}秒後にリトライ ({attempt + 1}/{MAX_RETRIES})")
             time.sleep(wait)
             last_exc = e
     if last_exc:
         raise last_exc
     return resp
 
-def upload_to_notion(file_path, custom_filename=None, content_type="application/zip"):
+
+def get_data_source_id():
+    """NOTION_DB_ID から data_source_id を解決する。結果はキャッシュされる（スレッドセーフ）。"""
+    global _data_source_id
+
+    if _data_source_id:
+        return _data_source_id
+
+    with _ds_lock:
+        # ロック取得後に再チェック（別スレッドが先に解決済みの場合）
+        if _data_source_id:
+            return _data_source_id
+
+        if NOTION_DS_ID:
+            _data_source_id = NOTION_DS_ID
+            return _data_source_id
+
+        headers = {
+            "Authorization": f"Bearer {NOTION_TOKEN}",
+            "Notion-Version": NOTION_API_VERSION,
+        }
+        res = _request_with_retry(
+            requests.get, f"https://api.notion.com/v1/databases/{NOTION_DB_ID}",
+            headers=headers
+        )
+        if res.status_code != 200:
+            raise NotionAPIError(f"Failed to retrieve database: {res.text}")
+
+        data_sources = res.json().get("data_sources", [])
+        if not data_sources:
+            raise NotionAPIError("No data sources found for database")
+
+        _data_source_id = data_sources[0]["id"]
+        return _data_source_id
+
+
+def upload_to_notion(file_path):
     """
-    Notion APIを使用してファイルをアップロードし、File IDを返します。
-    20MBを超えるファイルは自動的にマルチパートアップロードとして処理します。
-    custom_filenameが指定された場合、その名前でアップロードを初期化します（拡張子制限回避用）。
+    Notion APIを使用してファイルをアップロードし、File IDを返す。
+    20MBを超えるファイルは自動的にマルチパートアップロードとして処理する。
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"{file_path} not found.")
 
     file_size = os.path.getsize(file_path)
-    filename = custom_filename if custom_filename else os.path.basename(file_path)
+    filename = os.path.basename(file_path)
 
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
 
@@ -68,10 +115,10 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     is_multi_part = file_size > UPLOAD_THRESHOLD
     mode = "multi_part" if is_multi_part else "single_part"
 
-    print(f"Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}...")
+    logging.info(f"[Notion] Uploading {filename} ({file_size / 1024 / 1024:.2f} MB) as {mode}")
     init_payload = {
         "filename": filename,
-        "content_type": content_type,
+        "content_type": "application/zip",
         "mode": mode
     }
 
@@ -91,7 +138,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
     file_upload_id = upload_data['id']
 
     # 2. ファイルデータの送信
-    upload_headers = {"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": "2022-06-28"}
+    upload_headers = {"Authorization": f"Bearer {NOTION_TOKEN}", "Notion-Version": NOTION_API_VERSION}
     with open(file_path, 'rb') as f:
         if not is_multi_part:
             # single_part: upload_urlを使う
@@ -114,7 +161,7 @@ def upload_to_notion(file_path, custom_filename=None, content_type="application/
                 chunk = f.read(chunk_size)
                 if not chunk:
                     break
-                print(f"Uploading part {part_num}...")
+                logging.info(f"[Notion] Uploading part {part_num}")
                 resp = _request_with_retry(
                     requests.post, upload_url,
                     timeout=UPLOAD_TIMEOUT,
@@ -142,12 +189,12 @@ def register_to_database(file_upload_id, filename, size_mb):
     """アップロードしたファイルをDatabaseに登録"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
 
     payload = {
-        "parent": {"database_id": NOTION_DB_ID},
+        "parent": {"type": "data_source_id", "data_source_id": get_data_source_id()},
         "properties": {
             "Backup Name": {"title": [{"text": {"content": filename}}]},
             "Date": {"date": {"start": datetime.now().isoformat()}},
@@ -172,7 +219,7 @@ def get_backups_list(limit=10):
     """Notion DBから最新のバックアップリストを取得"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28",
+        "Notion-Version": NOTION_API_VERSION,
         "Content-Type": "application/json"
     }
     payload = {
@@ -185,8 +232,9 @@ def get_backups_list(limit=10):
         "page_size": limit
     }
 
+    ds_id = get_data_source_id()
     res = _request_with_retry(
-        requests.post, f"https://api.notion.com/v1/databases/{NOTION_DB_ID}/query",
+        requests.post, f"https://api.notion.com/v1/data_sources/{ds_id}/query",
         headers=headers, json=payload
     )
     if res.status_code != 200:
@@ -196,6 +244,8 @@ def get_backups_list(limit=10):
     backups = []
 
     for page in results:
+        if page.get("object") != "page":
+            continue
         props = page["properties"]
         # プロパティ構造の解析
         title_list = props.get("Backup Name", {}).get("title", [])
@@ -221,7 +271,7 @@ def get_backups_list(limit=10):
 
 def download_file(url, save_path):
     """URLからファイルをダウンロード"""
-    print(f"Downloading to {save_path}...")
+    logging.info(f"[Notion] Downloading to {save_path}")
     with requests.get(url, stream=True, timeout=(30, 300)) as r:
         r.raise_for_status()
         with open(save_path, 'wb') as f:

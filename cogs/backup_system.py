@@ -69,7 +69,7 @@ class BackupSystem(commands.Cog):
             json.dump(data, f, indent=2)
 
     def _compute_fingerprint(self, base_dir: str, target_dirs: list[str]) -> str:
-        """バックアップ対象ディレクトリのメタデータからフィンガープリントを計算する"""
+        """バックアップ対象ディレクトリのファイルサイズからフィンガープリントを計算する"""
         entries = []
         for d in sorted(target_dirs):
             full_path = os.path.join(base_dir, d)
@@ -82,10 +82,10 @@ class BackupSystem(commands.Cog):
                         file_path = os.path.join(root, fname)
                         rel_path = os.path.relpath(file_path, base_dir)
                         stat = os.stat(file_path)
-                        entries.append(f"{rel_path}|{stat.st_size}|{int(stat.st_mtime)}")
+                        entries.append(f"{rel_path}|{stat.st_size}")
             else:
                 stat = os.stat(full_path)
-                entries.append(f"{d}|{stat.st_size}|{int(stat.st_mtime)}")
+                entries.append(f"{d}|{stat.st_size}")
         return hashlib.sha256("\n".join(entries).encode()).hexdigest()
 
     def _has_changes(self, server_id: str, base_dir: str, target_dirs: list[str]) -> bool:
@@ -160,7 +160,12 @@ class BackupSystem(commands.Cog):
                 was_running = True
                 if channel:
                     await channel.send(f"[{server_name}] サーバーを停止してデータを保存します...", silent=True)
-                await self.server_manager.stop_server(server_id)
+
+                async def backup_progress(msg: str) -> None:
+                    if channel:
+                        await channel.send(f"[{server_name}] {msg}", silent=True)
+
+                await self.server_manager.stop_server(server_id, progress_callback=backup_progress)
                 await self.server_manager.wait_for_exit(server_id)
 
             # 4. 圧縮 (ZIP) - 一時ディレクトリを使用
@@ -191,8 +196,7 @@ class BackupSystem(commands.Cog):
             if channel:
                 await channel.send(f"[{server_name}] Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
-            upload_name = zip_name.replace(".zip", ".pdf")
-            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path, upload_name, "application/pdf")
+            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path)
 
             # DB登録（サーバー名を含める）
             await loop.run_in_executor(None, register_to_database, file_id, zip_name, size_mb)
@@ -216,8 +220,8 @@ class BackupSystem(commands.Cog):
 
         except Exception as e:
             if channel:
-                await channel.send(f"[{server_name}] ❌ バックアップエラー: {str(e)}", silent=True)
-            logging.error(e)
+                await channel.send(f"[{server_name}] バックアップエラー: {str(e)}", silent=True)
+            logging.exception(f"[Backup] {server_id} backup failed")
 
     @app_commands.command(name="backup", description="手動バックアップを実行します")
     @app_commands.describe(server="バックアップするサーバー（省略時は全サーバー）")
@@ -225,6 +229,8 @@ class BackupSystem(commands.Cog):
     async def backup(self, interaction: discord.Interaction, server: str | None = None):
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /backup server={server}")
 
         if server:
             server_instance = self.server_manager.get_server(server)
@@ -240,6 +246,8 @@ class BackupSystem(commands.Cog):
         """Notionにある最新のバックアップリストを表示"""
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /backups")
 
         await interaction.response.send_message("Notionからバックアップリストを取得中...", silent=True)
         msg = await interaction.original_response()
@@ -260,6 +268,7 @@ class BackupSystem(commands.Cog):
             await msg.edit(content=text)
 
         except Exception as e:
+            logging.exception(f"[Backup] User {interaction.user} ({interaction.user.id}) /backups error")
             await msg.edit(content=f"エラーが発生しました: {e}")
 
     @app_commands.command(name="rollback", description="指定したバックアップにロールバックします")
@@ -268,6 +277,8 @@ class BackupSystem(commands.Cog):
         """指定した番号のバックアップにロールバックする"""
         if not check_role(interaction, 'backup'):
             return await interaction.response.send_message("この操作は管理者（Admin）のみ可能です。", ephemeral=True)
+
+        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /rollback index={index}")
 
         await interaction.response.send_message("🔄 ロールバック準備中... Notion情報を取得しています。", silent=True)
         status_msg = await interaction.original_response()
@@ -315,7 +326,10 @@ class BackupSystem(commands.Cog):
             # --- 1. サーバー停止 ---
             if self.server_manager.is_running(detected_server_id):
                 await update_status(f"⏹️ {server_name} を停止しています...")
-                await self.server_manager.stop_server(detected_server_id)
+                await self.server_manager.stop_server(
+                    detected_server_id,
+                    progress_callback=update_status,
+                )
                 await self.server_manager.wait_for_exit(detected_server_id)
                 await update_status("サーバー停止を確認しました。")
 
@@ -410,9 +424,8 @@ class BackupSystem(commands.Cog):
             await self.server_manager.start_server(detected_server_id)
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            await status_msg.edit(content=f"❌ 重大なエラーが発生しました: {e}")
+            logging.exception("[Rollback] Critical error")
+            await status_msg.edit(content=f"重大なエラーが発生しました: {e}")
 
     @tasks.loop(minutes=1)
     async def scheduler(self):

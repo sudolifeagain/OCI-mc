@@ -3,8 +3,11 @@ import subprocess
 import logging
 import time
 import os
+from collections.abc import Awaitable, Callable
 import psutil
 import re
+
+from utils.rcon import RconClient, get_rcon_client
 
 
 MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動拒否
@@ -26,6 +29,7 @@ class ServerInstance:
         self.log_queue = asyncio.Queue()
         self.online_players = {}  # {name: join_timestamp}
         self._stopping = False  # ロックフラグ
+        self._graceful_stopping = False  # graceful stop 中フラグ
         # Regex patterns for join/leave
         self.join_pattern = re.compile(r': (.+) joined the game')
         self.leave_pattern = re.compile(r': (.+) left the game')
@@ -61,14 +65,20 @@ class ServerInstance:
             # jar直接起動: config の memory 値を使用
             return self._parse_memory_value(self.memory)
 
-    def check_memory_available(self) -> tuple[bool, str]:
-        """システム空きメモリが割り当ての80%以上あるか確認する"""
+    def _check_memory_available(self) -> tuple[bool, str, dict]:
+        """システム空きメモリが割り当ての80%以上あるか確認する
+
+        Returns:
+            (ok, message, details) - details は呼び出し元で詳細メッセージ構築に使用
+        """
         allocated_mb = self._get_allocated_memory_mb()
         if allocated_mb is None:
             logging.warning(f"Server '{self.server_id}': メモリ割り当て値を取得できないため、チェックをスキップ")
-            return True, ""
+            return True, "", {}
 
-        available_mb = psutil.virtual_memory().available / (1024 * 1024)
+        mem = psutil.virtual_memory()
+        available_mb = mem.available / (1024 * 1024)
+        total_mb = mem.total / (1024 * 1024)
         required_mb = allocated_mb * MEMORY_THRESHOLD
 
         if available_mb < required_mb:
@@ -77,10 +87,16 @@ class ServerInstance:
                 f"必要 {required_mb:.0f}MB "
                 f"(割り当て {allocated_mb}MB の {int(MEMORY_THRESHOLD * 100)}%)"
             )
+            details = {
+                "available_mb": available_mb,
+                "total_mb": total_mb,
+                "required_mb": required_mb,
+                "allocated_mb": allocated_mb,
+            }
             logging.warning(f"Server '{self.server_id}': {msg}")
-            return False, msg
+            return False, msg, details
 
-        return True, ""
+        return True, "", {}
 
     def _get_pid_file_path(self) -> str:
         """PIDファイルのパスを返す"""
@@ -396,6 +412,7 @@ class MultiServerManager:
     """複数のMinecraftサーバーを管理するクラス"""
 
     def __init__(self, servers_config: dict):
+        self._servers_config = servers_config
         self.servers: dict[str, ServerInstance] = {}
         for server_id, config in servers_config.items():
             self.servers[server_id] = ServerInstance(server_id, config)
@@ -421,13 +438,94 @@ class MultiServerManager:
             return False
         return await server.start()
 
-    async def stop_server(self, server_id: str) -> bool:
-        """指定されたサーバーを停止する"""
+    def _get_rcon_client(self, server_id: str) -> RconClient | None:
+        """サーバーIDからRCONクライアントを取得"""
+        config = self._servers_config.get(server_id, {})
+        return get_rcon_client(config)
+
+    @staticmethod
+    def _parse_player_count(list_response: str) -> int:
+        """RCON list レスポンスからプレイヤー数を抽出"""
+        match = re.search(r'There are (\d+)', list_response)
+        return int(match.group(1)) if match else 0
+
+    async def stop_server(
+        self,
+        server_id: str,
+        *,
+        progress_callback: Callable[[str], Awaitable[None]] | None = None,
+    ) -> bool:
+        """指定されたサーバーを停止する (プレイヤーがいる場合はアナウンス後に待機)"""
         server = self.get_server(server_id)
         if not server:
             logging.error(f"Server '{server_id}' not found")
             return False
-        return await server.stop()
+
+        if server._graceful_stopping or server._stopping:
+            logging.warning(f"Server '{server_id}' is already stopping")
+            return False
+
+        server._graceful_stopping = True
+        try:
+            # RCONでプレイヤー確認
+            rcon_client = self._get_rcon_client(server_id)
+            if rcon_client:
+                try:
+                    success, response = await asyncio.wait_for(
+                        rcon_client.execute("list"), timeout=5.0
+                    )
+                    if success:
+                        player_count = self._parse_player_count(response)
+                        if player_count > 0:
+                            logging.info(
+                                f"Server '{server_id}': {player_count} players online, "
+                                "announcing shutdown"
+                            )
+                            # 60秒前アナウンス
+                            try:
+                                await rcon_client.execute(
+                                    "say サーバーが60秒後にシャットダウンします"
+                                )
+                            except Exception as e:
+                                logging.warning(f"Failed to send 60s announcement: {e}")
+
+                            if progress_callback:
+                                await progress_callback(
+                                    f"{server.name}: {player_count}人のプレイヤーが接続中 — "
+                                    "60秒後にシャットダウンします"
+                                )
+
+                            await asyncio.sleep(50)
+
+                            # 10秒前アナウンス
+                            try:
+                                await rcon_client.execute(
+                                    "say サーバーが10秒後にシャットダウンします"
+                                )
+                            except Exception as e:
+                                logging.warning(f"Failed to send 10s announcement: {e}")
+
+                            await asyncio.sleep(10)
+                        else:
+                            logging.info(
+                                f"Server '{server_id}': no players online, stopping immediately"
+                            )
+                    else:
+                        logging.warning(
+                            f"Server '{server_id}': RCON list command failed: {response}"
+                        )
+                except Exception as e:
+                    logging.warning(
+                        f"Server '{server_id}': RCON check failed, stopping immediately: {e}"
+                    )
+            else:
+                logging.info(
+                    f"Server '{server_id}': RCON not configured, stopping immediately"
+                )
+
+            return await server.stop()
+        finally:
+            server._graceful_stopping = False
 
     async def write_stdin(self, server_id: str, command_str: str) -> bool:
         """指定されたサーバーにコマンドを送信する"""
@@ -449,6 +547,34 @@ class MultiServerManager:
         if not server:
             return None
         return server.get_stats()
+
+    def check_memory_for_start(self, server_id: str) -> tuple[bool, str]:
+        """サーバー起動前のメモリチェック。不足時は稼働中サーバーの使用量を含む詳細メッセージを返す"""
+        server = self.get_server(server_id)
+        if not server:
+            return False, f"サーバー '{server_id}' が見つからない"
+
+        mem_ok, mem_msg, details = server._check_memory_available()
+        if mem_ok:
+            return True, ""
+
+        # 稼働中サーバーのメモリ使用量を収集
+        running_info = []
+        for sid, srv in self.servers.items():
+            stats = srv.get_stats()
+            if stats:
+                running_info.append(f"  - {srv.name}: {stats['memory_mb'] / 1024:.1f}GB")
+
+        lines = [mem_msg]
+        if running_info:
+            lines.append("稼働中サーバー:")
+            lines.extend(running_info)
+        lines.append(
+            f"マシン: 合計 {details['total_mb'] / 1024:.1f}GB / "
+            f"空き {details['available_mb'] / 1024:.1f}GB"
+        )
+
+        return False, "\n".join(lines)
 
     def get_all_running(self) -> list[str]:
         """起動中の全サーバーIDのリストを返す"""

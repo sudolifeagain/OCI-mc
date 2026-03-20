@@ -1,3 +1,4 @@
+import logging
 import os
 import discord
 import psutil
@@ -103,8 +104,8 @@ class StatusDisplay(commands.Cog):
                 if msg.author == self.bot.user:
                     await msg.edit(embed=embed)
                     return msg
-        except Exception:
-            pass # 履歴取得エラー時は新規送信
+        except Exception as e:
+            logging.warning(f"Failed to fetch channel history: {e}")
 
         return await channel.send(embed=embed, silent=True)
 
