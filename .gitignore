@@ -30,4 +30,7 @@ user_permissions.json
 # Reaction role state (server-specific)
 reaction_role_state.json
 
+# Claude Code session state (runtime)
+.claude_session_active
+
 

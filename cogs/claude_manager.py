@@ -12,12 +12,36 @@ _PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
 # tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
 CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
+# デプロイ前に Claude セッションが起動していたかを記録する状態ファイル
+_STATE_FILE = Path(__file__).resolve().parent.parent / ".claude_session_active"
 
 
 class ClaudeManager(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self._restarting = False
+        self._lock = asyncio.Lock()
+        self._auto_restored = False
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        """デプロイ前にセッションが起動していた場合、自動復旧する"""
+        if self._auto_restored:
+            return
+        self._auto_restored = True
+        if not _STATE_FILE.exists():
+            logging.debug("Auto-restore skipped: state file not found")
+            return
+        if await self._is_running():
+            logging.debug("Auto-restore skipped: session already running")
+            return
+        async with self._lock:
+            logging.info("Auto-restoring Claude Code session (state file found)")
+            await self._patch_discord_plugin()
+            started = await self._start_claude()
+            if started:
+                logging.info("Claude Code session auto-restored")
+            else:
+                logging.error("Failed to auto-restore Claude Code session")
 
     async def _run(self, cmd: str, timeout: int = CMD_TIMEOUT) -> tuple[int, str]:
         """シェルコマンドを実行し (returncode, stdout) を返す"""
@@ -40,10 +64,14 @@ class ClaudeManager(commands.Cog):
     async def _stop_claude(self) -> bool:
         """Claude Code セッションを停止する"""
         if not await self._is_running():
+            _STATE_FILE.unlink(missing_ok=True)
             return True
         await self._run(f"tmux kill-session -t {TMUX_SESSION}")
         await asyncio.sleep(2)
-        return not await self._is_running()
+        stopped = not await self._is_running()
+        if stopped:
+            _STATE_FILE.unlink(missing_ok=True)
+        return stopped
 
     async def _patch_discord_plugin(self) -> None:
         """Discord プラグインにカスタムパッチを適用する（冪等）
@@ -75,43 +103,44 @@ class ClaudeManager(commands.Cog):
         await asyncio.sleep(0.5)
         await self._run(f"tmux send-keys -t {TMUX_SESSION} Enter")
         await asyncio.sleep(5)
-        return await self._is_running()
+        running = await self._is_running()
+        if running:
+            _STATE_FILE.touch()
+        return running
 
     @app_commands.command(name="claude-restart", description="Claude Codeセッションを再起動する（コンテキストリセット＋自動更新適用）")
     async def claude_restart(self, interaction: discord.Interaction) -> None:
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
-        if self._restarting:
-            return await interaction.response.send_message("再起動処理中です。", ephemeral=True)
+        if self._lock.locked():
+            return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
 
-        self._restarting = True
         await interaction.response.send_message("Claude Code を再起動します...", silent=True)
 
-        try:
-            # 停止
-            stopped = await self._stop_claude()
-            if not stopped:
-                await interaction.followup.send("停止に失敗しました。", silent=True)
-                return
+        async with self._lock:
+            try:
+                # 停止
+                stopped = await self._stop_claude()
+                if not stopped:
+                    await interaction.followup.send("停止に失敗しました。", silent=True)
+                    return
 
-            # 更新チェック
-            rc, output = await self._run(f'{_PATH_SETUP} && claude update 2>&1', timeout=60)
-            update_msg = output[:1500] if output else "更新なし"
-            await interaction.followup.send(f"更新チェック: {update_msg}", silent=True)
+                # 更新チェック
+                rc, output = await self._run(f'{_PATH_SETUP} && claude update 2>&1', timeout=60)
+                update_msg = output[:1500] if output else "更新なし"
+                await interaction.followup.send(f"更新チェック: {update_msg}", silent=True)
 
-            # プラグインパッチ適用 → 起動
-            await self._patch_discord_plugin()
-            started = await self._start_claude()
-            if started:
-                await interaction.followup.send("Claude Code を再起動しました。コンテキストはリセットされています。", silent=True)
-            else:
-                await interaction.followup.send("起動に失敗しました。サーバーを確認してください。", silent=True)
-        except Exception as e:
-            logging.error(f"Claude restart failed: {e}")
-            await interaction.followup.send(f"エラー: {e}", silent=True)
-        finally:
-            self._restarting = False
+                # プラグインパッチ適用 → 起動
+                await self._patch_discord_plugin()
+                started = await self._start_claude()
+                if started:
+                    await interaction.followup.send("Claude Code を再起動しました。コンテキストはリセットされています。", silent=True)
+                else:
+                    await interaction.followup.send("起動に失敗しました。サーバーを確認してください。", silent=True)
+            except Exception as e:
+                logging.error(f"Claude restart failed: {e}")
+                await interaction.followup.send(f"エラー: {e}", silent=True)
 
     @app_commands.command(name="claude-status", description="Claude Codeセッションの状態を確認する")
     async def claude_status(self, interaction: discord.Interaction) -> None:
@@ -136,8 +165,12 @@ class ClaudeManager(commands.Cog):
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
+        if self._lock.locked():
+            return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
+
         await interaction.response.defer()
-        stopped = await self._stop_claude()
+        async with self._lock:
+            stopped = await self._stop_claude()
         if stopped:
             await interaction.followup.send("Claude Code を停止しました。", silent=True)
         else:
@@ -148,12 +181,16 @@ class ClaudeManager(commands.Cog):
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
+        if self._lock.locked():
+            return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
+
         if await self._is_running():
             return await interaction.response.send_message("既に起動しています。", silent=True)
 
         await interaction.response.send_message("Claude Code を起動します...", silent=True)
-        await self._patch_discord_plugin()
-        started = await self._start_claude()
+        async with self._lock:
+            await self._patch_discord_plugin()
+            started = await self._start_claude()
         if started:
             await interaction.followup.send("Claude Code を起動しました。", silent=True)
         else:
