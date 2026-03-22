@@ -11,6 +11,8 @@ _PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
 # tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
 CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
+# Discord プラグインのキャッシュパス（glob でバージョン変更に対応）
+_PLUGIN_SERVER = "$HOME/.claude/plugins/cache/claude-plugins-official/discord/*/server.ts"
 
 
 class ClaudeManager(commands.Cog):
@@ -43,6 +45,24 @@ class ClaudeManager(commands.Cog):
         await self._run(f"tmux kill-session -t {TMUX_SESSION}")
         await asyncio.sleep(2)
         return not await self._is_running()
+
+    async def _patch_discord_plugin(self) -> None:
+        """Discord プラグインにカスタムパッチを適用する（冪等）
+
+        プラグイン更新でキャッシュが上書きされるため、起動前に毎回適用する。
+        - reply の送信メッセージに SuppressNotifications フラグを追加
+        """
+        patch = (
+            f'for f in {_PLUGIN_SERVER}; do '
+            '  grep -q "MessageFlags" "$f" 2>/dev/null || '
+            "    sed -i 's/  type Attachment,/  type Attachment,\\n  MessageFlags,/' \"$f\"; "
+            '  grep -q "SuppressNotifications" "$f" 2>/dev/null || '
+            "    sed -i 's/const sent = await ch.send({/const sent = await ch.send({\\n              flags: MessageFlags.SuppressNotifications,/' \"$f\"; "
+            'done'
+        )
+        rc, output = await self._run(patch)
+        if rc != 0:
+            logging.warning(f"Discord plugin patch failed: {output}")
 
     async def _start_claude(self) -> bool:
         """Claude Code セッションを開始する
@@ -87,7 +107,8 @@ class ClaudeManager(commands.Cog):
             update_msg = output[:1500] if output else "更新なし"
             await interaction.followup.send(f"更新チェック: {update_msg}", silent=True)
 
-            # 起動
+            # プラグインパッチ適用 → 起動
+            await self._patch_discord_plugin()
             started = await self._start_claude()
             if started:
                 await interaction.followup.send("Claude Code を再起動しました。コンテキストはリセットされています。", silent=True)
@@ -138,6 +159,7 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("既に起動しています。", silent=True)
 
         await interaction.response.send_message("Claude Code を起動します...", silent=True)
+        await self._patch_discord_plugin()
         started = await self._start_claude()
         if started:
             await interaction.followup.send("Claude Code を起動しました。", silent=True)
