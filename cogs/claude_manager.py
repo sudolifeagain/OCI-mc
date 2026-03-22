@@ -6,7 +6,8 @@ from discord.ext import commands
 from utils.permissions import check_role
 
 TMUX_SESSION = "claude"
-CLAUDE_CMD = "claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions"
+# .bashrc は tmux の非対話起動で読み込まれないため、bun の PATH を明示的に設定する
+CLAUDE_CMD = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
 
 
