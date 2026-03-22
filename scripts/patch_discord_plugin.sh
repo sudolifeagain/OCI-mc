@@ -19,6 +19,13 @@ for f in "$PLUGIN_DIR"/*/server.ts; do
   fi
 
   # 3. allowRoles によるロールベースアクセス制御を追加
+  #    requireMention チェックの直前に以下のコードを挿入する:
+  #
+  #      const allowRoles = (policy as any).allowRoles ?? []
+  #      if (allowRoles.length > 0 && !allowRoles.some((r: string) => msg.member?.roles.cache.has(r))) {
+  #        return { action: 'drop' }
+  #      }
+  #
   if ! grep -q "allowRoles" "$f"; then
     perl -i -0pe '
       s/(  if \(requireMention \&\& !\(await isMentioned)/  const allowRoles = (policy as any).allowRoles ?? []\n  if (allowRoles.length > 0 \&\& !allowRoles.some((r: string) => msg.member?.roles.cache.has(r))) {\n    return { action: '\''drop'\'' }\n  }\n$1/

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -11,8 +12,6 @@ _PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
 # tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
 CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
-# Discord プラグインのキャッシュパス（glob でバージョン変更に対応）
-_PLUGIN_SERVER = "$HOME/.claude/plugins/cache/claude-plugins-official/discord/*/server.ts"
 
 
 class ClaudeManager(commands.Cog):
@@ -52,7 +51,8 @@ class ClaudeManager(commands.Cog):
         プラグイン更新でキャッシュが上書きされるため、起動前に毎回適用する。
         パッチ内容は scripts/patch_discord_plugin.sh を参照。
         """
-        patch = "bash /opt/minecraft/bot/scripts/patch_discord_plugin.sh"
+        script = Path(__file__).resolve().parent.parent / "scripts" / "patch_discord_plugin.sh"
+        patch = f"bash {script}"
         rc, output = await self._run(patch)
         if rc != 0:
             logging.warning(f"Discord plugin patch failed: {output}")
