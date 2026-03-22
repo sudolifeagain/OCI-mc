@@ -50,16 +50,9 @@ class ClaudeManager(commands.Cog):
         """Discord プラグインにカスタムパッチを適用する（冪等）
 
         プラグイン更新でキャッシュが上書きされるため、起動前に毎回適用する。
-        - reply の送信メッセージに SuppressNotifications フラグを追加
+        パッチ内容は scripts/patch_discord_plugin.sh を参照。
         """
-        patch = (
-            f'for f in {_PLUGIN_SERVER}; do '
-            '  grep -q "MessageFlags" "$f" 2>/dev/null || '
-            "    sed -i 's/  type Attachment,/  type Attachment,\\n  MessageFlags,/' \"$f\"; "
-            '  grep -q "SuppressNotifications" "$f" 2>/dev/null || '
-            "    sed -i 's/const sent = await ch.send({/const sent = await ch.send({\\n              flags: MessageFlags.SuppressNotifications,/' \"$f\"; "
-            'done'
-        )
+        patch = "bash /opt/minecraft/bot/scripts/patch_discord_plugin.sh"
         rc, output = await self._run(patch)
         if rc != 0:
             logging.warning(f"Discord plugin patch failed: {output}")
