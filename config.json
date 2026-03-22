@@ -82,7 +82,6 @@
 	},
 	"reaction_roles": {
 		"channel_id": 1448157321590079572,
-		"message_id": null,
 		"mappings": {
 			"\u2705": {
 				"channel_id": 1485199249053454367,
