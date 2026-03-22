@@ -73,29 +73,29 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("再起動処理中です。", ephemeral=True)
 
         self._restarting = True
-        await interaction.response.send_message("Claude Code を再起動します...")
+        await interaction.response.send_message("Claude Code を再起動します...", silent=True)
 
         try:
             # 停止
             stopped = await self._stop_claude()
             if not stopped:
-                await interaction.followup.send("停止に失敗しました。")
+                await interaction.followup.send("停止に失敗しました。", silent=True)
                 return
 
             # 更新チェック
             rc, output = await self._run(f'{_PATH_SETUP} && claude update 2>&1', timeout=60)
             update_msg = output[:1500] if output else "更新なし"
-            await interaction.followup.send(f"更新チェック: {update_msg}")
+            await interaction.followup.send(f"更新チェック: {update_msg}", silent=True)
 
             # 起動
             started = await self._start_claude()
             if started:
-                await interaction.followup.send("Claude Code を再起動しました。コンテキストはリセットされています。")
+                await interaction.followup.send("Claude Code を再起動しました。コンテキストはリセットされています。", silent=True)
             else:
-                await interaction.followup.send("起動に失敗しました。サーバーを確認してください。")
+                await interaction.followup.send("起動に失敗しました。サーバーを確認してください。", silent=True)
         except Exception as e:
             logging.error(f"Claude restart failed: {e}")
-            await interaction.followup.send(f"エラー: {e}")
+            await interaction.followup.send(f"エラー: {e}", silent=True)
         finally:
             self._restarting = False
 
@@ -115,7 +115,7 @@ class ClaudeManager(commands.Cog):
         else:
             status = f"**状態**: オフライン\n**バージョン**: {version}"
 
-        await interaction.followup.send(status)
+        await interaction.followup.send(status, silent=True)
 
     @app_commands.command(name="claude-stop", description="Claude Codeセッションを停止する")
     async def claude_stop(self, interaction: discord.Interaction) -> None:
@@ -125,9 +125,9 @@ class ClaudeManager(commands.Cog):
         await interaction.response.defer()
         stopped = await self._stop_claude()
         if stopped:
-            await interaction.followup.send("Claude Code を停止しました。")
+            await interaction.followup.send("Claude Code を停止しました。", silent=True)
         else:
-            await interaction.followup.send("停止に失敗しました。")
+            await interaction.followup.send("停止に失敗しました。", silent=True)
 
     @app_commands.command(name="claude-start", description="Claude Codeセッションを開始する")
     async def claude_start(self, interaction: discord.Interaction) -> None:
@@ -135,14 +135,14 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
         if await self._is_running():
-            return await interaction.response.send_message("既に起動しています。")
+            return await interaction.response.send_message("既に起動しています。", silent=True)
 
-        await interaction.response.send_message("Claude Code を起動します...")
+        await interaction.response.send_message("Claude Code を起動します...", silent=True)
         started = await self._start_claude()
         if started:
-            await interaction.followup.send("Claude Code を起動しました。")
+            await interaction.followup.send("Claude Code を起動しました。", silent=True)
         else:
-            await interaction.followup.send("起動に失敗しました。")
+            await interaction.followup.send("起動に失敗しました。", silent=True)
 
 
 async def setup(bot: commands.Bot) -> None:
