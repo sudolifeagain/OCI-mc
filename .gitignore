@@ -27,4 +27,7 @@ user_permissions.json
 # Backup fingerprints (server-specific)
 .backup_fingerprints.json
 
+# Reaction role state (server-specific)
+reaction_role_state.json
+
 
