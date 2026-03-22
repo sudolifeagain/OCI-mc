@@ -5,21 +5,27 @@ from discord import app_commands
 from discord.ext import commands
 from utils.permissions import check_role
 
-TMUX_SESSION = "cd"
+TMUX_SESSION = "claude"
 CLAUDE_CMD = "claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions"
+CMD_TIMEOUT = 30
 
 
 class ClaudeManager(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._restarting = False
 
-    async def _run(self, cmd: str) -> tuple[int, str]:
+    async def _run(self, cmd: str, timeout: int = CMD_TIMEOUT) -> tuple[int, str]:
         """シェルコマンドを実行し (returncode, stdout) を返す"""
         proc = await asyncio.create_subprocess_shell(
             cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
         )
-        stdout, _ = await proc.communicate()
+        try:
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            return -1, "コマンドがタイムアウトしました"
         return proc.returncode, stdout.decode().strip()
 
     async def _is_running(self) -> bool:
@@ -36,7 +42,11 @@ class ClaudeManager(commands.Cog):
         return not await self._is_running()
 
     async def _start_claude(self) -> bool:
-        """Claude Code セッションを開始する"""
+        """Claude Code セッションを開始する
+
+        起動後、Claude の対話プロンプト（信頼確認 → 権限バイパス確認）を
+        キーシーケンスで自動承認する。プロンプト構成変更時は要修正。
+        """
         if await self._is_running():
             return True
         await self._run(f'tmux new-session -d -s {TMUX_SESSION} "{CLAUDE_CMD}"')
@@ -52,7 +62,7 @@ class ClaudeManager(commands.Cog):
         return await self._is_running()
 
     @app_commands.command(name="claude-restart", description="Claude Codeセッションを再起動する（コンテキストリセット＋自動更新適用）")
-    async def claude_restart(self, interaction: discord.Interaction):
+    async def claude_restart(self, interaction: discord.Interaction) -> None:
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -70,8 +80,8 @@ class ClaudeManager(commands.Cog):
                 return
 
             # 更新チェック
-            rc, output = await self._run("claude update 2>&1")
-            update_msg = output if output else "更新なし"
+            rc, output = await self._run("claude update 2>&1", timeout=60)
+            update_msg = output[:1500] if output else "更新なし"
             await interaction.followup.send(f"更新チェック: {update_msg}")
 
             # 起動
@@ -87,9 +97,11 @@ class ClaudeManager(commands.Cog):
             self._restarting = False
 
     @app_commands.command(name="claude-status", description="Claude Codeセッションの状態を確認する")
-    async def claude_status(self, interaction: discord.Interaction):
+    async def claude_status(self, interaction: discord.Interaction) -> None:
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        await interaction.response.defer()
 
         running = await self._is_running()
         rc, version = await self._run("claude --version 2>/dev/null")
@@ -100,21 +112,22 @@ class ClaudeManager(commands.Cog):
         else:
             status = f"**状態**: オフライン\n**バージョン**: {version}"
 
-        await interaction.response.send_message(status)
+        await interaction.followup.send(status)
 
     @app_commands.command(name="claude-stop", description="Claude Codeセッションを停止する")
-    async def claude_stop(self, interaction: discord.Interaction):
+    async def claude_stop(self, interaction: discord.Interaction) -> None:
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
+        await interaction.response.defer()
         stopped = await self._stop_claude()
         if stopped:
-            await interaction.response.send_message("Claude Code を停止しました。")
+            await interaction.followup.send("Claude Code を停止しました。")
         else:
-            await interaction.response.send_message("停止に失敗しました。")
+            await interaction.followup.send("停止に失敗しました。")
 
     @app_commands.command(name="claude-start", description="Claude Codeセッションを開始する")
-    async def claude_start(self, interaction: discord.Interaction):
+    async def claude_start(self, interaction: discord.Interaction) -> None:
         if not check_role(interaction, 'claude'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -129,5 +142,5 @@ class ClaudeManager(commands.Cog):
             await interaction.followup.send("起動に失敗しました。")
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ClaudeManager(bot))
