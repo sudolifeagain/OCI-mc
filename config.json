@@ -62,6 +62,9 @@
 		],
 		"claude": [
 			"claude_user"
+		],
+		"reaction_role_setup": [
+			"admin"
 		]
 	},
 	"backup": {

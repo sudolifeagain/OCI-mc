@@ -1,12 +1,14 @@
 import json
 import logging
+import os
 import discord
 from discord import app_commands
 from discord.ext import commands
 from settings import CONFIG
 from utils.permissions import check_role
 
-STATE_FILE = "reaction_role_state.json"
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATE_FILE = os.path.join(_BASE_DIR, "reaction_role_state.json")
 
 
 def _load_state() -> dict:
@@ -46,9 +48,16 @@ class ReactionRoles(commands.Cog):
         """チャンネルの閲覧権限を付与または削除する"""
         channel = guild.get_channel(channel_id)
         if not channel:
+            logging.warning(f"Reaction role: channel {channel_id} not found")
             return False
-        member = guild.get_member(user_id) or await guild.fetch_member(user_id)
+
+        try:
+            member = guild.get_member(user_id) or await guild.fetch_member(user_id)
+        except discord.NotFound:
+            logging.warning(f"Reaction role: member {user_id} not found")
+            return False
         if not member:
+            logging.warning(f"Reaction role: member {user_id} not found")
             return False
 
         if allow:
@@ -67,7 +76,11 @@ class ReactionRoles(commands.Cog):
         guild = self.bot.get_guild(payload.guild_id)
         if not guild:
             return
-        ok = await self._update_permission(guild, payload.user_id, mapping["channel_id"], allow=True)
+        try:
+            ok = await self._update_permission(guild, payload.user_id, mapping["channel_id"], allow=True)
+        except (discord.Forbidden, discord.HTTPException) as e:
+            logging.error(f"Reaction role: failed to grant access to {mapping['label']} for user {payload.user_id}: {e}")
+            return
         if ok:
             logging.info(f"Reaction role: granted access to {mapping['label']} for user {payload.user_id}")
 
@@ -79,13 +92,17 @@ class ReactionRoles(commands.Cog):
         guild = self.bot.get_guild(payload.guild_id)
         if not guild:
             return
-        ok = await self._update_permission(guild, payload.user_id, mapping["channel_id"], allow=False)
+        try:
+            ok = await self._update_permission(guild, payload.user_id, mapping["channel_id"], allow=False)
+        except (discord.Forbidden, discord.HTTPException) as e:
+            logging.error(f"Reaction role: failed to revoke access to {mapping['label']} for user {payload.user_id}: {e}")
+            return
         if ok:
             logging.info(f"Reaction role: revoked access to {mapping['label']} for user {payload.user_id}")
 
     @app_commands.command(name="reaction-role-setup", description="リアクションロール用メッセージを投稿する")
     async def reaction_role_setup(self, interaction: discord.Interaction) -> None:
-        if not check_role(interaction, 'admin'):
+        if not check_role(interaction, 'reaction_role_setup'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
         channel_id = self.config.get("channel_id")
