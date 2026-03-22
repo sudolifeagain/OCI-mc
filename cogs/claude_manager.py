@@ -6,7 +6,9 @@ from discord.ext import commands
 from utils.permissions import check_role
 
 TMUX_SESSION = "claude"
-# .bashrc は tmux の非対話起動で読み込まれないため、bun の PATH を明示的に設定する
+# .bashrc は非対話シェルで読み込まれないため、claude / bun の PATH を明示的に設定する
+_PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
+# tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
 CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
 
@@ -81,7 +83,7 @@ class ClaudeManager(commands.Cog):
                 return
 
             # 更新チェック
-            rc, output = await self._run("claude update 2>&1", timeout=60)
+            rc, output = await self._run(f'{_PATH_SETUP} && claude update 2>&1', timeout=60)
             update_msg = output[:1500] if output else "更新なし"
             await interaction.followup.send(f"更新チェック: {update_msg}")
 
@@ -105,7 +107,7 @@ class ClaudeManager(commands.Cog):
         await interaction.response.defer()
 
         running = await self._is_running()
-        rc, version = await self._run("claude --version 2>/dev/null")
+        rc, version = await self._run(f'{_PATH_SETUP} && claude --version 2>/dev/null')
 
         if running:
             _, pane = await self._run(f"tmux capture-pane -t {TMUX_SESSION} -p 2>/dev/null | tail -5")
