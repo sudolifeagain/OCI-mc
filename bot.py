@@ -24,7 +24,8 @@ class MyBot(commands.Bot):
             'cogs.status_display',
             'cogs.permission_system',
             'cogs.system_monitor',
-            'cogs.claude_manager'
+            'cogs.claude_manager',
+            'cogs.reaction_roles'
         ]
 
         for extension in initial_extensions:

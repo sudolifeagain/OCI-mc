@@ -62,6 +62,9 @@
 		],
 		"claude": [
 			"claude_user"
+		],
+		"reaction_role_setup": [
+			"admin"
 		]
 	},
 	"backup": {
@@ -79,6 +82,15 @@
 			]
 		},
 		"schedule_time": "04:00"
+	},
+	"reaction_roles": {
+		"channel_id": 1448157321590079572,
+		"mappings": {
+			"\u2705": {
+				"channel_id": 1485199249053454367,
+				"label": "開発チャンネル"
+			}
+		}
 	},
 	"plugins": {
 		"paper": {
