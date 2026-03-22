@@ -23,7 +23,8 @@ class MyBot(commands.Bot):
             'cogs.plugin_system',
             'cogs.status_display',
             'cogs.permission_system',
-            'cogs.system_monitor'
+            'cogs.system_monitor',
+            'cogs.claude_manager'
         ]
 
         for extension in initial_extensions:

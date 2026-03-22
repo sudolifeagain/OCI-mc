@@ -59,6 +59,9 @@
 			"admin",
 			"mod",
 			"user"
+		],
+		"claude": [
+			"claude_user"
 		]
 	},
 	"backup": {

@@ -76,11 +76,14 @@ else:
     DISCORD_USER_IDS = int(os.getenv('DISCORD_USER_ID', 0))
 
 # ロールIDを設定（.envから読み込み）
+DISCORD_CLAUDE_ROLE_ID = int(os.getenv('DISCORD_CLAUDE_ROLE_ID', 0))
+
 CONFIG['roles'] = {
     'admin': DISCORD_ADMIN_ID,
     'mod': DISCORD_MOD_ID,
     'owner': DISCORD_OWNER_ID,
     'user': DISCORD_USER_IDS,  # Can be int or list[int]
+    'claude_user': DISCORD_CLAUDE_ROLE_ID,
 }
 
 # --- サーバー設定 ---
