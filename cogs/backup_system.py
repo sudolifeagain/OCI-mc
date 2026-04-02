@@ -163,7 +163,10 @@ class BackupSystem(commands.Cog):
 
                 async def backup_progress(msg: str) -> None:
                     if channel:
-                        await channel.send(f"[{server_name}] {msg}", silent=True)
+                        try:
+                            await channel.send(f"[{server_name}] {msg}", silent=True)
+                        except discord.HTTPException as e:
+                            logging.warning(f"[Backup] Failed to send progress: {e}")
 
                 await self.server_manager.stop_server(server_id, progress_callback=backup_progress)
                 await self.server_manager.wait_for_exit(server_id)
@@ -433,8 +436,10 @@ class BackupSystem(commands.Cog):
         if 'backup' in CONFIG and 'schedule_time' in CONFIG['backup']:
             if now == CONFIG['backup']['schedule_time']:
                 channel = self.bot.get_channel(CHANNEL_ID)
-                # 全サーバーをバックアップ
-                await self.perform_backup(channel, None)
+                try:
+                    await self.perform_backup(channel, None)
+                except Exception as e:
+                    logging.exception(f"[Backup] Scheduled backup failed: {e}")
 
     @scheduler.before_loop
     async def before_scheduler(self):

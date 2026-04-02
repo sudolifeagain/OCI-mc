@@ -89,13 +89,16 @@ class StatusDisplay(commands.Cog):
             )
 
         # メッセージの送信または編集
-        if self.message:
-            try:
-                await self.message.edit(embed=embed)
-            except discord.NotFound:
+        try:
+            if self.message:
+                try:
+                    await self.message.edit(embed=embed)
+                except discord.NotFound:
+                    self.message = await self.find_or_send_message(channel, embed)
+            else:
                 self.message = await self.find_or_send_message(channel, embed)
-        else:
-            self.message = await self.find_or_send_message(channel, embed)
+        except discord.HTTPException as e:
+            logging.warning(f"Status update failed (will retry next loop): {e}")
 
     async def find_or_send_message(self, channel, embed):
         """チャンネル内の最新の自分のメッセージを探すか、新規送信する"""

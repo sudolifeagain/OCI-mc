@@ -87,63 +87,66 @@ class SystemMonitor(commands.Cog):
     @tasks.loop(seconds=60)
     async def oom_checker(self):
         """OOM Kill イベントを定期的にチェック"""
-        channel = self.bot.get_channel(CHANNEL_ID)
-        if not channel:
-            return
-
-        oom_events = await self.check_dmesg_for_oom()
-        if not oom_events:
-            return
-
-        # 初回実行時は現在の最新タイムスタンプを記録するだけ
-        if self.last_oom_kernel_time is None:
-            self.last_oom_kernel_time = max(e['kernel_time'] for e in oom_events)
-            logging.info(f"OOM checker initialized. Latest kernel time: {self.last_oom_kernel_time}")
-            return
-
-        # 新しいイベントのみ抽出
-        new_events = [e for e in oom_events if e['kernel_time'] > self.last_oom_kernel_time]
-        if not new_events:
-            return
-
-        # 最新のタイムスタンプを更新
-        self.last_oom_kernel_time = max(e['kernel_time'] for e in new_events)
-
-        # 起動時刻を取得して実際の時刻を計算
         try:
-            proc = await asyncio.create_subprocess_exec(
-                'cat', '/proc/uptime',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            stdout, _ = await proc.communicate()
-            uptime_seconds = float(stdout.decode().split()[0])
-            boot_time = datetime.now() - timedelta(seconds=uptime_seconds)
-        except Exception:
-            boot_time = datetime.now() - timedelta(seconds=self.last_oom_kernel_time)
+            channel = self.bot.get_channel(CHANNEL_ID)
+            if not channel:
+                return
 
-        # Discord に通知
-        for event in new_events:
-            event_time = self.kernel_time_to_datetime(event['kernel_time'], boot_time)
+            oom_events = await self.check_dmesg_for_oom()
+            if not oom_events:
+                return
 
-            embed = discord.Embed(
-                title="⚠️ OOM Kill 検知",
-                description="メモリ不足によりプロセスが強制終了されました",
-                color=discord.Color.red(),
-                timestamp=event_time
-            )
-            embed.add_field(name="プロセス", value=f"`{event['process']}`", inline=True)
-            embed.add_field(name="PID", value=event['pid'], inline=True)
-            embed.add_field(name="使用メモリ (RSS)", value=f"{event['rss_mb']:,} MB", inline=True)
-            embed.add_field(name="仮想メモリ", value=f"{event['total_vm_mb']:,} MB", inline=True)
-            embed.set_footer(text="OOM Killer")
+            # 初回実行時は現在の最新タイムスタンプを記録するだけ
+            if self.last_oom_kernel_time is None:
+                self.last_oom_kernel_time = max(e['kernel_time'] for e in oom_events)
+                logging.info(f"OOM checker initialized. Latest kernel time: {self.last_oom_kernel_time}")
+                return
 
+            # 新しいイベントのみ抽出
+            new_events = [e for e in oom_events if e['kernel_time'] > self.last_oom_kernel_time]
+            if not new_events:
+                return
+
+            # 最新のタイムスタンプを更新
+            self.last_oom_kernel_time = max(e['kernel_time'] for e in new_events)
+
+            # 起動時刻を取得して実際の時刻を計算
             try:
-                mention = f"<@{DISCORD_OWNER_ID}>" if DISCORD_OWNER_ID else ""
-                await channel.send(content=mention, embed=embed, silent=True)
-                logging.info(f"Sent OOM alert for process {event['process']} (PID: {event['pid']})")
-            except Exception as e:
-                logging.error(f"Failed to send OOM alert: {e}")
+                proc = await asyncio.create_subprocess_exec(
+                    'cat', '/proc/uptime',
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                stdout, _ = await proc.communicate()
+                uptime_seconds = float(stdout.decode().split()[0])
+                boot_time = datetime.now() - timedelta(seconds=uptime_seconds)
+            except Exception:
+                boot_time = datetime.now() - timedelta(seconds=self.last_oom_kernel_time)
+
+            # Discord に通知
+            for event in new_events:
+                event_time = self.kernel_time_to_datetime(event['kernel_time'], boot_time)
+
+                embed = discord.Embed(
+                    title="⚠️ OOM Kill 検知",
+                    description="メモリ不足によりプロセスが強制終了されました",
+                    color=discord.Color.red(),
+                    timestamp=event_time
+                )
+                embed.add_field(name="プロセス", value=f"`{event['process']}`", inline=True)
+                embed.add_field(name="PID", value=event['pid'], inline=True)
+                embed.add_field(name="使用メモリ (RSS)", value=f"{event['rss_mb']:,} MB", inline=True)
+                embed.add_field(name="仮想メモリ", value=f"{event['total_vm_mb']:,} MB", inline=True)
+                embed.set_footer(text="OOM Killer")
+
+                try:
+                    mention = f"<@{DISCORD_OWNER_ID}>" if DISCORD_OWNER_ID else ""
+                    await channel.send(content=mention, embed=embed, silent=True)
+                    logging.info(f"Sent OOM alert for process {event['process']} (PID: {event['pid']})")
+                except discord.HTTPException as e:
+                    logging.error(f"Failed to send OOM alert: {e}")
+        except Exception as e:
+            logging.exception(f"OOM checker error: {e}")
 
     @oom_checker.before_loop
     async def before_oom_checker(self):
