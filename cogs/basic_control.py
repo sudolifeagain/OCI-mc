@@ -379,8 +379,9 @@ class BasicControl(commands.Cog):
                 full_text = full_text[1850:]
                 try:
                     await channel.send(f"**[{server_name}]**\n```{chunk}```", silent=True)
-                except Exception as e:
-                    logging.warning(f"Failed to send log to Discord: {e}")
+                except discord.HTTPException as e:
+                    logging.warning(f"Failed to send log to Discord for {server_name}: {e}")
+                    break
 
     @discord_log_sender.before_loop
     async def before_discord_log_sender(self):
