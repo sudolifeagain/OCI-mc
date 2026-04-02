@@ -94,6 +94,8 @@ class StatusDisplay(commands.Cog):
                 await self.message.edit(embed=embed)
             except discord.NotFound:
                 self.message = await self.find_or_send_message(channel, embed)
+            except discord.HTTPException as e:
+                logging.warning(f"Status update failed (will retry next loop): {e}")
         else:
             self.message = await self.find_or_send_message(channel, embed)
 
