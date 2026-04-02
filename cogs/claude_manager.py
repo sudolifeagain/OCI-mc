@@ -10,7 +10,7 @@ TMUX_SESSION = "claude"
 # .bashrc は非対話シェルで読み込まれないため、claude / bun の PATH を明示的に設定する
 _PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
 # tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
-CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
+CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && cd /opt/minecraft/claude-ops && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
 # デプロイ前に Claude セッションが起動していたかを記録する状態ファイル
 _STATE_FILE = Path(__file__).resolve().parent.parent / ".claude_session_active"
