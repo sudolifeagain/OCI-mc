@@ -41,3 +41,15 @@ ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 - `/deploy`: デプロイワークフロー、CI、トラブルシューティング
 - `/process-management`: サーバープロセス管理、ログ転送の仕組み
 - `/backup-notion`: バックアップ・復元、Notion連携
+
+# Claude Code セッション構成
+Discord 経由の常駐セッションと開発用セッションでディレクトリを分離している。
+
+| 用途 | 作業ディレクトリ | CLAUDE.md |
+|------|-----------------|-----------|
+| 開発（ローカル/SSH） | `/opt/minecraft/bot/` | このファイル |
+| Discord 常駐セッション | `/opt/minecraft/claude-ops/` | 本番環境ルール付き |
+
+- 常駐セッションは `claude_manager.py` から `/opt/minecraft/claude-ops/` を cwd として起動される
+- 常駐セッション用の `CLAUDE.md` にはプロセス操作制限（ボット再起動にはユーザー許可が必要等）が含まれる
+- コードの編集は常駐セッションからも絶対パスで可能
