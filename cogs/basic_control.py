@@ -85,7 +85,9 @@ class BasicControl(commands.Cog):
         if not self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
 
-        # defer() (type 5) は SUPPRESS_NOTIFICATIONS フラグが効かないため send_message (type 4) で ACK する
+        # defer() (type 5) は Discord API 仕様により SUPPRESS_NOTIFICATIONS を無視するため、
+        # silent ACK には send_message (type 4) を使う。/cmd /status の silent ACK も同じ理由。
+        # ref: https://github.com/discord/discord-api-docs/issues/4784
         await interaction.response.send_message(f"⏳ {server_instance.name} を停止しています...", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop server={server}")
 
@@ -150,7 +152,6 @@ class BasicControl(commands.Cog):
                 ephemeral=True
             )
 
-        # defer() は SUPPRESS_NOTIFICATIONS が効かないため send_message で ACK
         await interaction.response.send_message(
             f"⏳ [{server_instance.name}] `{command_str}` を実行中...", silent=True
         )
@@ -178,7 +179,9 @@ class BasicControl(commands.Cog):
                     silent=True
                 )
         else:
-            await interaction.followup.send(f"❌ [{server_instance.name}] エラー: {result}", silent=True)
+            await interaction.edit_original_response(
+                content=f"❌ [{server_instance.name}] `{command_str}` エラー: {result}"
+            )
 
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
     @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")
@@ -208,7 +211,6 @@ class BasicControl(commands.Cog):
 
         # サーバー指定がない場合は全サーバーのステータスを表示
         if server is None:
-            # defer() は SUPPRESS_NOTIFICATIONS が効かないため send_message で ACK
             await interaction.response.send_message("⏳ 全サーバーのステータスを取得中...", silent=True)
 
             embed = discord.Embed(title="Minecraft Server Status", color=0x00ff00)
@@ -270,14 +272,15 @@ class BasicControl(commands.Cog):
             if not server_instance:
                 return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
-            # defer() は SUPPRESS_NOTIFICATIONS が効かないため send_message で ACK
             await interaction.response.send_message(
                 f"⏳ {server_instance.name} のステータスを取得中...", silent=True
             )
 
             stats = self.server_manager.get_server_stats(server)
             if not stats:
-                return await interaction.followup.send(f"{server_instance.name} は起動していません。", ephemeral=True)
+                return await interaction.edit_original_response(
+                    content=f"🔴 {server_instance.name} は起動していません。"
+                )
 
             seconds = int(stats['uptime_seconds'])
             m, s = divmod(seconds, 60)
