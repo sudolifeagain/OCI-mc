@@ -92,13 +92,13 @@ class BasicControl(commands.Cog):
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /stop server={server}")
 
         async def progress_callback(msg: str) -> None:
-            await interaction.followup.send(msg, silent=True)
+            await interaction.edit_original_response(content=msg)
 
         result = await self.server_manager.stop_server(server, progress_callback=progress_callback)
         if result:
-            await interaction.followup.send(f"🛑 {server_instance.name} を停止しました。", silent=True)
+            await interaction.edit_original_response(content=f"🛑 {server_instance.name} を停止しました。")
         else:
-            await interaction.followup.send(f"{server_instance.name} の停止に失敗しました。", silent=True)
+            await interaction.edit_original_response(content=f"{server_instance.name} の停止に失敗しました。")
 
     @app_commands.command(name="restart", description="Minecraftサーバーを再起動します")
     @app_commands.describe(server="再起動するサーバー")
