@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from utils.permissions import check_role
 
 TMUX_SESSION = "claude"
@@ -12,6 +12,8 @@ _PATH_SETUP = 'export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"'
 # tmux 用: 外側の二重引用符（line 53）に包まれるため内側をエスケープ
 CLAUDE_CMD = 'export PATH=\\"$HOME/.bun/bin:$HOME/.local/bin:$PATH\\" && cd /opt/minecraft/claude-ops && claude --channels plugin:discord@claude-plugins-official --dangerously-skip-permissions'
 CMD_TIMEOUT = 30
+# state file が active のとき watchdog が tmux セッション消失を検知する間隔（秒）
+WATCHDOG_INTERVAL_SECONDS = 60
 # デプロイ前に Claude セッションが起動していたかを記録する状態ファイル
 _STATE_FILE = Path(__file__).resolve().parent.parent / ".claude_session_active"
 
@@ -21,6 +23,10 @@ class ClaudeManager(commands.Cog):
         self.bot = bot
         self._lock = asyncio.Lock()
         self._auto_restored = False
+        self._watchdog.start()
+
+    def cog_unload(self) -> None:
+        self._watchdog.cancel()
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -42,6 +48,36 @@ class ClaudeManager(commands.Cog):
                 logging.info("Claude Code session auto-restored")
             else:
                 logging.error("Failed to auto-restore Claude Code session")
+
+    @tasks.loop(seconds=WATCHDOG_INTERVAL_SECONDS)
+    async def _watchdog(self) -> None:
+        """state file が active なのに tmux セッションが消えていれば復活させる
+
+        bot 起動時の on_ready とは独立に、claude / tmux プロセスの異常終了
+        （OOM、クラッシュ、外部の kill 等）に対して bot が動いている限り
+        自動復旧する。ユーザー意図の停止 (/claude-stop) は state file を消す
+        ため、watchdog の対象外となる。
+        """
+        if not _STATE_FILE.exists():
+            return
+        if self._lock.locked():
+            return
+        if await self._is_running():
+            return
+        async with self._lock:
+            if not _STATE_FILE.exists() or await self._is_running():
+                return
+            logging.warning("Claude Code session disappeared unexpectedly; restoring via watchdog")
+            await self._patch_discord_plugin()
+            started = await self._start_claude()
+            if started:
+                logging.info("Claude Code session restored by watchdog")
+            else:
+                logging.error("Watchdog failed to restore Claude Code session")
+
+    @_watchdog.before_loop
+    async def _before_watchdog(self) -> None:
+        await self.bot.wait_until_ready()
 
     async def _run(self, cmd: str, timeout: int = CMD_TIMEOUT) -> tuple[int, str]:
         """シェルコマンドを実行し (returncode, stdout) を返す"""
@@ -117,6 +153,7 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
 
         await interaction.response.send_message("Claude Code を再起動します...", silent=True)
+        logging.info(f"Claude Code restart requested by {interaction.user} ({interaction.user.id})")
 
         async with self._lock:
             try:
@@ -169,6 +206,7 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
 
         await interaction.response.defer()
+        logging.info(f"Claude Code stop requested by {interaction.user} ({interaction.user.id})")
         async with self._lock:
             stopped = await self._stop_claude()
         if stopped:
@@ -188,6 +226,7 @@ class ClaudeManager(commands.Cog):
             return await interaction.response.send_message("既に起動しています。", silent=True)
 
         await interaction.response.send_message("Claude Code を起動します...", silent=True)
+        logging.info(f"Claude Code start requested by {interaction.user} ({interaction.user.id})")
         async with self._lock:
             await self._patch_discord_plugin()
             started = await self._start_claude()
