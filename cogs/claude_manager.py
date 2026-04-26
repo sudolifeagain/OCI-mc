@@ -53,27 +53,27 @@ class ClaudeManager(commands.Cog):
     async def _watchdog(self) -> None:
         """state file が active なのに tmux セッションが消えていれば復活させる
 
-        bot 起動時の on_ready とは独立に、claude / tmux プロセスの異常終了
-        （OOM、クラッシュ、外部の kill 等）に対して bot が動いている限り
-        自動復旧する。ユーザー意図の停止 (/claude-stop) は state file を消す
-        ため、watchdog の対象外となる。
+        ユーザー意図の停止 (/claude-stop) は state file を消すため対象外。
         """
-        if not _STATE_FILE.exists():
-            return
-        if self._lock.locked():
-            return
-        if await self._is_running():
-            return
-        async with self._lock:
-            if not _STATE_FILE.exists() or await self._is_running():
+        try:
+            if not _STATE_FILE.exists():
                 return
-            logging.warning("Claude Code session disappeared unexpectedly; restoring via watchdog")
-            await self._patch_discord_plugin()
-            started = await self._start_claude()
-            if started:
-                logging.info("Claude Code session restored by watchdog")
-            else:
-                logging.error("Watchdog failed to restore Claude Code session")
+            if self._lock.locked():
+                return
+            if await self._is_running():
+                return
+            async with self._lock:
+                if not _STATE_FILE.exists() or await self._is_running():
+                    return
+                logging.warning("Claude Code session disappeared unexpectedly; restoring via watchdog")
+                await self._patch_discord_plugin()
+                started = await self._start_claude()
+                if started:
+                    logging.info("Claude Code session restored by watchdog")
+                else:
+                    logging.error("Watchdog failed to restore Claude Code session")
+        except Exception as e:
+            logging.exception(f"Claude watchdog error: {e}")
 
     @_watchdog.before_loop
     async def _before_watchdog(self) -> None:
@@ -152,8 +152,8 @@ class ClaudeManager(commands.Cog):
         if self._lock.locked():
             return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
 
-        await interaction.response.send_message("Claude Code を再起動します...", silent=True)
         logging.info(f"Claude Code restart requested by {interaction.user} ({interaction.user.id})")
+        await interaction.response.send_message("Claude Code を再起動します...", silent=True)
 
         async with self._lock:
             try:
@@ -205,8 +205,8 @@ class ClaudeManager(commands.Cog):
         if self._lock.locked():
             return await interaction.response.send_message("別の操作が進行中です。", ephemeral=True)
 
-        await interaction.response.defer()
         logging.info(f"Claude Code stop requested by {interaction.user} ({interaction.user.id})")
+        await interaction.response.defer()
         async with self._lock:
             stopped = await self._stop_claude()
         if stopped:
@@ -225,8 +225,8 @@ class ClaudeManager(commands.Cog):
         if await self._is_running():
             return await interaction.response.send_message("既に起動しています。", silent=True)
 
-        await interaction.response.send_message("Claude Code を起動します...", silent=True)
         logging.info(f"Claude Code start requested by {interaction.user} ({interaction.user.id})")
+        await interaction.response.send_message("Claude Code を起動します...", silent=True)
         async with self._lock:
             await self._patch_discord_plugin()
             started = await self._start_claude()
