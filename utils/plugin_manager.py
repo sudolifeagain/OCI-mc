@@ -271,7 +271,12 @@ def compute_file_hash(filepath: str, algorithm: str) -> Optional[str]:
         return None
 
 
-def get_modrinth_latest_info(project: str, loader: str, game_version: str) -> Optional[dict]:
+def get_modrinth_latest_info(
+    project: str,
+    loader: str,
+    game_version: str,
+    version_number: Optional[str] = None,
+) -> Optional[dict]:
     """Modrinthから対象ローダー・ゲーム版に対応する最新安定版を取得する。"""
     try:
         url = f"https://api.modrinth.com/v2/project/{quote(project, safe='')}/version"
@@ -286,7 +291,12 @@ def get_modrinth_latest_info(project: str, loader: str, game_version: str) -> Op
 
         versions = resp.json()
         release = next(
-            (version for version in versions if version.get("version_type") == "release"),
+            (
+                version
+                for version in versions
+                if version.get("version_type") == "release"
+                and (not version_number or version.get("version_number") == version_number)
+            ),
             None,
         )
         if not release:
@@ -393,11 +403,12 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
             project = plugin_config.get("project", "")
             loader = plugin_config.get("loader", "paper")
             game_version = plugin_config.get("game_version", "")
+            version_number = plugin_config.get("version_number")
 
             if not project or not game_version:
                 return {"success": False, "message": "project または game_version が設定されていません", "filename": filename or filename_pattern}
 
-            info = get_modrinth_latest_info(project, loader, game_version)
+            info = get_modrinth_latest_info(project, loader, game_version, version_number)
             if not info:
                 return {"success": False, "message": "Modrinth APIから配布情報を取得できません", "filename": filename or filename_pattern}
 
@@ -652,8 +663,9 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
         project = plugin_config.get("project", "")
         loader = plugin_config.get("loader", "paper")
         game_version = plugin_config.get("game_version", "")
+        version_number = plugin_config.get("version_number")
 
-        info = get_modrinth_latest_info(project, loader, game_version)
+        info = get_modrinth_latest_info(project, loader, game_version, version_number)
         if info:
             remote_sha1 = info.get("sha1", "")
             local_sha1 = compute_file_hash(filepath, "sha1")

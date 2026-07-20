@@ -48,7 +48,7 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 - **GitHub Releases** — BlueMap 等
 - **Modrinth API** — WorldEdit 等
 
-配布元の SHA256 または SHA1 ハッシュで更新を検出・検証し、アトミックにファイルを置換する。GitHub Releases は `release_tag` で互換版を固定できる。
+配布元の SHA256 または SHA1 ハッシュで更新を検出・検証し、アトミックにファイルを置換する。GitHub Releases は `release_tag`、Modrinth は `version_number` で互換版を固定できる。
 
 ### 権限管理
 
@@ -204,6 +204,7 @@ OCI-mc/
         "project": "worldedit",
         "loader": "paper",
         "game_version": "1.21.11",
+        "version_number": "7.4.2",
         "filename_pattern": "worldedit-bukkit-*.jar"
       }
     }
