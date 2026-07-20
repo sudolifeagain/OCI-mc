@@ -10,6 +10,7 @@
 
 - `/shell`による任意OS操作は継続する。
 - 実行者を`DISCORD_SHELL_USER_IDS`、実行場所をguild／チャンネルIDで限定する。
+- `/shell`以外のスラッシュコマンドは許可guild内で利用可能とし、各コマンドのロール／ユーザー権限で制御する。
 - 応答はephemeralとし、60秒・64KiB上限、同時実行数1で実行する。
 - Botユーザー`ubuntu`のsudo権限は維持する。
 - Paper／Forge／Forge Altは専用Unixユーザーで起動し、Botの秘密環境変数を継承させない。

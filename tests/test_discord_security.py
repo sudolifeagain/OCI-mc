@@ -11,17 +11,14 @@ from utils.discord_security import (
 
 
 class DiscordSecurityTests(unittest.TestCase):
-    def test_command_context_accepts_thread_parent(self) -> None:
+    def test_command_context_accepts_guild_channel(self) -> None:
         interaction = SimpleNamespace(
             guild_id=10,
             channel_id=31,
             channel=SimpleNamespace(parent_id=30),
             user=SimpleNamespace(id=40),
         )
-        with (
-            patch("utils.discord_security.DISCORD_GUILD_IDS", {10}),
-            patch("utils.discord_security.DISCORD_COMMAND_CHANNEL_IDS", {30}),
-        ):
+        with patch("utils.discord_security.DISCORD_GUILD_IDS", {10}):
             self.assertTrue(is_allowed_command_context(interaction))
 
     def test_command_context_rejects_dm_and_other_guild(self) -> None:
@@ -39,14 +36,38 @@ class DiscordSecurityTests(unittest.TestCase):
             self.assertFalse(is_allowed_command_context(dm))
             self.assertFalse(is_allowed_command_context(other_guild))
 
-    def test_command_context_fails_closed_without_channel_configuration(self) -> None:
+    def test_shell_context_accepts_thread_parent(self) -> None:
+        interaction = SimpleNamespace(
+            guild_id=10,
+            channel_id=31,
+            channel=SimpleNamespace(parent_id=30),
+        )
+        with (
+            patch("utils.discord_security.DISCORD_GUILD_IDS", {10}),
+            patch("utils.discord_security.DISCORD_SHELL_CHANNEL_IDS", {30}),
+        ):
+            self.assertTrue(is_allowed_command_context(interaction, shell=True))
+
+    def test_shell_context_rejects_other_channel(self) -> None:
+        interaction = SimpleNamespace(
+            guild_id=10,
+            channel_id=31,
+            channel=SimpleNamespace(parent_id=None),
+        )
+        with (
+            patch("utils.discord_security.DISCORD_GUILD_IDS", {10}),
+            patch("utils.discord_security.DISCORD_SHELL_CHANNEL_IDS", {30}),
+        ):
+            self.assertFalse(is_allowed_command_context(interaction, shell=True))
+
+    def test_shell_context_fails_closed_without_channel_configuration(self) -> None:
         interaction = SimpleNamespace(
             guild_id=10,
             channel_id=30,
             channel=SimpleNamespace(parent_id=None),
         )
-        with patch("utils.discord_security.DISCORD_COMMAND_CHANNEL_IDS", set()):
-            self.assertFalse(is_allowed_command_context(interaction))
+        with patch("utils.discord_security.DISCORD_SHELL_CHANNEL_IDS", set()):
+            self.assertFalse(is_allowed_command_context(interaction, shell=True))
 
     def test_shell_requires_exact_user(self) -> None:
         allowed = SimpleNamespace(user=SimpleNamespace(id=40))
