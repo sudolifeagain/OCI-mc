@@ -1,0 +1,130 @@
+name: Update Paper 26.2 Stable
+
+on:
+  schedule:
+    # GitHub Actionsの混雑を避け、毎日12:17 JSTに実行する
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paper-26-2-stable-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Check updater credential
+      env:
+        PAPER_UPDATE_TOKEN: ${{ secrets.PAPER_UPDATE_TOKEN }}
+      run: |
+        if [ -z "$PAPER_UPDATE_TOKEN" ]; then
+          echo "PAPER_UPDATE_TOKENが未設定である" >&2
+          exit 1
+        fi
+
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Verify trusted branch state
+      run: |
+        set -euo pipefail
+        git fetch --no-tags origin main develop
+        if ! git merge-base --is-ancestor origin/develop origin/main; then
+          echo "developに未マージ変更があるため自動更新を停止する" >&2
+          exit 1
+        fi
+        git checkout --detach origin/main
+
+    - name: Detect Paper 26.2 stable
+      id: paper
+      run: |
+        python scripts/paper_stable_update.py \
+          --manifest server-artifacts.json \
+          --github-output "$GITHUB_OUTPUT"
+
+    - name: Set up Python
+      if: steps.paper.outputs.update_available == 'true'
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.12'
+
+    - name: Validate candidate
+      if: steps.paper.outputs.update_available == 'true'
+      run: |
+        python -m pip install --upgrade pip==26.1.2
+        pip install --require-hashes -r requirements-dev.txt
+        pip-audit --strict -r requirements.txt
+        python -m unittest discover -s tests -v
+        ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+        test "$(git diff --name-only)" = "server-artifacts.json"
+
+    - name: Create pull request and merge after CI
+      if: steps.paper.outputs.update_available == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.PAPER_UPDATE_TOKEN }}
+        PAPER_BUILD: ${{ steps.paper.outputs.build }}
+        PAPER_VERSION: ${{ steps.paper.outputs.version }}
+      run: |
+        set -euo pipefail
+        gh auth setup-git
+        BASE_SHA=$(git rev-parse origin/main)
+        git config user.name "Paper Stable Updater"
+        git config user.email "paper-stable-updater@users.noreply.github.com"
+        git add server-artifacts.json
+        git commit -m "Paper ${PAPER_VERSION} STABLEへ更新"
+        HEAD_SHA=$(git rev-parse HEAD)
+        git push origin HEAD:develop
+
+        PR_URL=$(gh pr create \
+          --repo "$GITHUB_REPOSITORY" \
+          --base main \
+          --head develop \
+          --title "Paper ${PAPER_VERSION} STABLEへ自動更新" \
+          --body "Paper公式Downloads Serviceで26.2 build ${PAPER_BUILD}のSTABLE公開を検知したため更新する。Minecraft versionは26.2に固定し、取得時とデプロイ時にSHA-256を検証する。")
+
+        test "$(gh pr diff "$PR_URL" --name-only)" = "server-artifacts.json"
+
+        CHECKS_READY=false
+        for _ in $(seq 1 18); do
+          if gh pr checks "$PR_URL" --required --json name > "$RUNNER_TEMP/paper-checks.json" 2>/dev/null \
+            && jq -e 'length > 0' "$RUNNER_TEMP/paper-checks.json" >/dev/null; then
+            CHECKS_READY=true
+            break
+          fi
+          sleep 10
+        done
+        if [ "$CHECKS_READY" != "true" ]; then
+          echo "必須CIが開始されなかった" >&2
+          exit 1
+        fi
+        gh pr checks "$PR_URL" --required --watch --interval 10 --fail-fast
+
+        CURRENT_BASE_SHA=$(gh api \
+          "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" \
+          --jq '.object.sha')
+        if [ "$CURRENT_BASE_SHA" != "$BASE_SHA" ]; then
+          echo "CI実行中にmainが更新されたため自動mergeを停止する" >&2
+          exit 1
+        fi
+        gh pr merge "$PR_URL" \
+          --merge \
+          --admin \
+          --match-head-commit "$HEAD_SHA" \
+          --subject "Paper ${PAPER_VERSION} STABLEへ自動更新"
+
+    - name: Notify Discord on failure
+      if: failure()
+      env:
+        WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        jq -n \
+          --arg url "$WORKFLOW_URL" \
+          '{flags:4096,embeds:[{title:"Paper 26.2 STABLE自動更新失敗",description:("[実行ログ](" + $url + ")"),color:15158332}]}' \
+          | curl -sS -H "Content-Type: application/json" -d @- "${{ secrets.DISCORD_WEBHOOK_URL }}"
