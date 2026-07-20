@@ -7,10 +7,10 @@
 
 ## Directory Map (Remote)
 - **/opt/minecraft/**: Root
-  - **paper/**: Paper server (Vanilla compatible)
+  - **paper/**: Paper 26.2 build 62 (BETA)
     - `paper.jar`, `plugins/`, `world/`
-    - `start.sh` - 起動スクリプト (`stdbuf -oL java @user_jvm_args.txt -jar paper.jar`)
-    - `user_jvm_args.txt` - JVMメモリ設定 (`-Xmx4G -Xms4G`)
+    - Java: `/usr/lib/jvm/java-25-openjdk-arm64/bin/java`
+    - JVMメモリ設定: `-Xmx4G -Xms4G`
     - `.paper.pid` - PIDファイル（ボット起動時に自動生成）
   - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
     - `run.sh`, `mods/` (540 files, 1.2GB), `world/`
@@ -230,6 +230,8 @@ Paperサーバーで3DマップをWebブラウザで表示するプラグイン�
 
 ### 現在の設定
 - `player-render-limit: 1` - プレイヤーオンライン中は自動レンダリング停止
+- 26.2以降は全3マップの `world` を `world` ディレクトリに統一し、`dimension` で識別
+- `full-update-interval: 1440` は `core.conf` に設定
 - 手動更新: `/bluemap update world`
 
 ### トラブルシューティング

@@ -21,6 +21,7 @@ class ServerInstance:
         self.name = config.get("name", server_id)
         self.jar = config.get("jar")
         self.use_script = config.get("use_script")
+        self.java_command = config.get("java_command", "java")
         self.cwd = config["cwd"]
         self.memory = config.get("memory", "4G")
         self.port = config.get("port", 25565)
@@ -152,6 +153,19 @@ class ServerInstance:
             pass
         return None
 
+    def _build_start_command(self) -> list[str]:
+        """サーバー起動コマンドを構築する"""
+        if self.use_script:
+            return [self.use_script, 'nogui']
+        return [
+            self.java_command,
+            f'-Xmx{self.memory}',
+            f'-Xms{self.memory}',
+            '-jar',
+            self.jar,
+            'nogui',
+        ]
+
     async def start(self) -> bool:
         """サーバーを起動する"""
         if self._stopping:
@@ -164,12 +178,7 @@ class ServerInstance:
         # 古いPIDファイルをクリーンアップ
         self._cleanup_pid_file()
 
-        # スクリプトを使う場合（Forge等）
-        if self.use_script:
-            cmd = [self.use_script, 'nogui']
-        else:
-            # jar ファイルを直接起動（Paper等）
-            cmd = ['java', f'-Xmx{self.memory}', f'-Xms{self.memory}', '-jar', self.jar, 'nogui']
+        cmd = self._build_start_command()
 
         self.process = await asyncio.create_subprocess_exec(
             *cmd,

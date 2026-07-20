@@ -3,6 +3,7 @@
 		"paper": {
 			"name": "Paper",
 			"jar": "paper.jar",
+			"java_command": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
 			"cwd": "/opt/minecraft/paper",
 			"memory": "4G",
 			"port": 25565,
@@ -70,9 +71,7 @@
 	"backup": {
 		"target_dirs": {
 			"paper": [
-				"world",
-				"world_nether",
-				"world_the_end"
+				"world"
 			],
 			"forge": [
 				"world"
@@ -110,15 +109,15 @@
 				"source": "github",
 				"repo": "BlueMap-Minecraft/BlueMap",
 				"asset_pattern": "bluemap-*-paper.jar",
-				"release_tag": "v5.16",
+				"release_tag": "v5.22",
 				"filename_pattern": "bluemap-*-paper.jar"
 			},
 			"worldedit": {
 				"source": "modrinth",
 				"project": "worldedit",
 				"loader": "paper",
-				"game_version": "1.21.11",
-				"version_number": "7.4.2",
+				"game_version": "26.2",
+				"version_number": "7.4.4",
 				"filename_pattern": "worldedit-bukkit-*.jar"
 			},
 			"expbottleboost": {
