@@ -13,6 +13,40 @@
       "value": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba"
     }
   },
+  "mod_loaders": [
+    {
+      "server_id": "forge",
+      "loader": "Forge",
+      "minecraft_version": "1.20.1",
+      "version": "47.4.21",
+      "filename": "forge-1.20.1-47.4.21-installer.jar",
+      "url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.21/forge-1.20.1-47.4.21-installer.jar",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "fcde7b40c0f5e5d2cdfb568f13d6d4c6d2a647768eec60ea235d8b0d03da9c62"
+      },
+      "mods": {
+        "file_count": 540,
+        "manifest_sha256": "1d888cf59c2a4b09f6fabb0c5ad3ed9828641099ab5a1ab5c81c49dc5f68a975"
+      }
+    },
+    {
+      "server_id": "forge-alt",
+      "loader": "Forge",
+      "minecraft_version": "1.20.1",
+      "version": "47.4.21",
+      "filename": "forge-1.20.1-47.4.21-installer.jar",
+      "url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.21/forge-1.20.1-47.4.21-installer.jar",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "fcde7b40c0f5e5d2cdfb568f13d6d4c6d2a647768eec60ea235d8b0d03da9c62"
+      },
+      "mods": {
+        "file_count": 54,
+        "manifest_sha256": "61c332e8e0331c3ec233e05d876e4fed5eb5fcb52ed24e168fbcb71489ec9c81"
+      }
+    }
+  ],
   "plugins": [
     {
       "name": "Geyser",

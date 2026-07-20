@@ -57,7 +57,12 @@ DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
 LOG_CHANNEL_IDS = {
     'paper': int(os.getenv('DISCORD_PAPER_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
     'forge': int(os.getenv('DISCORD_FORGE_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
-    'neoforge': int(os.getenv('DISCORD_NEOFORGE_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
+    'forge-alt': int(
+        os.getenv(
+            'DISCORD_FORGE_ALT_LOG_CHANNEL_ID',
+            os.getenv('DISCORD_NEOFORGE_LOG_CHANNEL_ID', '0'),
+        )
+    ) or CHANNEL_ID,
 }
 
 def get_log_channel_id(server_id: str) -> int:
