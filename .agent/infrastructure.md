@@ -12,16 +12,15 @@
     - `start.sh` - 起動スクリプト (`stdbuf -oL java @user_jvm_args.txt -jar paper.jar`)
     - `user_jvm_args.txt` - JVMメモリ設定 (`-Xmx4G -Xms4G`)
     - `.paper.pid` - PIDファイル（ボット起動時に自動生成）
-  - **forge/**: Forge server (Modded, Better MC 1.20.1)
-    - `run.sh`, `mods/` (~590 mods, 1.1GB), `world/`
+  - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
+    - `run.sh`, `mods/` (540 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
     - Memory: 14G, Port: 25566
-  - **neoforge/**: NeoForge server (21.1.219)
-    - `run.sh`, `mods/`, `world/`
-    - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
-    - `.neoforge.pid` - PIDファイル
-    - Memory: 4G, Port: 25567
+  - **forge-alt/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
+    - `run.sh`, `mods/` (54 files, 590MB), `world/`
+    - `.forge-alt.pid` - PIDファイル（ボット起動時に自動生成）
+    - Memory: 12G, Port: 25567
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
 
@@ -32,16 +31,10 @@
 # Check running Java processes
 ps aux | grep java | grep -v grep
 
-# Start Forge server (background)
-cd /opt/minecraft/forge && nohup ./run.sh nogui > /tmp/forge.log 2>&1 &
-
-# Stop server (graceful -> force)
-kill <PID>        # SIGTERM first
-kill -9 <PID>     # SIGKILL if needed
-
 # View startup log
 tail -f /opt/minecraft/forge/logs/latest.log
 ```
+起動・停止はDiscordの `/start forge` と `/stop forge` を使用する。SSHから直接起動しない。
 
 ### Whitelist Management (Direct Edit)
 When console access is unavailable (e.g., nohup startup):
@@ -73,7 +66,7 @@ enable-rcon=true
 rcon.port=25576
 rcon.password=<secure_password>
 
-# NeoForge (port 25577)
+# Forge Alt (port 25577)
 enable-rcon=true
 rcon.port=25577
 rcon.password=<secure_password>
@@ -83,7 +76,7 @@ rcon.password=<secure_password>
 ```bash
 PAPER_RCON_PASSWORD=<password>
 FORGE_RCON_PASSWORD=<password>
-NEOFORGE_RCON_PASSWORD=<password>
+FORGE_ALT_RCON_PASSWORD=<password>
 ```
 
 #### config.json
@@ -103,7 +96,7 @@ NEOFORGE_RCON_PASSWORD=<password>
 - `/cmd <command> [server]`: RCONでコマンド実行、結果を表示
 
 #### セキュリティ
-- RCONポート（25575/25576）は外部に公開しない
+- RCONポート（25575/25576/25577）は外部に公開しない
 - OCI Security Listで許可されていないことを確認
 - パスワードは16文字以上のランダム文字列を推奨
 
@@ -154,7 +147,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 #### 注意点
 - **OOM Killer**: メモリ枯渇時はスワップへの退避ではなくプロセス強制終了が発生
 - **監視推奨**: `free -h`でメモリ使用量を定期確認
-- 現在のメモリ構成: 22GB+（Forge 14GB + NeoForge 4GB + Paper 4GB + Bot + OS）※同時起動注意
+- ホストメモリは17GiB。Forge 14G、Forge Alt 12G、Paper 4Gのため、Minecraftサーバーは1台ずつ起動する
 
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
@@ -180,7 +173,8 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_CHANNEL_ID`: Default log channel (fallback)
 - `DISCORD_PAPER_LOG_CHANNEL_ID`: Paper server log channel (optional)
 - `DISCORD_FORGE_LOG_CHANNEL_ID`: Forge server log channel (optional)
-- `DISCORD_NEOFORGE_LOG_CHANNEL_ID`: NeoForge server log channel (optional)
+- `DISCORD_FORGE_ALT_LOG_CHANNEL_ID`: Forge Alt server log channel (optional)
+- `DISCORD_NEOFORGE_LOG_CHANNEL_ID`: Forge Alt log channelの後方互換用（optional）
 - `DISCORD_STATUS_CHANNEL_ID`: Real-time status display channel (optional)
 
 ### Roles/Users
@@ -192,6 +186,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 ### RCON
 - `PAPER_RCON_PASSWORD`: Paper server RCON password
 - `FORGE_RCON_PASSWORD`: Forge server RCON password
+- `FORGE_ALT_RCON_PASSWORD`: Forge Alt server RCON password
 
 ### Notion (Backup)
 - `NOTION_TOKEN`: Notion API token

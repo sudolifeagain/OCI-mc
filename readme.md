@@ -90,7 +90,7 @@ OCI-mc/
 ├── bot.py                     # エントリーポイント
 ├── settings.py                # 設定ローダー (.env + config.json)
 ├── config.json                # サーバー・権限・バックアップ設定
-├── server-artifacts.json      # Paper・プラグインの本番バージョンとハッシュ
+├── server-artifacts.json      # Paper・プラグイン・Modローダーの本番バージョンとハッシュ
 ├── requirements.txt           # Python 依存パッケージ
 ├── .env.example               # 環境変数テンプレート
 ├── cogs/
