@@ -35,7 +35,7 @@ NOTION_TOKEN = os.getenv('NOTION_TOKEN')
 NOTION_DB_ID = os.getenv('NOTION_DB_ID')
 NOTION_DS_ID = os.getenv('NOTION_DS_ID')
 
-def parse_ids(env_val):
+def parse_ids(env_val: str | None) -> int | list[int] | None:
     if not env_val:
         return None
     try:
@@ -47,11 +47,36 @@ def parse_ids(env_val):
     except ValueError:
         return None
 
+
+def parse_id_set(env_val: str | None) -> set[int]:
+    """カンマ区切りのDiscord IDを集合として読み込む。"""
+    parsed = parse_ids(env_val)
+    if parsed is None:
+        return set()
+    if isinstance(parsed, list):
+        return set(parsed)
+    return {parsed}
+
 # Channel / Roles
 CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID', 0))
 DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
 DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
 DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
+
+# 管理コマンドの実行場所とOSシェル実行者を明示的に制限する。
+# 未設定時は既存の通知チャンネルとOwnerへフォールバックする。
+DISCORD_GUILD_IDS = parse_id_set(os.getenv('DISCORD_GUILD_IDS'))
+DISCORD_COMMAND_CHANNEL_IDS = parse_id_set(os.getenv('DISCORD_COMMAND_CHANNEL_IDS'))
+if not DISCORD_COMMAND_CHANNEL_IDS and CHANNEL_ID:
+    DISCORD_COMMAND_CHANNEL_IDS = {CHANNEL_ID}
+DISCORD_SHELL_CHANNEL_IDS = parse_id_set(os.getenv('DISCORD_SHELL_CHANNEL_IDS'))
+if not DISCORD_SHELL_CHANNEL_IDS:
+    DISCORD_SHELL_CHANNEL_IDS = set(DISCORD_COMMAND_CHANNEL_IDS)
+DISCORD_SHELL_USER_IDS = parse_id_set(os.getenv('DISCORD_SHELL_USER_IDS'))
+if not DISCORD_SHELL_USER_IDS and DISCORD_OWNER_ID:
+    DISCORD_SHELL_USER_IDS = {DISCORD_OWNER_ID}
+
+SERVER_RUNTIME_DIR = os.getenv('SERVER_RUNTIME_DIR', '/opt/minecraft/.bot-runtime')
 
 # サーバー別ログチャンネル（環境変数から読み込み、未設定の場合はデフォルトにフォールバック）
 LOG_CHANNEL_IDS = {

@@ -115,6 +115,8 @@ class PluginSystem(commands.Cog):
         server_name = server_instance.name
         plugins_dir = get_plugins_dir(server_instance.cwd)
         loop = asyncio.get_event_loop()
+        maintenance_started = False
+        was_running = False
 
         try:
             # 1. 更新チェック
@@ -138,8 +140,14 @@ class PluginSystem(commands.Cog):
                 )
                 return
 
+            maintenance_started = self.server_manager.begin_maintenance(server)
+            if not maintenance_started:
+                await interaction.edit_original_response(
+                    content=f"[{server_name}] 別のメンテナンス処理を実行中です。"
+                )
+                return
+
             # 2. サーバー停止（更新がある場合のみ）
-            was_running = False
             if self.server_manager.is_running(server):
                 was_running = True
                 await interaction.edit_original_response(
@@ -151,7 +159,14 @@ class PluginSystem(commands.Cog):
                         content=f"🔄 [{server_name}] {msg}"
                     )
 
-                await self.server_manager.stop_server(server, progress_callback=plugin_progress)
+                stopped = await self.server_manager.stop_server(
+                    server,
+                    progress_callback=plugin_progress,
+                    preserve_desired=True,
+                    maintenance=True,
+                )
+                if not stopped:
+                    raise RuntimeError(server_instance.last_error or "サーバーを停止できない")
                 await self.server_manager.wait_for_exit(server)
 
             # 3. 更新が必要なプラグインのみダウンロード
@@ -181,7 +196,9 @@ class PluginSystem(commands.Cog):
             if was_running:
                 output_lines.append(f"\n🚀 [{server_name}] サーバーを再起動中...")
                 await interaction.edit_original_response(content="\n".join(output_lines))
-                await self.server_manager.start_server(server)
+                started = await self.server_manager.start_server(server, maintenance=True)
+                if not started:
+                    raise RuntimeError(server_instance.last_error or "サーバーを起動できない")
                 output_lines[-1] = f"✅ [{server_name}] サーバーを再起動しました。"
 
             await interaction.edit_original_response(content="\n".join(output_lines))
@@ -192,6 +209,17 @@ class PluginSystem(commands.Cog):
             await interaction.edit_original_response(
                 content=f"[{server_name}] プラグイン更新中にエラーが発生しました: {e}"
             )
+        finally:
+            if maintenance_started:
+                if was_running and not self.server_manager.is_running(server):
+                    restored = await self.server_manager.start_server(server, maintenance=True)
+                    if not restored:
+                        logging.error(
+                            "[Plugin] Failed to restore server '%s': %s",
+                            server,
+                            server_instance.last_error,
+                        )
+                self.server_manager.end_maintenance(server)
 
     @app_commands.command(name="check_updates", description="プラグインの更新状況を確認します（サーバー停止不要）")
     @app_commands.describe(server="対象サーバー")

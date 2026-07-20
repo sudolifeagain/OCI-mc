@@ -1,12 +1,18 @@
 import asyncio
-import subprocess
 import logging
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from settings import DISCORD_OWNER_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
+from settings import SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 from utils.rcon import get_rcon_client
+from utils.discord_security import (
+    escape_discord_code_block,
+    is_allowed_command_context,
+    is_shell_user,
+    validate_player_name,
+)
+from utils.shell_runner import run_shell_command
 from cogs.status_display import get_machine_stats
 
 
@@ -41,15 +47,21 @@ class BasicControl(commands.Cog):
     def __init__(self, bot, server_manager):
         self.bot = bot
         self.server_manager = server_manager
+        self._shell_lock = asyncio.Lock()
         self.discord_log_sender.start()
 
     def cog_unload(self):
         self.discord_log_sender.cancel()
 
     @app_commands.command(name="start", description="Minecraftサーバーを起動します")
+    @app_commands.guild_only()
     @app_commands.describe(server="起動するサーバー")
     @app_commands.choices(server=SERVER_CHOICES)
     async def start(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'start'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -69,12 +81,30 @@ class BasicControl(commands.Cog):
 
         await interaction.response.send_message(f"🚀 {server_instance.name} の起動コマンドを送信しました。", silent=True)
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /start server={server}")
-        await self.server_manager.start_server(server)
+        result = await self.server_manager.start_server(server)
+        if result:
+            await interaction.edit_original_response(
+                content=f"{server_instance.name} の起動が完了しました。"
+            )
+        else:
+            await interaction.edit_original_response(
+                content=f"{server_instance.name} の起動に失敗しました: {server_instance.last_error}"
+            )
 
     @app_commands.command(name="stop", description="Minecraftサーバーを停止します")
-    @app_commands.describe(server="停止するサーバー")
+    @app_commands.guild_only()
+    @app_commands.describe(server="停止するサーバー", force="RCON確認不能時も強制停止する")
     @app_commands.choices(server=SERVER_CHOICES)
-    async def stop(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
+    async def stop(
+        self,
+        interaction: discord.Interaction,
+        server: str = DEFAULT_SERVER,
+        force: bool = False,
+    ):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'stop'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -94,16 +124,32 @@ class BasicControl(commands.Cog):
         async def progress_callback(msg: str) -> None:
             await interaction.edit_original_response(content=msg)
 
-        result = await self.server_manager.stop_server(server, progress_callback=progress_callback)
+        result = await self.server_manager.stop_server(
+            server,
+            progress_callback=progress_callback,
+            force=force,
+        )
         if result:
             await interaction.edit_original_response(content=f"🛑 {server_instance.name} を停止しました。")
         else:
-            await interaction.edit_original_response(content=f"{server_instance.name} の停止に失敗しました。")
+            await interaction.edit_original_response(
+                content=f"{server_instance.name} の停止に失敗しました: {server_instance.last_error}"
+            )
 
     @app_commands.command(name="restart", description="Minecraftサーバーを再起動します")
-    @app_commands.describe(server="再起動するサーバー")
+    @app_commands.guild_only()
+    @app_commands.describe(server="再起動するサーバー", force="RCON確認不能時も強制停止する")
     @app_commands.choices(server=SERVER_CHOICES)
-    async def restart(self, interaction: discord.Interaction, server: str = DEFAULT_SERVER):
+    async def restart(
+        self,
+        interaction: discord.Interaction,
+        server: str = DEFAULT_SERVER,
+        force: bool = False,
+    ):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'restart'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -117,24 +163,29 @@ class BasicControl(commands.Cog):
         async def progress_callback(msg: str) -> None:
             await interaction.followup.send(msg, silent=True)
 
-        if self.server_manager.is_running(server):
-            await self.server_manager.stop_server(server, progress_callback=progress_callback)
-            await self.server_manager.wait_for_exit(server)
-
-        mem_ok, mem_msg = self.server_manager.check_memory_for_start(server)
-        if not mem_ok:
-            return await interaction.followup.send(
-                f"⚠️ {server_instance.name} の再起動を中止:\n```\n{mem_msg}\n```",
-                silent=True
+        result = await self.server_manager.restart_server(
+            server,
+            progress_callback=progress_callback,
+            force=force,
+        )
+        if result:
+            await interaction.edit_original_response(
+                content=f"{server_instance.name} の再起動が完了しました。"
+            )
+        else:
+            await interaction.edit_original_response(
+                content=f"{server_instance.name} の再起動に失敗しました: {server_instance.last_error}"
             )
 
-        await self.server_manager.start_server(server)
-        await interaction.followup.send(f"✅ {server_instance.name} の再起動を開始しました。", silent=True)
-
     @app_commands.command(name="cmd", description="サーバーにRCONコマンドを送信します")
+    @app_commands.guild_only()
     @app_commands.describe(command_str="送信するコマンド", server="対象サーバー")
     @app_commands.choices(server=SERVER_CHOICES)
     async def cmd(self, interaction: discord.Interaction, command_str: str, server: str = DEFAULT_SERVER):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'rcon'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -153,40 +204,58 @@ class BasicControl(commands.Cog):
             )
 
         await interaction.response.send_message(
-            f"⏳ [{server_instance.name}] `{command_str}` を実行中...", silent=True
+            f"[{server_instance.name}] RCONコマンドを実行中...",
+            ephemeral=True,
         )
-        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /cmd server={server} {command_str}")
+        logging.info(
+            "User %s (%s) executed /cmd server=%s length=%d",
+            interaction.user,
+            interaction.user.id,
+            server,
+            len(command_str),
+        )
 
         # RCONでコマンド実行
         success, result = await rcon_client.execute(command_str)
 
         if success:
+            safe_result = escape_discord_code_block(result)
             # 結果が長い場合は分割
-            if len(result) > 1900:
-                await interaction.followup.send(f"📝 [{server_instance.name}] `{command_str}`", silent=True)
-                while result:
-                    chunk = result[:1900]
-                    result = result[1900:]
-                    await interaction.followup.send(f"```{chunk}```", silent=True)
-            elif result:
-                await interaction.followup.send(
-                    f"📝 [{server_instance.name}] `{command_str}`\n```{result}```",
-                    silent=True
+            if len(safe_result) > 1800:
+                await interaction.edit_original_response(
+                    content=f"[{server_instance.name}] 実行完了。結果を分割表示します。"
+                )
+                while safe_result:
+                    chunk = safe_result[:1800]
+                    safe_result = safe_result[1800:]
+                    await interaction.followup.send(
+                        f"```{chunk}```",
+                        ephemeral=True,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                    )
+            elif safe_result:
+                await interaction.edit_original_response(
+                    content=f"[{server_instance.name}] 実行結果\n```{safe_result}```",
+                    allowed_mentions=discord.AllowedMentions.none(),
                 )
             else:
-                await interaction.followup.send(
-                    f"📝 [{server_instance.name}] `{command_str}` (応答なし)",
-                    silent=True
+                await interaction.edit_original_response(
+                    content=f"[{server_instance.name}] 実行完了 (応答なし)"
                 )
         else:
             await interaction.edit_original_response(
-                content=f"❌ [{server_instance.name}] `{command_str}` エラー: {result}"
+                content=f"[{server_instance.name}] RCONエラー: {escape_discord_code_block(result)}"
             )
 
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
+    @app_commands.guild_only()
     @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")
     @app_commands.choices(server=SERVER_CHOICES)
     async def whitelist_add(self, interaction: discord.Interaction, player_name: str, server: str = DEFAULT_SERVER):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'whitelist_add'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -197,15 +266,49 @@ class BasicControl(commands.Cog):
         if not self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
 
-        cmd = f"whitelist add {player_name.strip()}"
-        await self.server_manager.write_stdin(server, cmd)
-        logging.info(f"User {interaction.user} ({interaction.user.id}) executed /whitelist_add server={server} {player_name}")
-        await interaction.response.send_message(f"✅ [{server_instance.name}] ホワイトリスト追加: `{cmd}`", silent=True)
+        safe_player_name = validate_player_name(player_name)
+        if not safe_player_name:
+            return await interaction.response.send_message(
+                "プレイヤー名が不正です。英数字、`_`、`.`、`-`のみを使用できます。",
+                ephemeral=True,
+            )
+
+        rcon_client = get_rcon_client(SERVERS_CONFIG.get(server, {}))
+        if not rcon_client:
+            return await interaction.response.send_message(
+                f"{server_instance.name} のRCONが設定されていません。",
+                ephemeral=True,
+            )
+        success, result = await rcon_client.execute(f"whitelist add {safe_player_name}")
+        logging.info(
+            "User %s (%s) executed /whitelist_add server=%s player=%s success=%s",
+            interaction.user,
+            interaction.user.id,
+            server,
+            safe_player_name,
+            success,
+        )
+        if success:
+            await interaction.response.send_message(
+                f"[{server_instance.name}] ホワイトリストへ `{safe_player_name}` を追加しました。",
+                silent=True,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+        else:
+            await interaction.response.send_message(
+                f"[{server_instance.name}] ホワイトリスト追加に失敗しました: {result}",
+                ephemeral=True,
+            )
 
     @app_commands.command(name="status", description="サーバーのステータス(CPU, Memory, Uptime)を表示します")
+    @app_commands.guild_only()
     @app_commands.describe(server="対象サーバー（省略時は全サーバー）")
     @app_commands.choices(server=SERVER_CHOICES)
     async def status(self, interaction: discord.Interaction, server: str | None = None):
+        if not is_allowed_command_context(interaction):
+            return await interaction.response.send_message(
+                "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
+            )
         if not check_role(interaction, 'status'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
@@ -311,42 +414,61 @@ class BasicControl(commands.Cog):
 
         logging.info(f"User {interaction.user} ({interaction.user.id}) executed /status server={server}")
 
-    @app_commands.command(name="shell", description="ホストOSでシェルコマンドを実行します(Ownerのみ)")
+    @app_commands.command(name="shell", description="許可ユーザーがホストOSでコマンドを実行します")
+    @app_commands.guild_only()
     @app_commands.describe(command_str="実行するシェルコマンド")
     async def shell(self, interaction: discord.Interaction, command_str: str):
-        """Execute an arbitrary shell command on the local instance. Owner-only."""
-        if not DISCORD_OWNER_ID or interaction.user.id != DISCORD_OWNER_ID:
-            return await interaction.response.send_message("権限がありません。Ownerのみが使用できます。", ephemeral=True)
+        """許可ユーザー向けの任意OSコマンド実行機能。"""
+        if not is_allowed_command_context(interaction, shell=True):
+            return await interaction.response.send_message(
+                "このチャンネルではOSコマンドを実行できません。", ephemeral=True
+            )
+        if not is_shell_user(interaction):
+            return await interaction.response.send_message("OSコマンドの実行権限がありません。", ephemeral=True)
 
-        logging.info(f"Owner {interaction.user} ({interaction.user.id}) executed shell: {command_str}")
-        await interaction.response.send_message(f"実行中: `{command_str}`", silent=True)
+        if not command_str.strip() or len(command_str) > 4000:
+            return await interaction.response.send_message(
+                "コマンドは1～4000文字で指定してください。", ephemeral=True
+            )
+        if self._shell_lock.locked():
+            return await interaction.response.send_message(
+                "別のOSコマンドを実行中です。完了後に再実行してください。", ephemeral=True
+            )
+
+        await interaction.response.send_message("OSコマンドを実行中です。", ephemeral=True)
+        logging.info(
+            "User %s (%s) executed /shell length=%d",
+            interaction.user,
+            interaction.user.id,
+            len(command_str),
+        )
 
         try:
-            proc = await asyncio.create_subprocess_shell(
-                command_str,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                cwd="/opt/minecraft"
-            )
-            try:
-                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=60)
-            except asyncio.TimeoutError:
-                proc.kill()
-                await interaction.followup.send("コマンドがタイムアウトしました（60秒）", silent=True)
-                return
-            out_text = stdout.decode('utf-8', errors='ignore')
+            async with self._shell_lock:
+                result = await run_shell_command(command_str)
+            out_text = escape_discord_code_block(result.output)
+            summary = f"終了コード: {result.returncode}"
+            if result.timed_out:
+                summary += " / 60秒でタイムアウト"
+            if result.output_limited:
+                summary += " / 出力上限64KiBに到達"
             if not out_text:
-                await interaction.followup.send("(出力なし)", silent=True)
+                await interaction.edit_original_response(content=f"{summary}\n(出力なし)")
                 return
 
+            await interaction.edit_original_response(content=summary)
             while out_text:
-                chunk = out_text[:1900]
-                out_text = out_text[1900:]
-                await interaction.followup.send(f"```{chunk}```", silent=True)
+                chunk = out_text[:1800]
+                out_text = out_text[1800:]
+                await interaction.followup.send(
+                    f"```{chunk}```",
+                    ephemeral=True,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
 
         except Exception as e:
-            logging.error(f"shell command exec error: {e}")
-            await interaction.followup.send(f"実行中にエラーが発生しました: {e}", silent=True)
+            logging.exception("shell command exec error")
+            await interaction.edit_original_response(content=f"実行中にエラーが発生しました: {e}")
 
     @tasks.loop(seconds=2.0)
     async def discord_log_sender(self):
@@ -369,29 +491,47 @@ class BasicControl(commands.Cog):
 
             messages = []
             q = server_instance.log_queue
-            while not q.empty():
-                item = await q.get()
+            total_chars = 0
+            while not q.empty() and len(messages) < 100 and total_chars < 9000:
+                try:
+                    item = q.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
                 # ログ形式: (server_id, line) または line のみ
                 if isinstance(item, tuple):
                     _, line = item
                 else:
                     line = item
                 messages.append(line)
+                total_chars += len(line)
 
             if not messages:
                 continue
 
             # サーバー名をプレフィックスとして付加
             server_name = server_instance.name
-            full_text = "".join(messages)
+            full_text = escape_discord_code_block("".join(messages))
+            if server_instance.dropped_log_lines:
+                full_text = (
+                    f"[Bot] 混雑により{server_instance.dropped_log_lines}行を破棄しました。\n"
+                    f"{full_text}"
+                )
+                server_instance.dropped_log_lines = 0
 
-            while len(full_text) > 0:
-                chunk = full_text[:1850]
-                full_text = full_text[1850:]
+            chunks_sent = 0
+            while full_text and chunks_sent < 5:
+                chunk = full_text[:1800]
+                full_text = full_text[1800:]
                 try:
-                    await channel.send(f"**[{server_name}]**\n```{chunk}```", silent=True)
+                    await channel.send(
+                        f"**[{server_name}]**\n```{chunk}```",
+                        silent=True,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                    )
+                    chunks_sent += 1
                 except discord.HTTPException as e:
                     logging.warning(f"Failed to send log to Discord for {server_name}: {e}")
+                    server_instance.dropped_log_lines += len(messages)
                     break
 
     @discord_log_sender.before_loop
