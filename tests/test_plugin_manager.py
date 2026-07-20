@@ -38,10 +38,9 @@ class PluginManagerApiTests(unittest.TestCase):
         self.assertTrue(requested_url.endswith("/releases/tags/v5.16"))
 
     @patch("utils.plugin_manager.requests.get")
-    def test_modrinth_uses_latest_release_primary_file(self, mock_get: Mock) -> None:
+    def test_modrinth_version_pin_selects_compatible_release(self, mock_get: Mock) -> None:
         response = Mock(status_code=200)
         response.json.return_value = [
-            {"version_type": "beta", "version_number": "8.0.0-beta", "files": []},
             {
                 "version_type": "release",
                 "version_number": "7.4.4",
@@ -50,7 +49,21 @@ class PluginManagerApiTests(unittest.TestCase):
                     {
                         "primary": True,
                         "filename": "worldedit-bukkit-7.4.4.jar",
-                        "url": "https://example.invalid/worldedit.jar",
+                        "url": "https://example.invalid/worldedit-7.4.4.jar",
+                        "size": 456,
+                        "hashes": {"sha1": "newer-java-hash"},
+                    }
+                ],
+            },
+            {
+                "version_type": "release",
+                "version_number": "7.4.2",
+                "date_published": "2026-04-01T10:55:26Z",
+                "files": [
+                    {
+                        "primary": True,
+                        "filename": "worldedit-bukkit-7.4.2.jar",
+                        "url": "https://example.invalid/worldedit-7.4.2.jar",
                         "size": 456,
                         "hashes": {"sha1": "def456"},
                     }
@@ -59,10 +72,10 @@ class PluginManagerApiTests(unittest.TestCase):
         ]
         mock_get.return_value = response
 
-        info = plugin_manager.get_modrinth_latest_info("worldedit", "paper", "1.21.11")
+        info = plugin_manager.get_modrinth_latest_info("worldedit", "paper", "1.21.11", "7.4.2")
 
         self.assertIsNotNone(info)
-        self.assertEqual(info["version"], "7.4.4")
+        self.assertEqual(info["version"], "7.4.2")
         self.assertEqual(info["sha1"], "def456")
 
 

@@ -118,6 +118,7 @@
 				"project": "worldedit",
 				"loader": "paper",
 				"game_version": "1.21.11",
+				"version_number": "7.4.2",
 				"filename_pattern": "worldedit-bukkit-*.jar"
 			},
 			"expbottleboost": {

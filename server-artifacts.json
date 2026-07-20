@@ -47,12 +47,12 @@
     },
     {
       "name": "WorldEdit",
-      "version": "7.4.4",
-      "filename": "worldedit-bukkit-7.4.4.jar",
+      "version": "7.4.2",
+      "filename": "worldedit-bukkit-7.4.2.jar",
       "source": "modrinth",
       "hash": {
         "algorithm": "sha256",
-        "value": "44c97ee6c1df9afa127df3c5a2c6a7108f826fb44ab7b255a7ec4250feb89b9d"
+        "value": "0ee152b1be5dfb51500505e2bf5a8c9d66f09c7fa484bf9aea384d7e7b459b06"
       }
     },
     {
