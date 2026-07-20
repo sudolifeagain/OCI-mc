@@ -110,7 +110,21 @@
 				"source": "github",
 				"repo": "BlueMap-Minecraft/BlueMap",
 				"asset_pattern": "bluemap-*-paper.jar",
+				"release_tag": "v5.16",
 				"filename_pattern": "bluemap-*-paper.jar"
+			},
+			"worldedit": {
+				"source": "modrinth",
+				"project": "worldedit",
+				"loader": "paper",
+				"game_version": "1.21.11",
+				"filename_pattern": "worldedit-bukkit-*.jar"
+			},
+			"expbottleboost": {
+				"source": "github",
+				"repo": "sudolifeagain/ExpBottleBoost",
+				"asset_pattern": "ExpBottleBoost-*.jar",
+				"filename_pattern": "ExpBottleBoost-*.jar"
 			}
 		}
 	}
