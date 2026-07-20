@@ -120,7 +120,7 @@ OCI-mc/
 
 ### 前提条件
 
-- Python 3.10+
+- Python 3.12+
 - OCI インスタンス（ARM ベースの Always Free 推奨）
 - Discord Bot Token
 - Notion Integration Token + Database ID
@@ -137,7 +137,7 @@ OCI-mc/
    ```bash
    python -m venv venv
    source venv/bin/activate
-   pip install -r requirements.txt
+   pip install --require-hashes -r requirements.txt
    ```
 
 3. `.env.example` を `.env` にコピーして環境変数を設定:
@@ -172,7 +172,7 @@ OCI-mc/
 
 1. rsync でコードを OCI サーバーに同期（`.env`, `venv`, `logs` 等は除外）
 2. systemd ユニットを配置・有効化
-3. `pip install -r requirements.txt`
+3. `pip install --require-hashes -r requirements.txt`
 4. `discord-bot` サービスを再起動
 5. Discord Webhook で成功 / 失敗を通知
 
