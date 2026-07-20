@@ -17,11 +17,13 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 | `/cmd <command> [server]` | RCON でコンソールコマンドを実行 | `rcon` |
 | `/status [server]` | CPU / メモリ / TPS / MSPT を表示 | `status` |
 | `/whitelist_add <player> [server]` | ホワイトリストにプレイヤーを追加 | `whitelist_add` |
-| `/shell <command>` | ホスト上でシェルコマンドを実行 | Owner のみ |
+| `/shell <command>` | ホスト上で任意シェルコマンドを実行 | `DISCORD_SHELL_USER_IDS` のユーザーのみ |
 
 - ステータス埋め込みを専用チャンネルに 3 分間隔で自動更新
 - サーバーログを Discord チャンネルにリアルタイム転送
 - OOM Kill 検知時に Discord へ通知
+- 全スラッシュコマンドは許可guild・チャンネル内に限定
+- `/shell` は60秒・64KiB上限、直列実行、ephemeral応答で運用
 
 ### バックアップ / ロールバック
 
@@ -31,7 +33,7 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 | `/backups` | Notion から最新 10 件のバックアップを一覧表示 | `backup` |
 | `/rollback <index>` | 指定バックアップからワールドを復元 | `backup` |
 
-- ファイルサイズの SHA256 フィンガープリントで変更検知（差分がなければスキップ）
+- ファイルパス・サイズ・更新時刻のSHA256フィンガープリントで変更検知（差分がなければスキップ）
 - 20 MB 超のファイルはマルチパートアップロード
 - `config.json` の `schedule_time` で定時自動バックアップ
 
@@ -106,6 +108,8 @@ OCI-mc/
 │   ├── server_manager.py      # サーバーインスタンス管理
 │   ├── permissions.py         # 権限チェックユーティリティ
 │   ├── rcon.py                # RCON プロトコル実装 (asyncio)
+│   ├── discord_security.py    # Discord実行コンテキスト検証
+│   ├── shell_runner.py        # 制限付き任意シェル実行
 │   ├── plugin_manager.py      # プラグイン操作
 │   └── notion_api.py          # Notion API クライアント
 ├── scripts/
@@ -156,6 +160,10 @@ OCI-mc/
    | `DISCORD_ADMIN_ID` | admin ロール ID |
    | `DISCORD_MOD_ID` | mod ロール ID |
    | `DISCORD_OWNER_ID` | Bot オーナーのユーザー ID |
+   | `DISCORD_GUILD_IDS` | コマンドを許可するguild ID（カンマ区切り） |
+   | `DISCORD_COMMAND_CHANNEL_IDS` | 管理コマンドを許可するチャンネル ID（カンマ区切り） |
+   | `DISCORD_SHELL_USER_IDS` | 任意シェルを許可するユーザー ID（カンマ区切り） |
+   | `DISCORD_SHELL_CHANNEL_IDS` | 任意シェルを許可するチャンネル ID（カンマ区切り） |
    | `DISCORD_USER_ID` | user ロール ID（カンマ区切りで複数指定可） |
    | `DISCORD_CLAUDE_ROLE_ID` | Claude コマンド用ロール ID |
    | `DISCORD_STATUS_CHANNEL_ID` | ステータス埋め込み表示チャンネル |
@@ -172,11 +180,12 @@ OCI-mc/
 
 `main` ブランチへの push で GitHub Actions が自動デプロイを実行する:
 
-1. rsync でコードを OCI サーバーに同期（`.env`, `venv`, `logs` 等は除外）
-2. systemd ユニットを配置・有効化
-3. `pip install --require-hashes -r requirements.txt`
-4. `discord-bot` サービスを再起動
-5. Discord Webhook で成功 / 失敗を通知
+1. 稼働中サーバーをdesired stateへ保存し、RCONで安全に停止
+2. rsyncでコードをOCIサーバーへ同期（`.env`, `venv`, `logs`等は除外）
+3. ゲームサーバーごとの専用Unixユーザーとファイル権限を設定
+4. systemdユニットと依存関係を更新
+5. Botを起動し、desired stateのゲームサーバーがreadyになるまで確認
+6. Discord Webhookで成功／失敗を通知
 
 開発は `develop` ブランチで行い、PR 経由で `main` にマージする。
 

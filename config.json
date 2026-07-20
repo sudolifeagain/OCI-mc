@@ -8,6 +8,9 @@
 			"memory": "4G",
 			"port": 25565,
 			"auto_start": false,
+			"run_as_user": "mc-paper",
+			"startup_timeout": 180,
+			"log_queue_size": 1000,
 			"rcon_port": 25575,
 			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		},
@@ -17,6 +20,9 @@
 			"cwd": "/opt/minecraft/forge",
 			"port": 25566,
 			"auto_start": false,
+			"run_as_user": "mc-forge",
+			"startup_timeout": 600,
+			"log_queue_size": 1000,
 			"log_forwarding": false,
 			"rcon_port": 25576,
 			"rcon_password_env": "FORGE_RCON_PASSWORD"
@@ -27,6 +33,9 @@
 			"cwd": "/opt/minecraft/forge-alt",
 			"port": 25567,
 			"auto_start": false,
+			"run_as_user": "mc-forge-alt",
+			"startup_timeout": 600,
+			"log_queue_size": 1000,
 			"log_forwarding": false,
 			"rcon_port": 25577,
 			"rcon_password_env": "FORGE_ALT_RCON_PASSWORD"

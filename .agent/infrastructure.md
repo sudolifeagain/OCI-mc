@@ -11,18 +11,19 @@
     - `paper.jar`, `plugins/`, `world/`
     - Java: `/usr/lib/jvm/java-25-openjdk-arm64/bin/java`
     - JVMメモリ設定: `-Xmx4G -Xms4G`
-    - `.paper.pid` - PIDファイル（ボット起動時に自動生成）
+    - 実行ユーザー: `mc-paper`
   - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
     - `run.sh`, `mods/` (540 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
-    - `.forge.pid` - PIDファイル（ボット起動時に自動生成）
+    - 実行ユーザー: `mc-forge`
     - Memory: 14G, Port: 25566
   - **forge-alt/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
     - `run.sh`, `mods/` (54 files, 590MB), `world/`
-    - `.forge-alt.pid` - PIDファイル（ボット起動時に自動生成）
+    - 実行ユーザー: `mc-forge-alt`
     - Memory: 12G, Port: 25567
   - **bot/**: This repository deployment
     - `bot.py`, `.env`, `venv/`
+  - **.bot-runtime/**: Bot専用のPIDメタデータとdesired state
 
 ## Server Operations (SSH)
 
@@ -99,6 +100,7 @@ FORGE_ALT_RCON_PASSWORD=<password>
 - RCONポート（25575/25576/25577）は外部に公開しない
 - OCI Security Listで許可されていないことを確認
 - パスワードは16文字以上のランダム文字列を推奨
+- `broadcast-rcon-to-ops=false`を維持する
 
 ### 権限管理
 
@@ -157,7 +159,7 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
    - Service: `discord-bot`
    - Path: `/etc/systemd/system/discord-bot.service`
    - Restarted automatically after deploy.
-4. **Auto-Start**: ボット起動後、`auto_start: true` のサーバーを自動起動。
+4. **Runtime Restore**: デプロイ前に稼働状態を保存し、ボット起動後にready確認まで自動復元する。
 
 ### Branch Strategy
 - **`develop`**: 開発用。CIでlint/構文チェックのみ。デプロイなし。
@@ -182,6 +184,11 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_MOD_ID`: Mod role ID
 - `DISCORD_OWNER_ID`: Bot owner user ID (for `/shell`)
 - `DISCORD_USER_IDS`: Allowed user IDs (comma-separated)
+- `DISCORD_GUILD_IDS`: コマンドを許可するguild ID（カンマ区切り）
+- `DISCORD_COMMAND_CHANNEL_IDS`: 管理コマンドを許可するチャンネル ID（カンマ区切り）
+- `DISCORD_SHELL_USER_IDS`: 任意シェルを許可するユーザー ID（カンマ区切り）
+- `DISCORD_SHELL_CHANNEL_IDS`: 任意シェルを許可するチャンネル ID（カンマ区切り）
+- `SERVER_RUNTIME_DIR`: PIDメタデータとdesired stateの保存先
 
 ### RCON
 - `PAPER_RCON_PASSWORD`: Paper server RCON password
@@ -242,3 +249,5 @@ Paperサーバーで3DマップをWebブラウザで表示するプラグイン�
 - **Secrets**:
   - `DISCORD_TOKEN`: Managed in `.env` (remote) and GitHub Secrets for CI.
   - SSH Keys: Never stored in repo.
+- ゲームプロセスは専用Unixユーザーで起動し、Botの環境変数を継承しない。
+- Botユーザーのsudo権限は`/shell`のOS管理用途として維持する。ゲームユーザーにはsudo権限を付与しない。
