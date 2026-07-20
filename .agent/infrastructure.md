@@ -206,9 +206,7 @@ NotionにアップロードされたバックアップファイルをAPI経由�
 #### 1. ページIDを取得
 Notion URLからページIDを抽出（`?p=`パラメータの値）:
 ```
-https://re4rity.notion.site/...?p=2ff8e4f849c181aead25e6194692d944
-                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                  これがページID
+https://<workspace>.notion.site/<page>?p=<PAGE_ID>
 ```
 
 #### 2. ページ情報を取得
