@@ -1,7 +1,9 @@
 # OCI-mc
 
 Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord から管理する Bot。
-バックアップの Notion 連携、プラグイン自動更新、Claude Code セッション管理など、リモート運用に必要な機能を一通り備えている。
+Notion バックアップ、プラグイン更新、Paper artifact の検証付きデプロイ、Claude Code セッション管理など、リモート運用に必要な機能を備えている。
+
+本番で使用する Minecraft、Paper、Mod ローダー、プラグインのバージョンとハッシュは `server-artifacts.json` を正とする。現在の Paper は 26.2 build 62 BETA であり、26.2 の STABLE 公開後に自動更新する構成である。
 
 ## 機能一覧
 
@@ -52,6 +54,18 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 
 配布元の SHA256 または SHA1 ハッシュで更新を検出・検証し、アトミックにファイルを置換する。GitHub Releases は `release_tag`、Modrinth は `version_number` で互換版を固定できる。
 
+### Paper STABLE 自動更新
+
+GitHub Actions が Paper Downloads Service を毎日 12:17 JST に確認し、Minecraft 26.2 の `STABLE` チャンネルだけを対象に更新する。
+
+1. 候補 jar のファイル名、配布元、サイズ、SHA-256 を検証
+2. `server-artifacts.json` だけを `develop` で更新
+3. `main` への PR を作成し、必須 CI 成功後にマージ
+4. 本番デプロイ時に jar を再取得して SHA-256 を再検証
+5. 起動確認に失敗した場合は旧 jar へロールバック
+
+`develop` に未マージ変更がある場合は自動更新を停止する。Minecraft の新しいバージョン、Forge、Mod、プラグインには自動追従しない。
+
 ### 権限管理
 
 | コマンド | 説明 | 権限 |
@@ -63,9 +77,9 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 - `config.json` でロールベースのデフォルト権限を定義
 - ユーザー単位のオーバーライドは `user_permissions.json` に永続化
 
-### リアクションロール
+### リアクションによるチャンネルアクセス
 
-`config.json` の `reaction_roles` セクションで設定したメッセージにリアクションを付けると、対応する Discord ロールが自動付与される。ロールを外すとリアクションも除去される。
+`config.json` の `reaction_roles` セクションで設定したメッセージにリアクションを付けると、対応する Discord チャンネルの閲覧権限をユーザー単位で付与する。リアクションを外すと権限オーバーライドを削除する。
 
 | コマンド | 説明 | 権限 |
 | :--- | :--- | :--- |
@@ -113,12 +127,17 @@ OCI-mc/
 │   ├── plugin_manager.py      # プラグイン操作
 │   └── notion_api.py          # Notion API クライアント
 ├── scripts/
+│   ├── manage_paper_artifact.py # Paper jar の配置・検証・ロールバック
+│   ├── paper_stable_update.py   # Paper 26.2 STABLE の検出
+│   ├── graceful_shutdown.py     # RCON による安全な停止
+│   ├── verify_runtime.py        # デプロイ後の起動確認
 │   └── patch_discord_plugin.sh  # Discord プラグイン自動パッチ
 ├── systemd/
 │   └── discord-bot.service    # systemd ユニット
 └── .github/workflows/
-    ├── ci.yml                 # Lint (ruff) + import チェック
+    ├── ci.yml                 # 依存監査・テスト・Lint
     ├── deploy.yml             # main push → OCI 自動デプロイ
+    ├── paper-stable-update.yml # Paper 26.2 STABLE 自動更新
     └── pr-merged.yml          # PR マージ通知
 ```
 
@@ -127,9 +146,10 @@ OCI-mc/
 ### 前提条件
 
 - Python 3.12+
+- Java 25（Paper 26.2）
 - OCI インスタンス（ARM ベースの Always Free 推奨）
 - Discord Bot Token
-- Notion Integration Token + Database ID
+- Notion Integration Token + Database ID（バックアップ機能を使用する場合）
 
 ### 手順
 
@@ -156,6 +176,7 @@ OCI-mc/
    | `DISCORD_TOKEN` | Discord Bot トークン |
    | `NOTION_TOKEN` | Notion Integration トークン |
    | `NOTION_DB_ID` | Notion データベース ID |
+   | `NOTION_DS_ID` | Notion Data Source ID の明示指定（任意） |
    | `DISCORD_CHANNEL_ID` | 通知先チャンネル ID |
    | `DISCORD_ADMIN_ID` | admin ロール ID |
    | `DISCORD_MOD_ID` | mod ロール ID |
@@ -164,10 +185,15 @@ OCI-mc/
    | `DISCORD_COMMAND_CHANNEL_IDS` | 管理コマンドを許可するチャンネル ID（カンマ区切り） |
    | `DISCORD_SHELL_USER_IDS` | 任意シェルを許可するユーザー ID（カンマ区切り） |
    | `DISCORD_SHELL_CHANNEL_IDS` | 任意シェルを許可するチャンネル ID（カンマ区切り） |
-   | `DISCORD_USER_ID` | user ロール ID（カンマ区切りで複数指定可） |
+   | `DISCORD_USER_IDS` | user ロール ID（カンマ区切り） |
+   | `DISCORD_USER_ID` | user ロール ID（後方互換用） |
    | `DISCORD_CLAUDE_ROLE_ID` | Claude コマンド用ロール ID |
    | `DISCORD_STATUS_CHANNEL_ID` | ステータス埋め込み表示チャンネル |
    | `DISCORD_*_LOG_CHANNEL_ID` | サーバー別ログ転送チャンネル |
+   | `PAPER_RCON_PASSWORD` | Paper の RCON パスワード |
+   | `FORGE_RCON_PASSWORD` | Forge の RCON パスワード |
+   | `FORGE_ALT_RCON_PASSWORD` | Forge Alt の RCON パスワード |
+   | `SERVER_RUNTIME_DIR` | PID と desired state の保存先 |
 
 4. `config.json` でサーバー定義・権限・バックアップ対象を編集
 
@@ -183,11 +209,32 @@ OCI-mc/
 1. 稼働中サーバーをdesired stateへ保存し、RCONで安全に停止
 2. rsyncでコードをOCIサーバーへ同期（`.env`, `venv`, `logs`等は除外）
 3. ゲームサーバーごとの専用Unixユーザーとファイル権限を設定
-4. systemdユニットと依存関係を更新
-5. Botを起動し、desired stateのゲームサーバーがreadyになるまで確認
-6. Discord Webhookで成功／失敗を通知
+4. `server-artifacts.json` の URL と SHA-256 を検証して Paper jar を配置
+5. systemdユニットと依存関係を更新
+6. Botを起動し、desired stateのゲームサーバーがreadyになるまで確認
+7. 失敗時は Paper jar とゲームサーバーの稼働状態を復旧
+8. Discord Webhookで成功／失敗を通知
 
 開発は `develop` ブランチで行い、PR 経由で `main` にマージする。
+
+## 開発と検証
+
+開発は `develop` ブランチで直接行い、feature ブランチは作成しない。変更後は以下を実行する。
+
+```bash
+python -m unittest discover -s tests -v
+ruff check . --select=E,F,W --ignore=E501 --exclude=venv
+```
+
+CI は Python 3.12 で依存関係の脆弱性監査、構文・import確認、単体テスト、ruff を実行する。
+
+## 公開リポジトリでの秘密情報管理
+
+- `.env`、SSH 秘密鍵、RCON パスワード、Discord・Notion のトークンは Git に追加しない
+- GitHub Actions の認証情報は Repository または Environment secrets で管理する
+- `config.json` と `server-artifacts.json` は公開されるため、認証情報を記録しない
+- Discord の guild・channel・user ID は認証秘密ではないが、公開不要な運用メタデータは `.env` または Git 管理外の設定に置く
+- 漏えいした秘密情報は Git から削除するだけでは無効化されないため、先に失効・ローテーションしてから履歴を処理する
 
 ## プラグイン設定例
 

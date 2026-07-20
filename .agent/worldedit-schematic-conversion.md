@@ -10,7 +10,7 @@ WorldEdit 7.3+ / 7.4+（Paper 等）で作成された `.schem` ファイルは 
 
 ### ローカル実行
 ```bash
-cd C:\Users\admin\Documents\Github\mc-schematic-converter
+cd /path/to/mc-schematic-converter
 PYTHONPATH=src python -m mc_schematic_converter <input.schem> <output.schem>
 ```
 
