@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "updated_at": "2026-07-20",
-  "minecraft_version": "1.21.11",
-  "java_major": 21,
+  "minecraft_version": "26.2",
+  "java_major": 25,
   "paper": {
-    "version": "1.21.11-132",
-    "channel": "STABLE",
+    "version": "26.2-62",
+    "channel": "BETA",
     "filename": "paper.jar",
-    "url": "https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar",
+    "url": "https://fill-data.papermc.io/v1/objects/597cb54eef27b318dfb7daef924f9bbe2816e6b0547f0f861b15b42337b6ccd5/paper-26.2-62.jar",
     "hash": {
       "algorithm": "sha256",
-      "value": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba"
+      "value": "597cb54eef27b318dfb7daef924f9bbe2816e6b0547f0f861b15b42337b6ccd5"
     }
   },
   "mod_loaders": [
@@ -70,23 +70,23 @@
     },
     {
       "name": "BlueMap",
-      "version": "5.16",
-      "filename": "bluemap-5.16-paper.jar",
+      "version": "5.22",
+      "filename": "bluemap-5.22-paper.jar",
       "source": "github",
-      "release_tag": "v5.16",
+      "release_tag": "v5.22",
       "hash": {
         "algorithm": "sha256",
-        "value": "79dbaeb260532dbd56624f8bce8ab22fbca158ae4a2860b04fcceffb9e4676ca"
+        "value": "9128b0b2c6939c5c0352b878805f0b10dd4dc2bf58fc31d1af260902f9b94d05"
       }
     },
     {
       "name": "WorldEdit",
-      "version": "7.4.2",
-      "filename": "worldedit-bukkit-7.4.2.jar",
+      "version": "7.4.4",
+      "filename": "worldedit-bukkit-7.4.4.jar",
       "source": "modrinth",
       "hash": {
         "algorithm": "sha256",
-        "value": "0ee152b1be5dfb51500505e2bf5a8c9d66f09c7fa484bf9aea384d7e7b459b06"
+        "value": "44c97ee6c1df9afa127df3c5a2c6a7108f826fb44ab7b255a7ec4250feb89b9d"
       }
     },
     {

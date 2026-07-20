@@ -196,15 +196,15 @@ OCI-mc/
         "source": "github",
         "repo": "BlueMap-Minecraft/BlueMap",
         "asset_pattern": "bluemap-*-paper.jar",
-        "release_tag": "v5.16",
+        "release_tag": "v5.22",
         "filename_pattern": "bluemap-*-paper.jar"
       },
       "worldedit": {
         "source": "modrinth",
         "project": "worldedit",
         "loader": "paper",
-        "game_version": "1.21.11",
-        "version_number": "7.4.2",
+        "game_version": "26.2",
+        "version_number": "7.4.4",
         "filename_pattern": "worldedit-bukkit-*.jar"
       }
     }
