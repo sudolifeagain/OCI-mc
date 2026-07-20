@@ -33,7 +33,32 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} "which rsync || (sudo apt-get update && sudo apt-get install -y rsync)"
 
-    # 3. ファイル転送 (rsync)
+    # 3. 稼働サーバー状態を保存してBotを停止
+    - name: Preserve runtime state and stop service
+      run: |
+        scp -i ~/.ssh/id_rsa \
+          scripts/capture_running_servers.py \
+          scripts/graceful_shutdown.py \
+          ubuntu@${{ secrets.OCI_HOST }}:/tmp/
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          set -e
+          sudo install -d -m 0700 -o ubuntu -g ubuntu /opt/minecraft/.bot-runtime
+          sudo python3 /tmp/capture_running_servers.py \
+            --config /opt/minecraft/bot/config.json \
+            --state /opt/minecraft/.bot-runtime/desired_servers.json
+          sudo chown ubuntu:ubuntu /opt/minecraft/.bot-runtime/desired_servers.json
+          sudo chmod 0600 /opt/minecraft/.bot-runtime/desired_servers.json
+          touch /opt/minecraft/.bot-runtime/deploy_restore_required
+          cd /opt/minecraft/bot
+          ./venv/bin/python /tmp/graceful_shutdown.py \
+            --config /opt/minecraft/bot/config.json \
+            --state /opt/minecraft/.bot-runtime/desired_servers.json \
+            --env /opt/minecraft/bot/.env
+          rm /tmp/capture_running_servers.py /tmp/graceful_shutdown.py
+          sudo systemctl stop discord-bot
+        EOF
+
+    # 4. ファイル転送 (rsync)
     - name: Sync files to OCI
       run: |
         rsync -avz --delete \
@@ -46,7 +71,15 @@ jobs:
           -e "ssh -i ~/.ssh/id_rsa" \
           ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
 
-    # 4. systemdユニットのデプロイと有効化
+    # 5. ゲームサーバーを専用ユーザーへ分離
+    - name: Configure server users and permissions
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          set -e
+          sudo sh /opt/minecraft/bot/scripts/configure_server_users.sh
+        EOF
+
+    # 6. systemdユニットのデプロイと有効化
     - name: Deploy systemd unit and enable
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
@@ -58,7 +91,7 @@ jobs:
           fi
         EOF
 
-    # 5. 依存関係の更新
+    # 7. 依存関係の更新
     - name: Install dependencies
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
@@ -68,18 +101,36 @@ jobs:
           ./venv/bin/python -m pip check
         EOF
 
-    # 6. サービス再起動
-    - name: Restart service
+    # 8. サービス起動と稼働状態復元の確認
+    - name: Start service and verify runtime restoration
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
-          sudo systemctl stop discord-bot || true
+          set -e
           sudo systemctl daemon-reload
           sudo systemctl start discord-bot
           sleep 3
           sudo systemctl is-active discord-bot
+          python3 /opt/minecraft/bot/scripts/verify_runtime.py \
+            --config /opt/minecraft/bot/config.json \
+            --state /opt/minecraft/.bot-runtime/desired_servers.json \
+            --timeout 600
+          rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
         EOF
 
-    # 7. デプロイ成功通知
+    # 9. 途中失敗時も旧または新Botの復旧を試行
+    - name: Recover service on failure
+      if: failure()
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          if [ -f /opt/minecraft/.bot-runtime/deploy_restore_required ]; then
+            sudo systemctl restart discord-bot || true
+            rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
+          else
+            sudo systemctl start discord-bot || true
+          fi
+        EOF
+
+    # 10. デプロイ成功通知
     - name: Notify Discord on Success
       if: success()
       env:
@@ -98,7 +149,7 @@ jobs:
           '{flags:4096,embeds:[{title:"✅ デプロイ成功",description:$desc,color:3066993}]}' \
           | curl -sS -H "Content-Type: application/json" -d @- ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-    # 8. デプロイ失敗通知
+    # 11. デプロイ失敗通知
     - name: Notify Discord on Failure
       if: failure()
       env:

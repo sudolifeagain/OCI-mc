@@ -33,7 +33,8 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - **Key Logic**: Calls `MultiServerManager` to interact with subprocesses.
 - **Log Streaming**: Bot captures stdout from spawned processes and forwards to Discord.
   - Only works for servers started via Bot (not SSH/manual startup)
-  - Uses `asyncio.Queue` in `ServerInstance.log_queue`
+  - Uses a bounded `asyncio.Queue` in `ServerInstance.log_queue`
+  - Discord mentions and code-fence termination are neutralized before forwarding
 
 ### 2. Backup System (`cogs.backup_system`)
 - **File**: `cogs/backup_system.py`
@@ -84,14 +85,16 @@ The bot uses `discord.py` Cogs extension pattern in `cogs/`.
 - 未設定時は `DISCORD_CHANNEL_ID` にフォールバック
 
 ## Auto-Start Feature
-ボット起動時に `auto_start: true` のサーバーを自動起動。
+ボット起動時に `auto_start: true` またはdesired stateに記録されたサーバーを自動起動する。
 
 - **設定**: `config.json` の各サーバーに `"auto_start": true` を追加
 - **処理**: `bot.py` の `on_ready` で `_auto_start_servers()` を実行
 - **フラグ**: `_auto_start_done` でDiscord再接続時の重複起動を防止
-- **並列起動**: `asyncio.gather` で複数サーバーを同時起動
+- **起動直列化**: メモリ判定と起動を直列化し、複数サーバーの同時起動による過剰割り当てを防止
+- **readiness**: RCONまたはゲームポートが利用可能になるまで起動成功を返さない
+- **復旧**: デプロイ前に稼働状態を`/opt/minecraft/.bot-runtime/desired_servers.json`へ保存
 
-**重要**: デプロイ（GitHub push → main）時にボット再起動でサーバーも終了するが、この機能で自動復旧する。
+**重要**: デプロイ時はRCONでゲームサーバーを安全に停止し、Bot再起動後にdesired stateから復旧する。
 
 ## Code Style
 - **Slash Commands Only**: No `command_prefix`. Use `@app_commands.command`.

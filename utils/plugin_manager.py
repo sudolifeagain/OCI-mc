@@ -432,6 +432,8 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
         # ダウンロード成功 - 既存ファイルを置換
         dest_path = os.path.join(plugins_dir, filename)
 
+        # pluginsディレクトリのsetgidグループを引き継ぎ、専用ゲームユーザーへ読取を許可する。
+        os.chmod(temp_path, 0o640)
         os.replace(temp_path, dest_path)
         if use_pattern and filename_pattern:
             delete_plugins_by_pattern(plugins_dir, filename_pattern, exclude_path=dest_path)

@@ -99,7 +99,7 @@ def get_data_source_id():
         return _data_source_id
 
 
-def upload_to_notion(file_path):
+def upload_to_notion(file_path, upload_filename=None):
     """
     Notion APIを使用してファイルをアップロードし、File IDを返す。
     20MBを超えるファイルは自動的にマルチパートアップロードとして処理する。
@@ -108,7 +108,7 @@ def upload_to_notion(file_path):
         raise FileNotFoundError(f"{file_path} not found.")
 
     file_size = os.path.getsize(file_path)
-    filename = os.path.basename(file_path)
+    filename = upload_filename or os.path.basename(file_path)
 
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",

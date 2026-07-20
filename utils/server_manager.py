@@ -3,6 +3,7 @@ import subprocess
 import logging
 import time
 import os
+import json
 from collections.abc import Awaitable, Callable
 import psutil
 import re
@@ -16,8 +17,9 @@ MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動
 class ServerInstance:
     """個別のMinecraftサーバーインスタンスを管理するクラス"""
 
-    def __init__(self, server_id: str, config: dict):
+    def __init__(self, server_id: str, config: dict, runtime_dir: str | None = None):
         self.server_id = server_id
+        self.config = config
         self.name = config.get("name", server_id)
         self.jar = config.get("jar")
         self.use_script = config.get("use_script")
@@ -25,12 +27,20 @@ class ServerInstance:
         self.cwd = config["cwd"]
         self.memory = config.get("memory", "4G")
         self.port = config.get("port", 25565)
+        self.run_as_user = config.get("run_as_user")
+        self.startup_timeout = int(config.get("startup_timeout", 300))
         self.log_forwarding = config.get("log_forwarding", True)
+        self.runtime_dir = runtime_dir or os.path.join(self.cwd, ".bot-runtime")
         self.process = None
-        self.log_queue = asyncio.Queue()
+        self.log_queue = asyncio.Queue(maxsize=int(config.get("log_queue_size", 1000)))
+        self.dropped_log_lines = 0
         self.online_players = {}  # {name: join_timestamp}
         self._stopping = False  # ロックフラグ
         self._graceful_stopping = False  # graceful stop 中フラグ
+        self._maintenance = False
+        self._generation = 0
+        self._stdout_task: asyncio.Task | None = None
+        self.last_error = ""
         # Regex patterns for join/leave
         self.join_pattern = re.compile(r': (.+) joined the game')
         self.leave_pattern = re.compile(r': (.+) left the game')
@@ -101,26 +111,45 @@ class ServerInstance:
 
     def _get_pid_file_path(self) -> str:
         """PIDファイルのパスを返す"""
-        return os.path.join(self.cwd, f'.{self.server_id}.pid')
+        return os.path.join(self.runtime_dir, "pids", f'{self.server_id}.json')
 
-    def _read_pid_file(self) -> int | None:
-        """PIDファイルからPIDを読み取る"""
+    def _read_pid_file(self) -> dict | None:
+        """PIDファイルからプロセス識別情報を読み取る。"""
         pid_file = self._get_pid_file_path()
         try:
-            with open(pid_file, 'r') as f:
-                return int(f.read().strip())
-        except (FileNotFoundError, ValueError, PermissionError):
+            with open(pid_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if not isinstance(data, dict) or not isinstance(data.get("pid"), int):
+                return None
+            return data
+        except (FileNotFoundError, ValueError, PermissionError, json.JSONDecodeError):
             return None
 
     def _write_pid_file(self, pid: int) -> bool:
-        """PIDファイルにPIDを書き込む"""
+        """PIDと起動時刻をBot専用領域へ原子的に保存する。"""
         pid_file = self._get_pid_file_path()
+        temp_file = f"{pid_file}.tmp"
         try:
-            with open(pid_file, 'w') as f:
-                f.write(str(pid))
+            os.makedirs(os.path.dirname(pid_file), mode=0o700, exist_ok=True)
+            proc = psutil.Process(pid)
+            payload = {
+                "pid": pid,
+                "create_time": proc.create_time(),
+                "cwd": os.path.normpath(self.cwd),
+            }
+            with open(temp_file, 'w', encoding='utf-8') as f:
+                json.dump(payload, f)
+                f.flush()
+                os.fsync(f.fileno())
+            os.chmod(temp_file, 0o600)
+            os.replace(temp_file, pid_file)
             return True
-        except (PermissionError, OSError) as e:
+        except (psutil.NoSuchProcess, PermissionError, OSError) as e:
             logging.warning(f"Failed to write PID file for '{self.server_id}': {e}")
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass
             return False
 
     def _cleanup_pid_file(self) -> None:
@@ -132,8 +161,10 @@ class ServerInstance:
         except (PermissionError, OSError) as e:
             logging.warning(f"Failed to remove PID file for '{self.server_id}': {e}")
 
-    def _cleanup_server_state(self) -> None:
+    def _cleanup_server_state(self, expected_process=None) -> None:
         """サーバー終了時のクリーンアップ"""
+        if expected_process is not None and self.process is not expected_process:
+            return
         self.online_players.clear()
         self._cleanup_pid_file()
         self.process = None
@@ -156,23 +187,87 @@ class ServerInstance:
     def _build_start_command(self) -> list[str]:
         """サーバー起動コマンドを構築する"""
         if self.use_script:
-            return [self.use_script, 'nogui']
-        return [
+            server_command = [self.use_script, 'nogui']
+        else:
+            server_command = [
             self.java_command,
             f'-Xmx{self.memory}',
             f'-Xms{self.memory}',
             '-jar',
             self.jar,
             'nogui',
-        ]
+            ]
+        if self.run_as_user and os.name == "posix":
+            return ["/usr/bin/sudo", "-n", "-H", "-u", self.run_as_user, "--", *server_command]
+        return server_command
+
+    @staticmethod
+    def _build_child_environment() -> dict[str, str]:
+        """Botの秘密情報を除外した最小限の子プロセス環境を構築する。"""
+        allowed_keys = {
+            "HOME",
+            "LANG",
+            "LANGUAGE",
+            "LC_ALL",
+            "PATH",
+            "TERM",
+            "TZ",
+        }
+        child_env = {key: value for key, value in os.environ.items() if key in allowed_keys}
+        child_env.setdefault("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin")
+        return child_env
+
+    async def _wait_until_ready(self, process, generation: int) -> bool:
+        """RCONまたはゲームポートが利用可能になるまで待機する。"""
+        deadline = time.monotonic() + self.startup_timeout
+        rcon_client = get_rcon_client(self.config)
+        last_message = ""
+
+        while time.monotonic() < deadline:
+            if self.process is not process or self._generation != generation:
+                self.last_error = "起動状態が別の操作で変更された"
+                return False
+            if process.returncode is not None:
+                self.last_error = f"プロセスが起動中に終了した (code={process.returncode})"
+                return False
+
+            if rcon_client:
+                success, response = await rcon_client.execute("list")
+                if success:
+                    return True
+                last_message = response
+            else:
+                try:
+                    _, writer = await asyncio.wait_for(
+                        asyncio.open_connection("127.0.0.1", self.port),
+                        timeout=2,
+                    )
+                    writer.close()
+                    await writer.wait_closed()
+                    return True
+                except (OSError, asyncio.TimeoutError):
+                    pass
+            await asyncio.sleep(2)
+
+        self.last_error = f"起動確認が{self.startup_timeout}秒でタイムアウトした"
+        if last_message:
+            logging.warning(
+                "Server '%s' readiness timeout: %s",
+                self.server_id,
+                last_message,
+            )
+        return False
 
     async def start(self) -> bool:
         """サーバーを起動する"""
+        self.last_error = ""
         if self._stopping:
             logging.warning(f"Server '{self.server_id}' is currently stopping")
+            self.last_error = "停止処理中である"
             return False
 
         if self.is_running():
+            self.last_error = "既に起動している"
             return False
 
         # 古いPIDファイルをクリーンアップ
@@ -180,88 +275,124 @@ class ServerInstance:
 
         cmd = self._build_start_command()
 
-        self.process = await asyncio.create_subprocess_exec(
-            *cmd,
-            cwd=self.cwd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
-        )
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                cwd=self.cwd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env=self._build_child_environment(),
+            )
+        except (OSError, ValueError) as e:
+            self.last_error = f"プロセスを生成できない: {e}"
+            logging.exception("Failed to start server '%s'", self.server_id)
+            return False
+
+        self.process = process
+        self._generation += 1
+        generation = self._generation
 
         # PIDファイルに保存
-        self._write_pid_file(self.process.pid)
+        self._write_pid_file(process.pid)
 
-        asyncio.create_task(self._read_stdout())
+        self._stdout_task = asyncio.create_task(self._read_stdout(process, generation))
         self.online_players.clear()
-        logging.info(f"Server '{self.server_id}' started with PID {self.process.pid}")
-        return True
+        logging.info(f"Server '{self.server_id}' started with PID {process.pid}")
+
+        if await self._wait_until_ready(process, generation):
+            logging.info(f"Server '{self.server_id}' is ready")
+            return True
+
+        logging.error("Server '%s' failed readiness check: %s", self.server_id, self.last_error)
+        if process.returncode is None:
+            await self._stop_process(process)
+        return False
+
+    async def _stop_process(self, expected_process=None) -> bool:
+        """stdinまたはRCONで停止し、応答しない場合だけシグナルへ移行する。"""
+        proc = self._get_process()
+        if not proc:
+            self._cleanup_server_state(expected_process)
+            return False
+
+        java_proc = self._find_java_child(proc)
+        target_proc = java_proc if java_proc else proc
+        stop_requested = False
+
+        if self.process and self.process.returncode is None and self.process.stdin:
+            try:
+                self.process.stdin.write(b"stop\n")
+                await self.process.stdin.drain()
+                stop_requested = True
+                logging.info(f"Sent 'stop' command to server '{self.server_id}'")
+            except (BrokenPipeError, ConnectionError, OSError) as e:
+                logging.warning(f"Failed to send stop command: {e}")
+
+        if not stop_requested:
+            rcon_client = get_rcon_client(self.config)
+            if rcon_client:
+                try:
+                    # stopでは接続切断が成功応答より先に発生する場合がある。
+                    await rcon_client.execute("stop")
+                    stop_requested = True
+                    logging.info(f"Sent RCON stop to server '{self.server_id}'")
+                except Exception as e:
+                    logging.warning(f"Failed to send RCON stop: {e}")
+
+        try:
+            if stop_requested:
+                await asyncio.to_thread(target_proc.wait, timeout=60)
+                logging.info(f"Server '{self.server_id}' stopped gracefully")
+                return True
+
+            logging.warning(
+                "Server '%s' has no usable console channel; sending SIGTERM",
+                self.server_id,
+            )
+            target_proc.terminate()
+            await asyncio.to_thread(target_proc.wait, timeout=10)
+            return True
+        except psutil.TimeoutExpired:
+            logging.warning(f"Server '{self.server_id}' did not stop gracefully, sending SIGTERM")
+            try:
+                target_proc.terminate()
+                await asyncio.to_thread(target_proc.wait, timeout=10)
+                return True
+            except psutil.TimeoutExpired:
+                logging.warning(f"Server '{self.server_id}' did not respond to SIGTERM, sending SIGKILL")
+                try:
+                    target_proc.kill()
+                    await asyncio.to_thread(target_proc.wait, timeout=5)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
+                    pass
+                return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return True
+        finally:
+            if java_proc:
+                try:
+                    if proc.is_running():
+                        proc.terminate()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            self._cleanup_server_state(expected_process)
 
     async def stop(self) -> bool:
-        """サーバーを停止する"""
+        """サーバーを停止する。"""
         if self._stopping:
             logging.warning(f"Server '{self.server_id}' is already stopping")
+            self.last_error = "既に停止処理中である"
             return False
 
         self._stopping = True
-        stopped_something = False
-
+        expected_process = self.process
         try:
-            # プロセスを検索
-            proc = self._get_process()
-            if not proc:
-                self._cleanup_server_state()
-                return False
-
-            # 子プロセス（java）を探す
-            java_proc = self._find_java_child(proc)
-            target_proc = java_proc if java_proc else proc
-
-            # 自分が起動したプロセスにstopコマンドを送信（可能な場合）
-            if self.process and self.process.returncode is None and self.process.stdin:
-                try:
-                    self.process.stdin.write(b"stop\n")
-                    await self.process.stdin.drain()
-                    logging.info(f"Sent 'stop' command to server '{self.server_id}'")
-                except Exception as e:
-                    logging.warning(f"Failed to send stop command: {e}")
-
-            # 終了を待機（最大60秒）
-            try:
-                await asyncio.to_thread(target_proc.wait, timeout=60)
-                stopped_something = True
-                logging.info(f"Server '{self.server_id}' stopped gracefully")
-            except psutil.TimeoutExpired:
-                # タイムアウト: SIGTERM送信
-                logging.warning(f"Server '{self.server_id}' did not stop gracefully, sending SIGTERM")
-                try:
-                    target_proc.terminate()
-                    await asyncio.to_thread(target_proc.wait, timeout=10)
-                    stopped_something = True
-                except psutil.TimeoutExpired:
-                    # さらにタイムアウト: SIGKILL送信
-                    logging.warning(f"Server '{self.server_id}' did not respond to SIGTERM, sending SIGKILL")
-                    try:
-                        target_proc.kill()
-                        stopped_something = True
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                        pass
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    stopped_something = True
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                stopped_something = True
-
-            # 親プロセス（シェル）も終了
-            if java_proc and proc.is_running():
-                try:
-                    proc.terminate()
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    pass
-
+            return await self._stop_process(expected_process)
         finally:
-            self._cleanup_server_state()
             self._stopping = False
-
-        return stopped_something
 
     async def write_stdin(self, command_str: str) -> bool:
         """サーバーコンソールにコマンドを送信する"""
@@ -275,14 +406,28 @@ class ServerInstance:
                     logging.warning(f"Failed to write to stdin: {e}")
         return False
 
-    async def _read_stdout(self):
+    def _enqueue_log(self, text: str) -> None:
+        """stdoutを有限キューへ追加し、満杯時は最古の行を破棄する。"""
+        item = (self.server_id, text[:8192])
+        if self.log_queue.full():
+            try:
+                self.log_queue.get_nowait()
+                self.dropped_log_lines += 1
+            except asyncio.QueueEmpty:
+                pass
+        try:
+            self.log_queue.put_nowait(item)
+        except asyncio.QueueFull:
+            self.dropped_log_lines += 1
+
+    async def _read_stdout(self, process, generation: int):
         """標準出力を非同期で読み取り、Queueに入れる"""
-        if not self.process or not self.process.stdout:
+        if not process.stdout:
             return
 
         try:
             while True:
-                line = await self.process.stdout.readline()
+                line = await process.stdout.readline()
                 if not line:
                     break
                 text = line.decode('utf-8', errors='ignore')
@@ -299,42 +444,45 @@ class ServerInstance:
                         player_name = match.group(1)
                         self.online_players.pop(player_name, None)
 
-                await self.log_queue.put((self.server_id, text))
+                self._enqueue_log(text)
         finally:
-            # プロセス終了時のクリーンアップ
-            if not self._stopping:
+            # 古いstdoutタスクが新しいプロセス状態を消さないよう世代を照合する。
+            if (
+                not self._stopping
+                and self._generation == generation
+                and self.process is process
+            ):
                 logging.info(f"Server '{self.server_id}' process ended unexpectedly")
-                self._cleanup_server_state()
+                self._cleanup_server_state(process)
 
     def _get_process(self) -> psutil.Process | None:
         """現在実行中のサーバープロセスを取得する"""
-        # 1. PIDファイルからチェック
-        pid = self._read_pid_file()
-        if pid:
-            try:
-                proc = psutil.Process(pid)
-                if proc.is_running():
-                    # 子プロセス（java）があればそれを返す
-                    java_child = self._find_java_child(proc)
-                    if java_child:
-                        return java_child
-                    return proc
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                # PIDファイルが古い
-                self._cleanup_pid_file()
-
-        # 2. 自身が起動したプロセスをチェック
+        # 1. 現在のBotが保持するプロセスハンドルを優先する。
         if self.process is not None and self.process.returncode is None:
             try:
                 proc = psutil.Process(self.process.pid)
                 java_child = self._find_java_child(proc)
-                if java_child:
-                    return java_child
-                return proc
+                return java_child or proc
             except psutil.NoSuchProcess:
                 pass
 
-        # 3. プロセスリストから検索（フォールバック）
+        # 2. Bot専用PIDファイルを起動時刻・cwdまで検証する。
+        metadata = self._read_pid_file()
+        if metadata:
+            try:
+                proc = psutil.Process(metadata["pid"])
+                create_time = float(metadata.get("create_time", -1))
+                if abs(proc.create_time() - create_time) > 0.01:
+                    raise psutil.NoSuchProcess(metadata["pid"])
+                recorded_cwd = os.path.normpath(str(metadata.get("cwd", "")))
+                if recorded_cwd != os.path.normpath(self.cwd):
+                    raise psutil.NoSuchProcess(metadata["pid"])
+                java_child = self._find_java_child(proc)
+                return java_child or proc
+            except (psutil.NoSuchProcess, psutil.AccessDenied, ValueError, TypeError):
+                self._cleanup_pid_file()
+
+        # 3. cwdの完全一致だけを用いる限定的なフォールバック。
         cwd_normalized = os.path.normpath(self.cwd)
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
@@ -353,11 +501,6 @@ class ServerInstance:
                         return proc
                 except (psutil.AccessDenied, psutil.NoSuchProcess):
                     pass
-
-                # コマンドラインにcwdパスが含まれているか確認
-                cmdline_str = ' '.join(cmdline)
-                if self.cwd in cmdline_str:
-                    return proc
 
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
@@ -408,24 +551,74 @@ class ServerInstance:
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             return None
 
-    async def wait_for_exit(self):
-        """サーバーの終了を待機する"""
+    async def wait_for_exit(self, timeout: float = 120):
+        """サーバーの終了を上限時間付きで待機する。"""
         if self.process:
-            await self.process.wait()
+            try:
+                await asyncio.wait_for(self.process.wait(), timeout=timeout)
+            except asyncio.TimeoutError:
+                return False
 
-        while self.is_running():
+        deadline = time.monotonic() + timeout
+        while self.is_running() and time.monotonic() < deadline:
             await asyncio.sleep(1)
+        return not self.is_running()
 
 
 class MultiServerManager:
     """複数のMinecraftサーバーを管理するクラス"""
 
-    def __init__(self, servers_config: dict):
+    def __init__(self, servers_config: dict, runtime_dir: str = ".runtime"):
         self._servers_config = servers_config
+        self.runtime_dir = runtime_dir
         self.servers: dict[str, ServerInstance] = {}
+        self._operation_locks: dict[str, asyncio.Lock] = {}
+        self._start_admission_lock = asyncio.Lock()
         for server_id, config in servers_config.items():
-            self.servers[server_id] = ServerInstance(server_id, config)
+            self.servers[server_id] = ServerInstance(server_id, config, runtime_dir)
+            self._operation_locks[server_id] = asyncio.Lock()
         logging.info(f"MultiServerManager initialized with servers: {list(self.servers.keys())}")
+
+    def _desired_state_path(self) -> str:
+        return os.path.join(self.runtime_dir, "desired_servers.json")
+
+    def _load_desired_servers(self) -> set[str]:
+        try:
+            with open(self._desired_state_path(), 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            servers = data.get("servers", []) if isinstance(data, dict) else []
+            return {server_id for server_id in servers if server_id in self.servers}
+        except (FileNotFoundError, PermissionError, json.JSONDecodeError, OSError):
+            return set()
+
+    def _save_desired_servers(self, server_ids: set[str]) -> None:
+        os.makedirs(self.runtime_dir, mode=0o700, exist_ok=True)
+        path = self._desired_state_path()
+        temp_path = f"{path}.tmp"
+        payload = {"servers": sorted(server_ids), "updated_at": int(time.time())}
+        with open(temp_path, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.chmod(temp_path, 0o600)
+        os.replace(temp_path, path)
+
+    def _set_desired(self, server_id: str, desired: bool) -> None:
+        desired_servers = self._load_desired_servers()
+        if desired:
+            desired_servers.add(server_id)
+        else:
+            desired_servers.discard(server_id)
+        self._save_desired_servers(desired_servers)
+
+    def get_desired_servers(self) -> list[str]:
+        """Bot再起動後に復元すべきサーバーIDを返す。"""
+        configured = {
+            server_id
+            for server_id, config in self._servers_config.items()
+            if config.get("auto_start", False)
+        }
+        return sorted(configured | self._load_desired_servers())
 
     def get_server(self, server_id: str) -> ServerInstance | None:
         """指定されたサーバーインスタンスを取得する"""
@@ -439,13 +632,36 @@ class MultiServerManager:
         """Discord用の選択肢リストを返す [(name, value), ...]"""
         return [(server.name, server_id) for server_id, server in self.servers.items()]
 
-    async def start_server(self, server_id: str) -> bool:
+    async def start_server(
+        self,
+        server_id: str,
+        *,
+        persist_desired: bool = True,
+        maintenance: bool = False,
+    ) -> bool:
         """指定されたサーバーを起動する"""
         server = self.get_server(server_id)
         if not server:
             logging.error(f"Server '{server_id}' not found")
             return False
-        return await server.start()
+        if server._maintenance and not maintenance:
+            server.last_error = "メンテナンス処理中である"
+            return False
+
+        async with self._operation_locks[server_id]:
+            if server.is_running():
+                server.last_error = "既に起動している"
+                return False
+            # 異なるサーバーの同時起動でも空きメモリ判定と予約を直列化する。
+            async with self._start_admission_lock:
+                mem_ok, mem_msg = self.check_memory_for_start(server_id)
+                if not mem_ok:
+                    server.last_error = mem_msg
+                    return False
+                success = await server.start()
+            if success and persist_desired:
+                self._set_desired(server_id, True)
+            return success
 
     def _get_rcon_client(self, server_id: str) -> RconClient | None:
         """サーバーIDからRCONクライアントを取得"""
@@ -458,83 +674,152 @@ class MultiServerManager:
         match = re.search(r'There are (\d+)', list_response)
         return int(match.group(1)) if match else 0
 
+    async def _prepare_graceful_stop(
+        self,
+        server_id: str,
+        *,
+        progress_callback: Callable[[str], Awaitable[None]] | None = None,
+        force: bool = False,
+    ) -> bool:
+        """接続者へ停止予告し、安全確認ができない場合は通常停止を拒否する。"""
+        server = self.servers[server_id]
+        rcon_client = self._get_rcon_client(server_id)
+        has_rcon_config = bool(
+            self._servers_config.get(server_id, {}).get("rcon_port")
+        )
+        if not rcon_client:
+            if has_rcon_config and not force:
+                server.last_error = "RCONを利用できないため停止を中止した。force=trueで強制停止できる"
+                return False
+            return True
+
+        try:
+            success, response = await asyncio.wait_for(
+                rcon_client.execute("list"), timeout=5.0
+            )
+        except Exception as e:
+            logging.warning(f"Server '{server_id}': RCON check failed: {e}")
+            if not force:
+                server.last_error = "接続者を確認できないため停止を中止した。force=trueで強制停止できる"
+                return False
+            return True
+
+        if not success:
+            logging.warning(f"Server '{server_id}': RCON list command failed: {response}")
+            if not force:
+                server.last_error = "接続者を確認できないため停止を中止した。force=trueで強制停止できる"
+                return False
+            return True
+
+        player_count = self._parse_player_count(response)
+        if player_count <= 0:
+            logging.info(f"Server '{server_id}': no players online, stopping immediately")
+            return True
+
+        logging.info(
+            f"Server '{server_id}': {player_count} players online, announcing shutdown"
+        )
+        await rcon_client.execute("say サーバーが60秒後にシャットダウンします")
+        if progress_callback:
+            try:
+                await progress_callback(
+                    f"{server.name}: {player_count}人のプレイヤーが接続中 — "
+                    "60秒後にシャットダウンします"
+                )
+            except Exception as e:
+                logging.warning(f"Failed to report shutdown progress: {e}")
+        await asyncio.sleep(50)
+        await rcon_client.execute("say サーバーが10秒後にシャットダウンします")
+        await asyncio.sleep(10)
+        return True
+
     async def stop_server(
         self,
         server_id: str,
         *,
         progress_callback: Callable[[str], Awaitable[None]] | None = None,
+        force: bool = False,
+        preserve_desired: bool = False,
+        maintenance: bool = False,
     ) -> bool:
         """指定されたサーバーを停止する (プレイヤーがいる場合はアナウンス後に待機)"""
         server = self.get_server(server_id)
         if not server:
             logging.error(f"Server '{server_id}' not found")
             return False
-
-        if server._graceful_stopping or server._stopping:
-            logging.warning(f"Server '{server_id}' is already stopping")
+        if server._maintenance and not maintenance:
+            server.last_error = "メンテナンス処理中である"
             return False
 
-        server._graceful_stopping = True
-        try:
-            # RCONでプレイヤー確認
-            rcon_client = self._get_rcon_client(server_id)
-            if rcon_client:
-                try:
-                    success, response = await asyncio.wait_for(
-                        rcon_client.execute("list"), timeout=5.0
-                    )
-                    if success:
-                        player_count = self._parse_player_count(response)
-                        if player_count > 0:
-                            logging.info(
-                                f"Server '{server_id}': {player_count} players online, "
-                                "announcing shutdown"
-                            )
-                            # 60秒前アナウンス
-                            try:
-                                await rcon_client.execute(
-                                    "say サーバーが60秒後にシャットダウンします"
-                                )
-                            except Exception as e:
-                                logging.warning(f"Failed to send 60s announcement: {e}")
+        async with self._operation_locks[server_id]:
+            if server._graceful_stopping or server._stopping:
+                logging.warning(f"Server '{server_id}' is already stopping")
+                server.last_error = "既に停止処理中である"
+                return False
 
-                            if progress_callback:
-                                await progress_callback(
-                                    f"{server.name}: {player_count}人のプレイヤーが接続中 — "
-                                    "60秒後にシャットダウンします"
-                                )
+            server._graceful_stopping = True
+            try:
+                if not await self._prepare_graceful_stop(
+                    server_id,
+                    progress_callback=progress_callback,
+                    force=force,
+                ):
+                    return False
+                result = await server.stop()
+                if result and not preserve_desired:
+                    self._set_desired(server_id, False)
+                return result
+            finally:
+                server._graceful_stopping = False
 
-                            await asyncio.sleep(50)
+    async def restart_server(
+        self,
+        server_id: str,
+        *,
+        progress_callback: Callable[[str], Awaitable[None]] | None = None,
+        force: bool = False,
+    ) -> bool:
+        """同一ロック内で安全に停止・起動する。"""
+        server = self.get_server(server_id)
+        if not server:
+            return False
+        if server._maintenance:
+            server.last_error = "メンテナンス処理中である"
+            return False
 
-                            # 10秒前アナウンス
-                            try:
-                                await rcon_client.execute(
-                                    "say サーバーが10秒後にシャットダウンします"
-                                )
-                            except Exception as e:
-                                logging.warning(f"Failed to send 10s announcement: {e}")
+        async with self._operation_locks[server_id]:
+            if server.is_running():
+                if not await self._prepare_graceful_stop(
+                    server_id,
+                    progress_callback=progress_callback,
+                    force=force,
+                ):
+                    return False
+                if not await server.stop():
+                    return False
 
-                            await asyncio.sleep(10)
-                        else:
-                            logging.info(
-                                f"Server '{server_id}': no players online, stopping immediately"
-                            )
-                    else:
-                        logging.warning(
-                            f"Server '{server_id}': RCON list command failed: {response}"
-                        )
-                except Exception as e:
-                    logging.warning(
-                        f"Server '{server_id}': RCON check failed, stopping immediately: {e}"
-                    )
-            else:
-                logging.info(
-                    f"Server '{server_id}': RCON not configured, stopping immediately"
-                )
+            async with self._start_admission_lock:
+                mem_ok, mem_msg = self.check_memory_for_start(server_id)
+                if not mem_ok:
+                    server.last_error = mem_msg
+                    return False
+                success = await server.start()
+            if success:
+                self._set_desired(server_id, True)
+            return success
 
-            return await server.stop()
-        finally:
-            server._graceful_stopping = False
+    def begin_maintenance(self, server_id: str) -> bool:
+        """外部更新処理中のライフサイクル操作を拒否する。"""
+        server = self.get_server(server_id)
+        if not server or server._maintenance:
+            return False
+        server._maintenance = True
+        return True
+
+    def end_maintenance(self, server_id: str) -> None:
+        server = self.get_server(server_id)
+        if server:
+            server._maintenance = False
 
     async def write_stdin(self, server_id: str, command_str: str) -> bool:
         """指定されたサーバーにコマンドを送信する"""
@@ -593,11 +878,12 @@ class MultiServerManager:
         """全サーバーのログキューを返す"""
         return {server_id: server.log_queue for server_id, server in self.servers.items()}
 
-    async def wait_for_exit(self, server_id: str):
+    async def wait_for_exit(self, server_id: str, timeout: float = 120) -> bool:
         """指定されたサーバーの終了を待機する"""
         server = self.get_server(server_id)
         if server:
-            await server.wait_for_exit()
+            return await server.wait_for_exit(timeout)
+        return True
 
 
 # 後方互換性のためのエイリアス

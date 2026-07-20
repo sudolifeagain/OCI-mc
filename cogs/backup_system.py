@@ -6,6 +6,8 @@ import shutil
 import zipfile
 import asyncio
 import logging
+import stat
+import tarfile
 import discord
 from discord import app_commands
 from datetime import datetime
@@ -13,8 +15,107 @@ from discord.ext import commands, tasks
 from settings import CONFIG, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER
 from utils.permissions import check_role
 from utils.notion_api import upload_to_notion, register_to_database, get_backups_list, download_file
+from utils.discord_security import escape_discord_code_block
 
 FINGERPRINT_FILE = ".backup_fingerprints.json"
+MAX_ARCHIVE_MEMBERS = 1_000_000
+
+
+def _validate_archive_path(base_dir: str, name: str, allowed_roots: set[str]) -> None:
+    """展開先とバックアップ対象外への書き込みを拒否する。"""
+    normalized = name.replace("\\", "/")
+    if normalized.startswith("/"):
+        raise ValueError(f"絶対パスを含むアーカイブは拒否する: {name}")
+    parts = [part for part in normalized.split("/") if part not in ("", ".")]
+    if not parts or ".." in parts or parts[0] not in allowed_roots:
+        raise ValueError(f"許可されていないアーカイブパスである: {name}")
+
+    base_real = os.path.realpath(base_dir)
+    target_real = os.path.realpath(os.path.join(base_real, *parts))
+    if os.path.commonpath((base_real, target_real)) != base_real:
+        raise ValueError(f"展開先の外部を参照するアーカイブパスである: {name}")
+
+
+def _ensure_archive_fits(base_dir: str, member_count: int, expanded_size: int) -> None:
+    if member_count > MAX_ARCHIVE_MEMBERS:
+        raise ValueError("アーカイブのファイル数が上限を超えている")
+    free_bytes = shutil.disk_usage(base_dir).free
+    if expanded_size > int(free_bytes * 0.9):
+        raise ValueError("アーカイブ展開後のサイズが空き容量の90%を超える")
+
+
+def _extract_zip_safely(path: str, base_dir: str, allowed_roots: set[str]) -> int:
+    with zipfile.ZipFile(path, "r") as archive:
+        members = archive.infolist()
+        _ensure_archive_fits(
+            base_dir,
+            len(members),
+            sum(member.file_size for member in members),
+        )
+        for member in members:
+            _validate_archive_path(base_dir, member.filename, allowed_roots)
+            file_type = (member.external_attr >> 16) & 0o170000
+            if file_type == stat.S_IFLNK:
+                raise ValueError(f"シンボリックリンクを含むZIPは拒否する: {member.filename}")
+        archive.extractall(path=base_dir)
+        return len(members)
+
+
+def _extract_tar_safely(path: str, base_dir: str, allowed_roots: set[str]) -> int:
+    with tarfile.open(path, "r") as archive:
+        members = archive.getmembers()
+        _ensure_archive_fits(
+            base_dir,
+            len(members),
+            sum(member.size for member in members),
+        )
+        for member in members:
+            _validate_archive_path(base_dir, member.name, allowed_roots)
+            if not (member.isfile() or member.isdir()):
+                raise ValueError(f"リンクまたは特殊ファイルを含むTARは拒否する: {member.name}")
+        archive.extractall(path=base_dir, members=members)
+        return len(members)
+
+
+def _remove_path(path: str) -> None:
+    if os.path.isdir(path) and not os.path.islink(path):
+        shutil.rmtree(path)
+    elif os.path.lexists(path):
+        os.remove(path)
+
+
+def _replace_backup_roots(stage_dir: str, base_dir: str, roots: list[str]) -> int:
+    """展開済みデータを同一ファイルシステム上で置換し、失敗時は元へ戻す。"""
+    previous_dir = os.path.join(stage_dir, ".previous")
+    moved: list[tuple[str, str | None, bool]] = []
+    replaced = 0
+    try:
+        for root in roots:
+            source = os.path.join(stage_dir, root)
+            if not os.path.lexists(source):
+                continue
+            target = os.path.join(base_dir, root)
+            previous = None
+            if os.path.lexists(target):
+                previous = os.path.join(previous_dir, root)
+                os.makedirs(os.path.dirname(previous), exist_ok=True)
+                os.replace(target, previous)
+            moved.append((target, previous, False))
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            os.replace(source, target)
+            moved[-1] = (target, previous, True)
+            replaced += 1
+        if replaced == 0:
+            raise ValueError("バックアップ対象データを含まないアーカイブである")
+        return replaced
+    except Exception:
+        for target, previous, installed in reversed(moved):
+            if installed:
+                _remove_path(target)
+            if previous and os.path.lexists(previous):
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                os.replace(previous, target)
+        raise
 
 
 def get_server_choices():
@@ -69,7 +170,7 @@ class BackupSystem(commands.Cog):
             json.dump(data, f, indent=2)
 
     def _compute_fingerprint(self, base_dir: str, target_dirs: list[str]) -> str:
-        """バックアップ対象ディレクトリのファイルサイズからフィンガープリントを計算する"""
+        """パス・サイズ・更新時刻からバックアップ対象のフィンガープリントを計算する。"""
         entries = []
         for d in sorted(target_dirs):
             full_path = os.path.join(base_dir, d)
@@ -82,10 +183,10 @@ class BackupSystem(commands.Cog):
                         file_path = os.path.join(root, fname)
                         rel_path = os.path.relpath(file_path, base_dir)
                         stat = os.stat(file_path)
-                        entries.append(f"{rel_path}|{stat.st_size}")
+                        entries.append(f"{rel_path}|{stat.st_size}|{stat.st_mtime_ns}")
             else:
                 stat = os.stat(full_path)
-                entries.append(f"{d}|{stat.st_size}")
+                entries.append(f"{d}|{stat.st_size}|{stat.st_mtime_ns}")
         return hashlib.sha256("\n".join(entries).encode()).hexdigest()
 
     def _has_changes(self, server_id: str, base_dir: str, target_dirs: list[str]) -> bool:
@@ -125,6 +226,9 @@ class BackupSystem(commands.Cog):
 
         server_name = server_instance.name
         mc_dir = server_instance.cwd
+        maintenance_started = False
+        was_running = False
+        zip_path = None
 
         try:
             # 1. バックアップ対象の確認
@@ -154,8 +258,13 @@ class BackupSystem(commands.Cog):
                         )
                     return
 
+            maintenance_started = self.server_manager.begin_maintenance(server_id)
+            if not maintenance_started:
+                if channel:
+                    await channel.send(f"[{server_name}] 別のメンテナンス処理を実行中である。", silent=True)
+                return
+
             # 3. サーバー停止と待機
-            was_running = False
             if self.server_manager.is_running(server_id):
                 was_running = True
                 if channel:
@@ -168,7 +277,14 @@ class BackupSystem(commands.Cog):
                         except discord.HTTPException as e:
                             logging.warning(f"[Backup] Failed to send progress: {e}")
 
-                await self.server_manager.stop_server(server_id, progress_callback=backup_progress)
+                stopped = await self.server_manager.stop_server(
+                    server_id,
+                    progress_callback=backup_progress,
+                    preserve_desired=True,
+                    maintenance=True,
+                )
+                if not stopped:
+                    raise RuntimeError(server_instance.last_error or "サーバーを停止できない")
                 await self.server_manager.wait_for_exit(server_id)
 
             # 4. 圧縮 (ZIP) - 一時ディレクトリを使用
@@ -176,7 +292,11 @@ class BackupSystem(commands.Cog):
                 await channel.send(f"[{server_name}] ワールドデータを圧縮中...", silent=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             zip_name = f"backup_{server_id}_{timestamp}.zip"
-            zip_path = os.path.join(tempfile.gettempdir(), zip_name)
+            archive_fd, zip_path = tempfile.mkstemp(
+                prefix=f"backup-{server_id}-",
+                suffix=".zip",
+            )
+            os.close(archive_fd)
 
             def create_zip():
                 with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -199,7 +319,12 @@ class BackupSystem(commands.Cog):
             if channel:
                 await channel.send(f"[{server_name}] Notionへアップロード中... ({size_mb:.1f}MB)", silent=True)
 
-            file_id = await loop.run_in_executor(None, upload_to_notion, zip_path)
+            file_id = await loop.run_in_executor(
+                None,
+                upload_to_notion,
+                zip_path,
+                zip_name,
+            )
 
             # DB登録（サーバー名を含める）
             await loop.run_in_executor(None, register_to_database, file_id, zip_name, size_mb)
@@ -219,12 +344,30 @@ class BackupSystem(commands.Cog):
             if was_running:
                 if channel:
                     await channel.send(f"[{server_name}] サーバーを再起動します。", silent=True)
-                await self.server_manager.start_server(server_id)
+                started = await self.server_manager.start_server(server_id, maintenance=True)
+                if not started:
+                    raise RuntimeError(server_instance.last_error or "サーバーを起動できない")
 
         except Exception as e:
             if channel:
                 await channel.send(f"[{server_name}] バックアップエラー: {str(e)}", silent=True)
             logging.exception(f"[Backup] {server_id} backup failed")
+        finally:
+            if zip_path and os.path.exists(zip_path):
+                try:
+                    os.remove(zip_path)
+                except OSError as e:
+                    logging.warning("[Backup] Failed to remove temporary archive: %s", e)
+            if maintenance_started:
+                if was_running and not self.server_manager.is_running(server_id):
+                    restored = await self.server_manager.start_server(server_id, maintenance=True)
+                    if not restored:
+                        logging.error(
+                            "[Backup] Failed to restore server '%s': %s",
+                            server_id,
+                            server_instance.last_error,
+                        )
+                self.server_manager.end_maintenance(server_id)
 
     @app_commands.command(name="backup", description="手動バックアップを実行します")
     @app_commands.describe(server="バックアップするサーバー（省略時は全サーバー）")
@@ -291,11 +434,17 @@ class BackupSystem(commands.Cog):
         async def update_status(text):
             nonlocal log_content
             timestamp = datetime.now().strftime("%H:%M:%S")
-            new_line = f"[{timestamp}] {text}\n"
+            safe_text = escape_discord_code_block(str(text))
+            new_line = f"[{timestamp}] {safe_text}\n"
             log_content += new_line
             if len(log_content) > 1900:
                 log_content = "..." + log_content[-1900:]
             await status_msg.edit(content=f"```\n{log_content}\n```")
+
+        maintenance_started = False
+        was_running = False
+        detected_server_id = None
+        save_path = None
 
         try:
             loop = asyncio.get_event_loop()
@@ -307,6 +456,9 @@ class BackupSystem(commands.Cog):
 
             target_backup = backup_list[index]
             filename = target_backup['filename']
+            display_filename = escape_discord_code_block(
+                str(filename).replace("\r", " ").replace("\n", " ")[:200]
+            )
             download_url = target_backup.get('url')
             if not download_url:
                 await update_status("❌ バックアップのダウンロード URL が見つかりません。")
@@ -326,21 +478,35 @@ class BackupSystem(commands.Cog):
 
             await update_status(f"対象サーバー: {server_name}")
 
+            maintenance_started = self.server_manager.begin_maintenance(detected_server_id)
+            if not maintenance_started:
+                await update_status("別のメンテナンス処理を実行中である。")
+                return
+
             # --- 1. サーバー停止 ---
-            if self.server_manager.is_running(detected_server_id):
+            was_running = self.server_manager.is_running(detected_server_id)
+            if was_running:
                 await update_status(f"⏹️ {server_name} を停止しています...")
-                await self.server_manager.stop_server(
+                stopped = await self.server_manager.stop_server(
                     detected_server_id,
                     progress_callback=update_status,
+                    preserve_desired=True,
+                    maintenance=True,
                 )
+                if not stopped:
+                    raise RuntimeError(server_instance.last_error or "サーバーを停止できない")
                 await self.server_manager.wait_for_exit(detected_server_id)
                 await update_status("サーバー停止を確認しました。")
 
             # --- 2. バックアップのダウンロード ---
-            await update_status(f"⬇️ ダウンロード中: {filename} ...")
+            await update_status(f"⬇️ ダウンロード中: {display_filename} ...")
 
-            save_path = os.path.join(mc_dir, filename)
-            logging.info(f"[Rollback] Downloading backup from {download_url} to {save_path}")
+            archive_fd, save_path = tempfile.mkstemp(
+                prefix=f"rollback-{detected_server_id}-",
+                suffix=".archive",
+            )
+            os.close(archive_fd)
+            logging.info("[Rollback] Downloading selected backup to temporary storage")
 
             try:
                 await loop.run_in_executor(None, download_file, download_url, save_path)
@@ -359,57 +525,65 @@ class BackupSystem(commands.Cog):
                 return
 
             try:
-                # --- 3. 既存データの削除 ---
-                await update_status("🗑️ 既存のワールドデータを削除中...")
-                logging.info("[Rollback] Removing existing world data...")
-
                 backup_dirs = self.get_backup_dirs(detected_server_id)
-                for d in backup_dirs:
-                    full_target_path = os.path.join(mc_dir, d)
-                    if os.path.exists(full_target_path):
-                        logging.info(f"[Rollback] Deleting: {full_target_path}")
-                        try:
-                            if os.path.isdir(full_target_path):
-                                shutil.rmtree(full_target_path)
-                            else:
-                                os.remove(full_target_path)
-                        except Exception as e:
-                            logging.error(f"Failed to remove {full_target_path}: {e}")
-                            await update_status(f"既存データの削除中にエラーが発生しました: {e}")
-                            return
-                    else:
-                        logging.info(f"[Rollback] Target not found (skipping): {full_target_path}")
-
-                # --- 4. 解凍 ---
-                await update_status(f"📦 バックアップを展開中... (File: {filename})")
-                logging.info(f"[Rollback] Extracting {save_path} to {mc_dir}")
-
-                import tarfile
-
+                allowed_roots = set(backup_dirs)
                 is_zip = zipfile.is_zipfile(save_path)
                 is_tar = tarfile.is_tarfile(save_path)
-
                 if is_zip:
-                    def unzip_safe():
-                        with zipfile.ZipFile(save_path, 'r') as zipf:
-                            zipf.extractall(path=mc_dir)
-                            logging.info(f"[Rollback] Unzipped {len(zipf.namelist())} files.")
-                    await loop.run_in_executor(None, unzip_safe)
-                    await update_status("ZIP展開完了。")
-
+                    with zipfile.ZipFile(save_path, "r") as archive:
+                        members = archive.infolist()
+                        _ensure_archive_fits(
+                            mc_dir,
+                            len(members),
+                            sum(member.file_size for member in members),
+                        )
+                        for member in members:
+                            _validate_archive_path(mc_dir, member.filename, allowed_roots)
+                            if ((member.external_attr >> 16) & 0o170000) == stat.S_IFLNK:
+                                raise ValueError("シンボリックリンクを含むZIPは拒否する")
                 elif is_tar:
-                    def untar_safe():
-                        with tarfile.open(save_path, "r") as tar:
-                            tar.extractall(path=mc_dir)
-                            logging.info("[Rollback] Untarred files.")
-                    await loop.run_in_executor(None, untar_safe)
-                    await update_status("TAR展開完了。")
-
+                    with tarfile.open(save_path, "r") as archive:
+                        members = archive.getmembers()
+                        _ensure_archive_fits(
+                            mc_dir,
+                            len(members),
+                            sum(member.size for member in members),
+                        )
+                        for member in members:
+                            _validate_archive_path(mc_dir, member.name, allowed_roots)
+                            if not (member.isfile() or member.isdir()):
+                                raise ValueError("リンクまたは特殊ファイルを含むTARは拒否する")
                 else:
-                    error_msg = f"❌ 未知のファイル形式です. Filename: {filename}"
-                    logging.error(f"[Rollback] {error_msg}")
-                    await update_status(error_msg)
-                    return
+                    raise ValueError(f"未知のファイル形式である: {filename}")
+
+                # --- 3. 隔離ディレクトリへ展開 ---
+                await update_status(f"📦 バックアップを展開中... (File: {display_filename})")
+                stage_dir = tempfile.mkdtemp(prefix=".rollback-stage-", dir=mc_dir)
+                try:
+                    if is_zip:
+                        def unzip_safe():
+                            count = _extract_zip_safely(save_path, stage_dir, allowed_roots)
+                            logging.info(f"[Rollback] Unzipped {count} files.")
+                        await loop.run_in_executor(None, unzip_safe)
+                    elif is_tar:
+                        def untar_safe():
+                            count = _extract_tar_safely(save_path, stage_dir, allowed_roots)
+                            logging.info(f"[Rollback] Untarred {count} files.")
+                        await loop.run_in_executor(None, untar_safe)
+
+                    # --- 4. 検証済みデータへ置換 ---
+                    await update_status("検証済みワールドデータへ切り替え中...")
+                    replaced = await loop.run_in_executor(
+                        None,
+                        _replace_backup_roots,
+                        stage_dir,
+                        mc_dir,
+                        backup_dirs,
+                    )
+                    logging.info("[Rollback] Replaced %d backup roots", replaced)
+                finally:
+                    if os.path.exists(stage_dir):
+                        shutil.rmtree(stage_dir)
 
                 logging.info("[Rollback] Extraction complete. Cleaning up archive file.")
                 if os.path.exists(save_path):
@@ -420,15 +594,42 @@ class BackupSystem(commands.Cog):
 
             except Exception as e:
                 logging.error(f"Rollback file operation failed: {e}")
-                raise e
+                raise
 
             # --- 5. サーバー再起動 ---
-            await update_status(f"✅ ロールバック完了！ {server_name} を起動します。")
-            await self.server_manager.start_server(detected_server_id)
+            if was_running:
+                await update_status(f"✅ ロールバック完了。{server_name} を起動します。")
+                started = await self.server_manager.start_server(
+                    detected_server_id,
+                    maintenance=True,
+                )
+                if not started:
+                    raise RuntimeError(server_instance.last_error or "サーバーを起動できない")
+            else:
+                await update_status("ロールバック完了。停止状態を維持する。")
 
         except Exception as e:
             logging.exception("[Rollback] Critical error")
             await status_msg.edit(content=f"重大なエラーが発生しました: {e}")
+        finally:
+            if save_path and os.path.exists(save_path):
+                try:
+                    os.remove(save_path)
+                except OSError as e:
+                    logging.warning("[Rollback] Failed to remove temporary archive: %s", e)
+            if maintenance_started and detected_server_id:
+                if was_running and not self.server_manager.is_running(detected_server_id):
+                    restored = await self.server_manager.start_server(
+                        detected_server_id,
+                        maintenance=True,
+                    )
+                    if not restored:
+                        logging.error(
+                            "[Rollback] Failed to restore server '%s': %s",
+                            detected_server_id,
+                            server_instance.last_error,
+                        )
+                self.server_manager.end_maintenance(detected_server_id)
 
     @tasks.loop(minutes=1)
     async def scheduler(self):
