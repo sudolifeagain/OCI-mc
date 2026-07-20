@@ -4,7 +4,7 @@
 
 Discord bot for Minecraft multi-server management, hosted on OCI (Oracle Cloud Infrastructure).
 
-- **Language**: Python 3.11
+- **Language**: Python 3.12
 - **Framework**: discord.py with slash commands only (`@app_commands.command`)
 - **Concurrency**: asyncio throughout — all I/O must use `async/await`
 - **Architecture**: `ServerInstance` (per-server state) + `MultiServerManager` (orchestrator)
@@ -52,7 +52,7 @@ These are intentional design decisions — do not suggest changes for:
 - Line length violations (E501 is disabled)
 - Splitting `except Exception` in network/RCON code
 - Adding comments to regex patterns
-- Modernizing type hints (`dict` → `Dict[str, Any]` etc.) — this project uses Python 3.11+ built-in generics
+- Modernizing type hints (`dict` → `Dict[str, Any]` etc.) — this project uses Python 3.12+ built-in generics
 - Adding unit tests (no test framework is configured)
 - Redundant `is_running()` checks where `get_stats()` already handles process absence internally
 - Removing `silent=True` from Discord message sends

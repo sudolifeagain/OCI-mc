@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
     # 0. rsyncのインストール
     - name: Install rsync
@@ -63,7 +63,9 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
           cd /opt/minecraft/bot
-          ./venv/bin/pip install -r requirements.txt
+          ./venv/bin/python -m pip install --upgrade pip==26.1.2
+          ./venv/bin/python -m pip install --upgrade --require-hashes -r requirements.txt
+          ./venv/bin/python -m pip check
         EOF
 
     # 6. サービス再起動
