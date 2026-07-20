@@ -4,12 +4,14 @@ Plugin Manager Utility
 """
 import fnmatch
 import hashlib
+import json
 import logging
 import os
 import shutil
 import tempfile
 import zipfile
 from typing import Optional
+from urllib.parse import quote
 
 import requests
 import yaml
@@ -158,7 +160,7 @@ def find_plugin_by_pattern(plugins_dir: str, pattern: str) -> Optional[str]:
     return None
 
 
-def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
+def delete_plugins_by_pattern(plugins_dir: str, pattern: str, exclude_path: Optional[str] = None) -> int:
     """
     パターンに一致するプラグインファイルをすべて削除
 
@@ -177,6 +179,8 @@ def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
         # 安全対策: .jar ファイルのみ削除可能
         if fnmatch.fnmatch(filename, pattern) and filename.endswith('.jar'):
             filepath = os.path.join(plugins_dir, filename)
+            if exclude_path and os.path.abspath(filepath) == os.path.abspath(exclude_path):
+                continue
             try:
                 os.remove(filepath)
                 deleted += 1
@@ -186,7 +190,11 @@ def delete_plugins_by_pattern(plugins_dir: str, pattern: str) -> int:
     return deleted
 
 
-def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[dict]:
+def get_github_latest_release_asset(
+    repo: str,
+    asset_pattern: str,
+    release_tag: Optional[str] = None,
+) -> Optional[dict]:
     """
     GitHubの最新リリースから指定パターンに一致するアセットを取得
 
@@ -199,7 +207,8 @@ def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[d
         or None if not found
     """
     try:
-        url = f"https://api.github.com/repos/{repo}/releases/latest"
+        release_path = f"tags/{quote(release_tag, safe='')}" if release_tag else "latest"
+        url = f"https://api.github.com/repos/{repo}/releases/{release_path}"
         headers = {"Accept": "application/vnd.github.v3+json"}
 
         resp = requests.get(url, headers=headers, timeout=30)
@@ -217,6 +226,7 @@ def get_github_latest_release_asset(repo: str, asset_pattern: str) -> Optional[d
                     "download_url": asset.get("browser_download_url"),
                     "size": asset.get("size", 0),
                     "tag_name": tag_name,
+                    "sha256": _extract_github_sha256(asset),
                 }
 
         return None
@@ -248,6 +258,61 @@ def download_file(url: str, dest_path: str, timeout: int = 300) -> bool:
         return False
 
 
+def compute_file_hash(filepath: str, algorithm: str) -> Optional[str]:
+    """ファイルの指定ハッシュを計算する。"""
+    try:
+        file_hash = hashlib.new(algorithm)
+        with open(filepath, "rb") as file_obj:
+            for chunk in iter(lambda: file_obj.read(8192), b""):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()
+    except (OSError, ValueError) as exc:
+        logging.error(f"Hash calculation error ({filepath}, {algorithm}): {exc}")
+        return None
+
+
+def get_modrinth_latest_info(project: str, loader: str, game_version: str) -> Optional[dict]:
+    """Modrinthから対象ローダー・ゲーム版に対応する最新安定版を取得する。"""
+    try:
+        url = f"https://api.modrinth.com/v2/project/{quote(project, safe='')}/version"
+        params = {
+            "loaders": json.dumps([loader]),
+            "game_versions": json.dumps([game_version]),
+        }
+        headers = {"User-Agent": "sudolifeagain/OCI-mc (github.com/sudolifeagain/OCI-mc)"}
+        resp = requests.get(url, params=params, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return None
+
+        versions = resp.json()
+        release = next(
+            (version for version in versions if version.get("version_type") == "release"),
+            None,
+        )
+        if not release:
+            return None
+
+        files = release.get("files", [])
+        asset = next((file_info for file_info in files if file_info.get("primary")), None)
+        if not asset and files:
+            asset = files[0]
+        if not asset:
+            return None
+
+        hashes = asset.get("hashes", {})
+        return {
+            "name": asset.get("filename", ""),
+            "download_url": asset.get("url", ""),
+            "size": asset.get("size", 0),
+            "version": release.get("version_number", ""),
+            "published_at": release.get("date_published", ""),
+            "sha1": hashes.get("sha1", ""),
+        }
+    except Exception as exc:
+        logging.error(f"Modrinth API error ({project}/{loader}/{game_version}): {exc}")
+        return None
+
+
 def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
     """
     設定に基づいてプラグインを更新する
@@ -269,9 +334,12 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
     if not filename and not filename_pattern:
         return {"success": False, "message": "filename が設定されていません", "filename": ""}
 
-    # 一時ファイルにダウンロード
-    temp_filename = filename if filename else "temp_plugin.jar"
-    temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{temp_filename}")
+    # 置換先と同一ファイルシステム上に一時ファイルを作成する
+    os.makedirs(plugins_dir, exist_ok=True)
+    temp_fd, temp_path = tempfile.mkstemp(prefix=".plugin-download-", suffix=".jar", dir=plugins_dir)
+    os.close(temp_fd)
+    expected_hash = ""
+    hash_algorithm = "sha256"
 
     try:
         if source == "direct":
@@ -282,26 +350,28 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
 
             if not download_file(url, temp_path):
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+            expected_hash = plugin_config.get("sha256", "")
 
         elif source == "github":
             # GitHub releases から取得
             repo = plugin_config.get("repo", "")
             asset_pattern = plugin_config.get("asset_pattern", "")
+            release_tag = plugin_config.get("release_tag")
 
             if not repo or not asset_pattern:
                 return {"success": False, "message": "repo または asset_pattern が設定されていません", "filename": filename or asset_pattern}
 
-            asset = get_github_latest_release_asset(repo, asset_pattern)
+            asset = get_github_latest_release_asset(repo, asset_pattern, release_tag)
             if not asset:
                 return {"success": False, "message": f"GitHub releases でアセットが見つかりません: {asset_pattern}", "filename": filename or asset_pattern}
 
             # パターン使用時は元のファイル名で保存
             if use_pattern:
                 filename = asset.get("name", "")
-                temp_path = os.path.join(tempfile.gettempdir(), f"plugin_download_{filename}")
 
             if not download_file(asset["download_url"], temp_path):
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+            expected_hash = asset.get("sha256", "")
 
         elif source == "geysermc":
             # GeyserMC API から取得
@@ -317,28 +387,51 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
 
             if not download_file(info["download_url"], temp_path):
                 return {"success": False, "message": "ダウンロードに失敗しました", "filename": filename}
+            expected_hash = info.get("sha256", "")
+
+        elif source == "modrinth":
+            project = plugin_config.get("project", "")
+            loader = plugin_config.get("loader", "paper")
+            game_version = plugin_config.get("game_version", "")
+
+            if not project or not game_version:
+                return {"success": False, "message": "project または game_version が設定されていません", "filename": filename or filename_pattern}
+
+            info = get_modrinth_latest_info(project, loader, game_version)
+            if not info:
+                return {"success": False, "message": "Modrinth APIから配布情報を取得できません", "filename": filename or filename_pattern}
+
+            if use_pattern:
+                filename = info.get("name", "")
+
+            if not download_file(info["download_url"], temp_path):
+                return {"success": False, "message": "Modrinthからのダウンロードに失敗しました", "filename": filename}
+            expected_hash = info.get("sha1", "")
+            hash_algorithm = "sha1"
 
         else:
             return {"success": False, "message": f"不明なソース: {source}", "filename": filename or ""}
 
+        if expected_hash:
+            actual_hash = compute_file_hash(temp_path, hash_algorithm)
+            if not actual_hash or actual_hash.lower() != expected_hash.lower():
+                os.remove(temp_path)
+                return {"success": False, "message": f"{hash_algorithm.upper()}検証に失敗しました", "filename": filename}
+
         # ダウンロード成功 - 既存ファイルを置換
         dest_path = os.path.join(plugins_dir, filename)
 
-        # パターン使用時は古いバージョンをすべて削除
+        os.replace(temp_path, dest_path)
         if use_pattern and filename_pattern:
-            delete_plugins_by_pattern(plugins_dir, filename_pattern)
-        elif os.path.exists(dest_path):
-            os.remove(dest_path)
-
-        shutil.move(temp_path, dest_path)
+            delete_plugins_by_pattern(plugins_dir, filename_pattern, exclude_path=dest_path)
 
         return {"success": True, "message": "更新完了", "filename": filename}
 
     except Exception as e:
-        # クリーンアップ
+        return {"success": False, "message": str(e), "filename": filename}
+    finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
-        return {"success": False, "message": str(e), "filename": filename}
 
 
 def update_all_plugins(plugins_dir: str, plugins_config: dict) -> list[dict]:
@@ -375,15 +468,7 @@ def compute_file_sha256(filepath: str) -> Optional[str]:
     Returns:
         SHA256ハッシュ文字列（小文字16進数）、エラー時はNone
     """
-    try:
-        sha256_hash = hashlib.sha256()
-        with open(filepath, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                sha256_hash.update(chunk)
-        return sha256_hash.hexdigest()
-    except Exception as e:
-        logging.error(f"SHA256 calculation error ({filepath}): {e}")
-        return None
+    return compute_file_hash(filepath, "sha256")
 
 
 def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
@@ -426,7 +511,17 @@ def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
         return None
 
 
-def get_github_latest_info(repo: str, asset_pattern: str) -> Optional[dict]:
+def _extract_github_sha256(asset: dict) -> str:
+    """GitHub release assetのdigestからSHA256を取り出す。"""
+    digest = asset.get("digest", "")
+    return digest.removeprefix("sha256:") if digest.startswith("sha256:") else ""
+
+
+def get_github_latest_info(
+    repo: str,
+    asset_pattern: str,
+    release_tag: Optional[str] = None,
+) -> Optional[dict]:
     """
     GitHubの最新リリースから指定パターンに一致するアセット情報を取得（sha256付き）
 
@@ -439,7 +534,8 @@ def get_github_latest_info(repo: str, asset_pattern: str) -> Optional[dict]:
         or None if not found
     """
     try:
-        url = f"https://api.github.com/repos/{repo}/releases/latest"
+        release_path = f"tags/{quote(release_tag, safe='')}" if release_tag else "latest"
+        url = f"https://api.github.com/repos/{repo}/releases/{release_path}"
         headers = {"Accept": "application/vnd.github.v3+json"}
 
         resp = requests.get(url, headers=headers, timeout=30)
@@ -453,17 +549,13 @@ def get_github_latest_info(repo: str, asset_pattern: str) -> Optional[dict]:
         for asset in data.get("assets", []):
             name = asset.get("name", "")
             if fnmatch.fnmatch(name, asset_pattern):
-                # digestフィールドからsha256を抽出（形式: "sha256:..."）
-                digest = asset.get("digest", "")
-                sha256 = digest.replace("sha256:", "") if digest.startswith("sha256:") else ""
-
                 return {
                     "name": name,
                     "download_url": asset.get("browser_download_url"),
                     "size": asset.get("size", 0),
                     "tag_name": tag_name,
                     "published_at": published_at,
-                    "sha256": sha256,
+                    "sha256": _extract_github_sha256(asset),
                 }
 
         return None
@@ -542,8 +634,9 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
     elif source == "github":
         repo = plugin_config.get("repo", "")
         asset_pattern = plugin_config.get("asset_pattern", "")
+        release_tag = plugin_config.get("release_tag")
 
-        info = get_github_latest_info(repo, asset_pattern)
+        info = get_github_latest_info(repo, asset_pattern, release_tag)
         if info:
             remote_sha256 = info.get("sha256", "")
             result["latest_version"] = info.get("tag_name", "不明")
@@ -554,6 +647,25 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
         else:
             result["error"] = "API取得に失敗"
             return result
+
+    elif source == "modrinth":
+        project = plugin_config.get("project", "")
+        loader = plugin_config.get("loader", "paper")
+        game_version = plugin_config.get("game_version", "")
+
+        info = get_modrinth_latest_info(project, loader, game_version)
+        if info:
+            remote_sha1 = info.get("sha1", "")
+            local_sha1 = compute_file_hash(filepath, "sha1")
+            result["latest_version"] = info.get("version", "不明")
+            plugin_info = parse_plugin_yml(filepath)
+            if plugin_info:
+                result["installed_version"] = plugin_info.get("version", "不明")
+            if remote_sha1 and local_sha1:
+                result["has_update"] = local_sha1.lower() != remote_sha1.lower()
+            return result
+        result["error"] = "Modrinth API取得に失敗"
+        return result
 
     elif source == "direct":
         # 直接URLの場合はsha256比較ができないためスキップ

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-20",
+  "minecraft_version": "1.21.11",
+  "java_major": 21,
+  "paper": {
+    "version": "1.21.11-132",
+    "channel": "STABLE",
+    "filename": "paper.jar",
+    "url": "https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar",
+    "hash": {
+      "algorithm": "sha256",
+      "value": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba"
+    }
+  },
+  "plugins": [
+    {
+      "name": "Geyser",
+      "version": "2.11.0-b1200",
+      "filename": "Geyser-Spigot.jar",
+      "source": "geysermc",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "392e5cf85b801397eaef336b98f83d69ad95d3ab000b3f590fd56b73a707b2e4"
+      }
+    },
+    {
+      "name": "Floodgate",
+      "version": "2.2.5-b138",
+      "filename": "floodgate-spigot.jar",
+      "source": "geysermc",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "44bdb908e2fb4ff1b974d5313d048a625a21555a9844cfb86256a98e8e1c6bd1"
+      }
+    },
+    {
+      "name": "BlueMap",
+      "version": "5.16",
+      "filename": "bluemap-5.16-paper.jar",
+      "source": "github",
+      "release_tag": "v5.16",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "79dbaeb260532dbd56624f8bce8ab22fbca158ae4a2860b04fcceffb9e4676ca"
+      }
+    },
+    {
+      "name": "WorldEdit",
+      "version": "7.4.4",
+      "filename": "worldedit-bukkit-7.4.4.jar",
+      "source": "modrinth",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "44c97ee6c1df9afa127df3c5a2c6a7108f826fb44ab7b255a7ec4250feb89b9d"
+      }
+    },
+    {
+      "name": "ExpBottleBoost",
+      "version": "1.0.1",
+      "filename": "ExpBottleBoost-1.0.1.jar",
+      "source": "github",
+      "hash": {
+        "algorithm": "sha256",
+        "value": "faefb0eed3a67b6cf0c5f05060ad0ff77c82f8fafbbf1668f0c53d078898cd03"
+      }
+    }
+  ]
+}

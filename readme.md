@@ -46,8 +46,9 @@ Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord か�
 対応ソース:
 - **GeyserMC API** — Geyser, Floodgate
 - **GitHub Releases** — BlueMap 等
+- **Modrinth API** — WorldEdit 等
 
-SHA256 ハッシュ比較で更新を検出し、アトミックにファイルを置換する。
+配布元の SHA256 または SHA1 ハッシュで更新を検出・検証し、アトミックにファイルを置換する。GitHub Releases は `release_tag` で互換版を固定できる。
 
 ### 権限管理
 
@@ -89,6 +90,7 @@ OCI-mc/
 ├── bot.py                     # エントリーポイント
 ├── settings.py                # 設定ローダー (.env + config.json)
 ├── config.json                # サーバー・権限・バックアップ設定
+├── server-artifacts.json      # Paper・プラグインの本番バージョンとハッシュ
 ├── requirements.txt           # Python 依存パッケージ
 ├── .env.example               # 環境変数テンプレート
 ├── cogs/
@@ -194,7 +196,15 @@ OCI-mc/
         "source": "github",
         "repo": "BlueMap-Minecraft/BlueMap",
         "asset_pattern": "bluemap-*-paper.jar",
+        "release_tag": "v5.16",
         "filename_pattern": "bluemap-*-paper.jar"
+      },
+      "worldedit": {
+        "source": "modrinth",
+        "project": "worldedit",
+        "loader": "paper",
+        "game_version": "1.21.11",
+        "filename_pattern": "worldedit-bukkit-*.jar"
       }
     }
   }
