@@ -9,7 +9,8 @@ from settings import NOTION_TOKEN, NOTION_DB_ID, NOTION_DS_ID
 # リトライ設定
 MAX_RETRIES = 3
 RETRY_BACKOFF = 2  # 指数バックオフの基数（秒）
-RETRYABLE_STATUS_CODES = {502, 503, 504, 429}
+RETRYABLE_STATUS_CODES = {429, 502, 503, 504, 529}
+RETRY_AFTER_STATUS_CODES = {429, 529}
 RETRY_AFTER_CAP = 60  # Retry-Afterの上限（秒）
 UPLOAD_TIMEOUT = 120  # アップロードのタイムアウト（秒）
 API_TIMEOUT = 30  # 通常APIコールのタイムアウト（秒）
@@ -26,16 +27,19 @@ class NotionAPIError(RuntimeError):
 
 
 def _request_with_retry(method, url, *, timeout=API_TIMEOUT, **kwargs):
-    """リトライ付きHTTPリクエスト。502/503/504/429を自動リトライする。"""
+    """リトライ付きHTTPリクエスト。429/502/503/504/529を自動リトライする。"""
     last_exc = None
     resp = None
     for attempt in range(MAX_RETRIES):
         try:
             resp = method(url, timeout=timeout, **kwargs)
-            if resp.status_code not in RETRYABLE_STATUS_CODES:
+            if (
+                resp.status_code not in RETRYABLE_STATUS_CODES
+                or attempt == MAX_RETRIES - 1
+            ):
                 return resp
-            # 429の場合はRetry-Afterヘッダーを尊重
-            if resp.status_code == 429:
+            # 429/529はRetry-Afterヘッダーを尊重
+            if resp.status_code in RETRY_AFTER_STATUS_CODES:
                 try:
                     wait = min(int(resp.headers.get("Retry-After", RETRY_BACKOFF ** (attempt + 1))), RETRY_AFTER_CAP)
                 except (ValueError, TypeError):
