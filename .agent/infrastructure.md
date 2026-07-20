@@ -185,7 +185,6 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - `DISCORD_OWNER_ID`: Bot owner user ID (for `/shell`)
 - `DISCORD_USER_IDS`: Allowed user IDs (comma-separated)
 - `DISCORD_GUILD_IDS`: コマンドを許可するguild ID（カンマ区切り）
-- `DISCORD_COMMAND_CHANNEL_IDS`: 管理コマンドを許可するチャンネル ID（カンマ区切り）
 - `DISCORD_SHELL_USER_IDS`: 任意シェルを許可するユーザー ID（カンマ区切り）
 - `DISCORD_SHELL_CHANNEL_IDS`: 任意シェルを許可するチャンネル ID（カンマ区切り）
 - `SERVER_RUNTIME_DIR`: PIDメタデータとdesired stateの保存先

@@ -24,8 +24,8 @@ Notion バックアップ、プラグイン更新、Paper artifact の検証付�
 - ステータス埋め込みを専用チャンネルに 3 分間隔で自動更新
 - サーバーログを Discord チャンネルにリアルタイム転送
 - OOM Kill 検知時に Discord へ通知
-- 全スラッシュコマンドは許可guild・チャンネル内に限定
-- `/shell` は60秒・64KiB上限、直列実行、ephemeral応答で運用
+- スラッシュコマンドは許可guild内で既存のロール・ユーザー権限に従って実行
+- `/shell` は許可ユーザー・許可チャンネルに限定し、60秒・64KiB上限、直列実行、ephemeral応答で運用
 
 ### バックアップ / ロールバック
 
@@ -182,7 +182,6 @@ OCI-mc/
    | `DISCORD_MOD_ID` | mod ロール ID |
    | `DISCORD_OWNER_ID` | Bot オーナーのユーザー ID |
    | `DISCORD_GUILD_IDS` | コマンドを許可するguild ID（カンマ区切り） |
-   | `DISCORD_COMMAND_CHANNEL_IDS` | 管理コマンドを許可するチャンネル ID（カンマ区切り） |
    | `DISCORD_SHELL_USER_IDS` | 任意シェルを許可するユーザー ID（カンマ区切り） |
    | `DISCORD_SHELL_CHANNEL_IDS` | 任意シェルを許可するチャンネル ID（カンマ区切り） |
    | `DISCORD_USER_IDS` | user ロール ID（カンマ区切り） |

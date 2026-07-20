@@ -63,15 +63,10 @@ DISCORD_ADMIN_ID = int(os.getenv('DISCORD_ADMIN_ID', 0))
 DISCORD_MOD_ID = int(os.getenv('DISCORD_MOD_ID', 0))
 DISCORD_OWNER_ID = int(os.getenv('DISCORD_OWNER_ID', 0))
 
-# 管理コマンドの実行場所とOSシェル実行者を明示的に制限する。
-# 未設定時は既存の通知チャンネルとOwnerへフォールバックする。
+# コマンドの実行guildとOSシェルの実行場所・実行者を明示的に制限する。
+# シェル実行者の未設定時のみOwnerへフォールバックする。
 DISCORD_GUILD_IDS = parse_id_set(os.getenv('DISCORD_GUILD_IDS'))
-DISCORD_COMMAND_CHANNEL_IDS = parse_id_set(os.getenv('DISCORD_COMMAND_CHANNEL_IDS'))
-if not DISCORD_COMMAND_CHANNEL_IDS and CHANNEL_ID:
-    DISCORD_COMMAND_CHANNEL_IDS = {CHANNEL_ID}
 DISCORD_SHELL_CHANNEL_IDS = parse_id_set(os.getenv('DISCORD_SHELL_CHANNEL_IDS'))
-if not DISCORD_SHELL_CHANNEL_IDS:
-    DISCORD_SHELL_CHANNEL_IDS = set(DISCORD_COMMAND_CHANNEL_IDS)
 DISCORD_SHELL_USER_IDS = parse_id_set(os.getenv('DISCORD_SHELL_USER_IDS'))
 if not DISCORD_SHELL_USER_IDS and DISCORD_OWNER_ID:
     DISCORD_SHELL_USER_IDS = {DISCORD_OWNER_ID}

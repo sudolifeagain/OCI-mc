@@ -3,7 +3,6 @@ import re
 import discord
 
 from settings import (
-    DISCORD_COMMAND_CHANNEL_IDS,
     DISCORD_GUILD_IDS,
     DISCORD_SHELL_CHANNEL_IDS,
     DISCORD_SHELL_USER_IDS,
@@ -27,20 +26,18 @@ def is_allowed_command_context(
     *,
     shell: bool = False,
 ) -> bool:
-    """管理操作が許可されたguild/channelからの実行か確認する。"""
+    """コマンド種別に応じたguild/channelからの実行か確認する。"""
     if interaction.guild_id is None:
         return False
     if DISCORD_GUILD_IDS and interaction.guild_id not in DISCORD_GUILD_IDS:
         return False
 
-    allowed_channels = (
-        DISCORD_SHELL_CHANNEL_IDS if shell else DISCORD_COMMAND_CHANNEL_IDS
-    )
-    if not allowed_channels:
+    if not shell:
+        return True
+
+    if not DISCORD_SHELL_CHANNEL_IDS:
         return False
-    if not (_interaction_channel_ids(interaction) & allowed_channels):
-        return False
-    return True
+    return bool(_interaction_channel_ids(interaction) & DISCORD_SHELL_CHANNEL_IDS)
 
 
 def is_shell_user(interaction: discord.Interaction) -> bool:

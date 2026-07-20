@@ -9,7 +9,7 @@ from utils.server_manager import MultiServerManager
 
 
 class SecureCommandTree(app_commands.CommandTree):
-    """全スラッシュコマンドを許可されたサーバーとチャンネルに限定する。"""
+    """スラッシュコマンドを許可guildに限定し、任意シェルを追加制限する。"""
 
     def __init__(self, client):
         super().__init__(
@@ -23,10 +23,29 @@ class SecureCommandTree(app_commands.CommandTree):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         command_name = getattr(interaction.command, "name", "")
-        return is_allowed_command_context(
+        allowed = is_allowed_command_context(
             interaction,
             shell=command_name == "shell",
         )
+        if allowed:
+            return True
+
+        logging.warning(
+            "Rejected application command context: command=%s guild=%s channel=%s user=%s",
+            command_name,
+            interaction.guild_id,
+            interaction.channel_id,
+            interaction.user.id,
+        )
+        if (
+            interaction.type is discord.InteractionType.application_command
+            and not interaction.response.is_done()
+        ):
+            await interaction.response.send_message(
+                "このサーバーまたはチャンネルではコマンドを実行できない。",
+                ephemeral=True,
+            )
+        return False
 
     async def on_error(
         self,
