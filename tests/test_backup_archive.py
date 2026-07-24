@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from utils.backup_archive import (
@@ -91,6 +92,57 @@ class BackupArchiveTests(unittest.TestCase):
             )
 
             self.assertTrue(zipfile.is_zipfile(archive_path))
+
+    def test_create_server_archive_uses_non_sticky_stage_for_server_user(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir, "server")
+            Path(base_dir, "world").mkdir(parents=True)
+            Path(base_dir, "world", "level.dat").write_bytes(b"level")
+            archive_path = Path(temp_dir, "backup.zip")
+            archive_path.touch()
+            staged_outputs: list[Path] = []
+
+            class FakeProcess:
+                returncode = 0
+
+                async def communicate(self) -> tuple[bytes, None]:
+                    return b"", None
+
+            async def create_process(*command: str, **kwargs: object) -> FakeProcess:
+                output_index = command.index("--output") + 1
+                staged_path = Path(command[output_index])
+                staged_outputs.append(staged_path)
+                create_zip_archive(str(base_dir), ["world"], str(staged_path))
+                return FakeProcess()
+
+            fake_pwd = SimpleNamespace(
+                getpwnam=lambda _: SimpleNamespace(pw_gid=1000)
+            )
+            with (
+                patch(
+                    "utils.backup_archive._should_run_as_server_user",
+                    return_value=True,
+                ),
+                patch("utils.backup_archive.pwd", fake_pwd),
+                patch("utils.backup_archive.os.chown", create=True),
+                patch(
+                    "utils.backup_archive.asyncio.create_subprocess_exec",
+                    side_effect=create_process,
+                ),
+            ):
+                asyncio.run(
+                    create_server_archive(
+                        str(base_dir),
+                        ["world"],
+                        str(archive_path),
+                        "mc-paper",
+                    )
+                )
+
+            self.assertTrue(zipfile.is_zipfile(archive_path))
+            self.assertEqual(len(staged_outputs), 1)
+            self.assertNotEqual(staged_outputs[0].parent, archive_path.parent)
+            self.assertFalse(staged_outputs[0].parent.exists())
 
 
 if __name__ == "__main__":

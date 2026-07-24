@@ -7,6 +7,7 @@ import asyncio
 import os
 import shutil
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import Sequence
@@ -88,6 +89,10 @@ def build_archive_command(
     return command
 
 
+def _should_run_as_server_user(run_as_user: str | None) -> bool:
+    return bool(run_as_user) and os.name == "posix"
+
+
 async def create_server_archive(
     base_dir: str,
     target_dirs: Sequence[str],
@@ -95,34 +100,45 @@ async def create_server_archive(
     run_as_user: str | None,
 ) -> None:
     """必要に応じてゲームサーバーユーザーへ切り替えてZIPを作成する。"""
-    if not run_as_user or os.name != "posix":
+    if not _should_run_as_server_user(run_as_user):
         await asyncio.to_thread(create_zip_archive, base_dir, target_dirs, archive_path)
         return
 
-    if pwd is None:
+    if pwd is None or run_as_user is None:
         raise RuntimeError("ゲームサーバーユーザーの解決に失敗した")
     server_user = pwd.getpwnam(run_as_user)
-    os.chmod(archive_path, 0o660)
-    os.chown(archive_path, -1, server_user.pw_gid)
+    archive_parent = str(Path(archive_path).resolve().parent)
+    stage_dir = tempfile.mkdtemp(prefix=".backup-archive-", dir=archive_parent)
+    staged_fd, staged_path = tempfile.mkstemp(suffix=".zip", dir=stage_dir)
+    os.close(staged_fd)
+    try:
+        os.chown(stage_dir, -1, server_user.pw_gid)
+        os.chmod(stage_dir, 0o770)
+        os.chown(staged_path, -1, server_user.pw_gid)
+        os.chmod(staged_path, 0o660)
 
-    command = build_archive_command(run_as_user, base_dir, target_dirs, archive_path)
-    project_dir = str(Path(__file__).resolve().parent.parent)
-    process = await asyncio.create_subprocess_exec(
-        *command,
-        cwd=project_dir,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT,
-    )
-    output, _ = await process.communicate()
-    os.chmod(archive_path, 0o600)
-    if process.returncode != 0:
-        detail = output.decode("utf-8", errors="replace").strip()
-        if len(detail) > 4000:
-            detail = detail[-4000:]
-        raise RuntimeError(
-            f"バックアップ圧縮プロセスが終了コード{process.returncode}で失敗した"
-            + (f": {detail}" if detail else "")
+        command = build_archive_command(run_as_user, base_dir, target_dirs, staged_path)
+        project_dir = str(Path(__file__).resolve().parent.parent)
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=project_dir,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
         )
+        output, _ = await process.communicate()
+        if process.returncode != 0:
+            detail = output.decode("utf-8", errors="replace").strip()
+            if len(detail) > 4000:
+                detail = detail[-4000:]
+            raise RuntimeError(
+                f"バックアップ圧縮プロセスが終了コード{process.returncode}で失敗した"
+                + (f": {detail}" if detail else "")
+            )
+
+        os.chmod(staged_path, 0o600)
+        os.replace(staged_path, archive_path)
+    finally:
+        shutil.rmtree(stage_dir)
 
 
 def _parse_args() -> argparse.Namespace:
