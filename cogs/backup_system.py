@@ -13,6 +13,7 @@ from discord import app_commands
 from datetime import datetime
 from discord.ext import commands, tasks
 from settings import CONFIG, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER
+from utils.backup_archive import create_server_archive
 from utils.permissions import check_role
 from utils.notion_api import upload_to_notion, register_to_database, get_backups_list, download_file
 from utils.discord_security import escape_discord_code_block
@@ -298,20 +299,12 @@ class BackupSystem(commands.Cog):
             )
             os.close(archive_fd)
 
-            def create_zip():
-                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for d in existing_dirs:
-                        full_path = os.path.join(mc_dir, d)
-                        if os.path.isdir(full_path):
-                            for root, dirs, files in os.walk(full_path):
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    arcname = os.path.relpath(file_path, mc_dir)
-                                    zipf.write(file_path, arcname)
-                        else:
-                            zipf.write(full_path, os.path.basename(full_path))
-
-            await loop.run_in_executor(None, create_zip)
+            await create_server_archive(
+                mc_dir,
+                existing_dirs,
+                zip_path,
+                server_instance.run_as_user,
+            )
 
             size_mb = os.path.getsize(zip_path) / (1024 * 1024)
 
