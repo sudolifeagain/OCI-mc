@@ -64,8 +64,52 @@ jobs:
       run: |
         ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 
+  infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.12'
+
+    - name: Install Ansible
+      run: |
+        python -m pip install --upgrade pip==26.1.2
+        pip install --require-hashes -r infra/ansible/requirements.txt
+
+    - name: Validate Ansible
+      working-directory: infra/ansible
+      run: |
+        ansible-playbook --syntax-check playbooks/host.yml
+
+    - name: Install Terraform
+      env:
+        TERRAFORM_VERSION: 1.5.7
+        TERRAFORM_SHA256: c0ed7bc32ee52ae255af9982c8c88a7a4c610485cf1d55feeb037eab75fa082c
+      run: |
+        archive="$RUNNER_TEMP/terraform.zip"
+        install_dir="$RUNNER_TEMP/terraform-bin"
+        curl --fail --silent --show-error --location \
+          --proto '=https' --tlsv1.2 \
+          "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
+          --output "$archive"
+        printf '%s  %s\n' "$TERRAFORM_SHA256" "$archive" | sha256sum --check
+        mkdir -p "$install_dir"
+        unzip -q "$archive" -d "$install_dir"
+        chmod 0755 "$install_dir/terraform"
+        printf '%s\n' "$install_dir" >> "$GITHUB_PATH"
+
+    - name: Validate Terraform
+      working-directory: infra/terraform
+      run: |
+        terraform fmt -check -recursive
+        terraform init -backend=false -lockfile=readonly
+        terraform validate
+
   notify:
-    needs: lint
+    needs: [lint, infrastructure]
     runs-on: ubuntu-latest
     if: failure() && github.event_name == 'push'
     steps:

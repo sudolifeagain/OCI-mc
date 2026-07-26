@@ -25,3 +25,29 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  - package-ecosystem: pip
+    directory: /infra/ansible
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:45"
+      timezone: Asia/Tokyo
+    groups:
+      ansible:
+        patterns:
+          - "*"
+
+  - package-ecosystem: terraform
+    directory: /infra/terraform
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Asia/Tokyo
+    groups:
+      terraform:
+        patterns:
+          - "*"

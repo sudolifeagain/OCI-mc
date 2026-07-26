@@ -1,0 +1,19 @@
+---
+minecraft_repo_root: "{{ lookup('env', 'OCI_MC_REPO_ROOT') | default('/opt/minecraft/bot', true) }}"
+minecraft_bot_user: ubuntu
+minecraft_runtime_dir: /opt/minecraft/.bot-runtime
+minecraft_maintenance_state_dir: /var/lib/oci-mc-maintenance
+minecraft_reboot_finalize_path: /usr/local/sbin/oci-mc-maintenance-reboot-finalize
+minecraft_timezone: Asia/Tokyo
+minecraft_server_accounts:
+  - name: mc-paper
+    home: /opt/minecraft/paper
+  - name: mc-forge
+    home: /opt/minecraft/forge
+  - name: mc-forge-alt
+    home: /opt/minecraft/forge-alt
+minecraft_systemd_units:
+  - discord-bot.service
+  - minecraft-maintenance-reboot.service
+  - minecraft-maintenance-reboot.timer
+  - minecraft-post-reboot.service

@@ -33,4 +33,22 @@ reaction_role_state.json
 # Claude Code session state (runtime)
 .claude_session_active
 
+# Terraform local state and credentials
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ansible runtime files
+*.retry
+infra/ansible/inventory/*.local.*
+
 

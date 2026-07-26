@@ -1,0 +1,4 @@
+/.github/ @sudolifeagain
+/infra/ @sudolifeagain
+/scripts/maintenance_reboot.py @sudolifeagain
+/systemd/ @sudolifeagain

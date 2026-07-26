@@ -1,0 +1,5 @@
+all:
+  hosts:
+    minecraft_host:
+      ansible_connection: local
+      ansible_host: 127.0.0.1
