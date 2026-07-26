@@ -84,11 +84,22 @@ jobs:
       run: |
         ansible-playbook --syntax-check playbooks/host.yml
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
-      with:
-        terraform_version: 1.5.7
-        terraform_wrapper: false
+    - name: Install Terraform
+      env:
+        TERRAFORM_VERSION: 1.5.7
+        TERRAFORM_SHA256: c0ed7bc32ee52ae255af9982c8c88a7a4c610485cf1d55feeb037eab75fa082c
+      run: |
+        archive="$RUNNER_TEMP/terraform.zip"
+        install_dir="$RUNNER_TEMP/terraform-bin"
+        curl --fail --silent --show-error --location \
+          --proto '=https' --tlsv1.2 \
+          "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
+          --output "$archive"
+        printf '%s  %s\n' "$TERRAFORM_SHA256" "$archive" | sha256sum --check
+        mkdir -p "$install_dir"
+        unzip -q "$archive" -d "$install_dir"
+        chmod 0755 "$install_dir/terraform"
+        printf '%s\n' "$install_dir" >> "$GITHUB_PATH"
 
     - name: Validate Terraform
       working-directory: infra/terraform
