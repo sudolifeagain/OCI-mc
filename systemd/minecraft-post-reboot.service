@@ -1,0 +1,22 @@
+[Unit]
+Description=Verify Minecraft recovery after an Ubuntu maintenance reboot
+After=network-online.target discord-bot.service
+Wants=network-online.target
+Requires=discord-bot.service
+ConditionPathExists=/var/lib/oci-mc-maintenance/reboot-pending.json
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/minecraft/bot
+ExecStart=/opt/minecraft/bot/venv/bin/python3 /opt/minecraft/bot/scripts/maintenance_reboot.py post-boot
+TimeoutStartSec=720s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/minecraft/.bot-runtime /var/lib/oci-mc-maintenance
+
+[Install]
+WantedBy=multi-user.target

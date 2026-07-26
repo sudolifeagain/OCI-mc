@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+ready_file=/run/oci-mc-maintenance/reboot-ready
+marker_file=/var/lib/oci-mc-maintenance/reboot-pending.json
+
+if [ ! -f /run/reboot-required ] || [ ! -f "$ready_file" ]; then
+    exit 0
+fi
+
+if ! /usr/bin/systemctl stop discord-bot.service; then
+    rm -f "$ready_file" "$marker_file"
+    exit 1
+fi
+
+if /usr/bin/systemctl reboot --no-block; then
+    exit 0
+fi
+
+rm -f "$ready_file" "$marker_file"
+/usr/bin/systemctl start discord-bot.service
+exit 1

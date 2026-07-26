@@ -1,6 +1,4 @@
 import os
-import json
-import hashlib
 import tempfile
 import shutil
 import zipfile
@@ -12,8 +10,16 @@ import discord
 from discord import app_commands
 from datetime import datetime
 from discord.ext import commands, tasks
+from pathlib import Path
 from settings import CONFIG, CHANNEL_ID, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER
 from utils.backup_archive import create_server_archive
+from utils.backup_fingerprint import (
+    compute_fingerprint,
+    fingerprint_value,
+    load_fingerprints,
+    save_fingerprints,
+    update_fingerprint,
+)
 from utils.permissions import check_role
 from utils.notion_api import upload_to_notion, register_to_database, get_backups_list, download_file
 from utils.discord_security import escape_discord_code_block
@@ -159,52 +165,33 @@ class BackupSystem(commands.Cog):
 
     def _load_fingerprints(self) -> dict:
         """保存済みフィンガープリントを読み込む"""
-        try:
-            with open(FINGERPRINT_FILE, 'r') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}
+        return load_fingerprints(Path(FINGERPRINT_FILE))
 
     def _save_fingerprints(self, data: dict) -> None:
         """フィンガープリントをファイルに保存する"""
-        with open(FINGERPRINT_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
+        save_fingerprints(Path(FINGERPRINT_FILE), data)
 
     def _compute_fingerprint(self, base_dir: str, target_dirs: list[str]) -> str:
         """パス・サイズ・更新時刻からバックアップ対象のフィンガープリントを計算する。"""
-        entries = []
-        for d in sorted(target_dirs):
-            full_path = os.path.join(base_dir, d)
-            if not os.path.exists(full_path):
-                continue
-            if os.path.isdir(full_path):
-                for root, dirs, files in os.walk(full_path):
-                    dirs.sort()
-                    for fname in sorted(files):
-                        file_path = os.path.join(root, fname)
-                        rel_path = os.path.relpath(file_path, base_dir)
-                        stat = os.stat(file_path)
-                        entries.append(f"{rel_path}|{stat.st_size}|{stat.st_mtime_ns}")
-            else:
-                stat = os.stat(full_path)
-                entries.append(f"{d}|{stat.st_size}|{stat.st_mtime_ns}")
-        return hashlib.sha256("\n".join(entries).encode()).hexdigest()
+        return compute_fingerprint(base_dir, target_dirs)
 
     def _has_changes(self, server_id: str, base_dir: str, target_dirs: list[str]) -> bool:
         """前回バックアップから変更があるか判定する"""
         current_fp = self._compute_fingerprint(base_dir, target_dirs)
         saved = self._load_fingerprints()
-        prev_fp = saved.get(server_id)
+        prev_fp = fingerprint_value(saved.get(server_id))
         if prev_fp is None:
             return True
         return current_fp != prev_fp
 
     def _update_fingerprint(self, server_id: str, base_dir: str, target_dirs: list[str]) -> None:
         """フィンガープリントを計算して保存する。サーバー停止後に呼ぶこと"""
-        fp = self._compute_fingerprint(base_dir, target_dirs)
-        saved = self._load_fingerprints()
-        saved[server_id] = fp
-        self._save_fingerprints(saved)
+        update_fingerprint(
+            Path(FINGERPRINT_FILE),
+            server_id,
+            base_dir,
+            target_dirs,
+        )
 
     async def perform_backup(self, channel, server_id: str = None, *, force: bool = False):
         """バックアップを実行する"""

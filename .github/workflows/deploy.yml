@@ -16,6 +16,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    env:
+      OCI_HOST: ${{ secrets.OCI_HOST }}
+      OCI_KNOWN_HOSTS: ${{ secrets.OCI_KNOWN_HOSTS }}
+      OCI_SSH_KEY: ${{ secrets.OCI_SSH_KEY }}
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -29,14 +33,16 @@ jobs:
     - name: Setup SSH Key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.OCI_SSH_KEY }}" > ~/.ssh/id_rsa
+        printf '%s\n' "$OCI_SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        echo "${{ secrets.OCI_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        printf '%s\n' "$OCI_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
 
     # 2. リモートホストにrsyncをインストール（未インストールの場合のみ）
     - name: Install rsync on remote
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} "which rsync || (sudo apt-get update && sudo apt-get install -y rsync)"
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" \
+          "command -v rsync >/dev/null || (sudo apt-get update && sudo apt-get install -y rsync)"
 
     # 3. 稼働サーバー状態を保存してBotを停止
     - name: Preserve runtime state and stop service
@@ -44,8 +50,8 @@ jobs:
         scp -i ~/.ssh/id_rsa \
           scripts/capture_running_servers.py \
           scripts/graceful_shutdown.py \
-          ubuntu@${{ secrets.OCI_HOST }}:/tmp/
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+          "ubuntu@$OCI_HOST:/tmp/"
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
           sudo install -d -m 0700 -o ubuntu -g ubuntu /opt/minecraft/.bot-runtime
           sudo python3 /tmp/capture_running_servers.py \
@@ -74,41 +80,40 @@ jobs:
           --exclude '.backup_fingerprints.json' \
           --exclude 'logs' \
           -e "ssh -i ~/.ssh/id_rsa" \
-          ./ ubuntu@${{ secrets.OCI_HOST }}:/opt/minecraft/bot/
+          ./ "ubuntu@$OCI_HOST:/opt/minecraft/bot/"
 
     # 5. ゲームサーバーを専用ユーザーへ分離
-    - name: Configure server users and permissions
+    - name: Apply host configuration with Ansible
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
-          sudo sh /opt/minecraft/bot/scripts/configure_server_users.sh
+          if [ ! -x /opt/minecraft/ansible-venv/bin/python ]; then
+            sudo python3 -m venv /opt/minecraft/ansible-venv
+          fi
+          sudo /opt/minecraft/ansible-venv/bin/python -m pip install \
+            --upgrade pip==26.1.2
+          sudo /opt/minecraft/ansible-venv/bin/python -m pip install \
+            --upgrade --require-hashes \
+            -r /opt/minecraft/bot/infra/ansible/requirements.txt
+          sudo env OCI_MC_REPO_ROOT=/opt/minecraft/bot \
+            /opt/minecraft/ansible-venv/bin/ansible-playbook \
+            -i /opt/minecraft/bot/infra/ansible/inventory/localhost.yml \
+            /opt/minecraft/bot/infra/ansible/playbooks/host.yml
         EOF
 
     # 6. manifestで固定したPaper jarを検証して配置
     - name: Install verified Paper artifact
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
           sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py install \
             --manifest /opt/minecraft/bot/server-artifacts.json
         EOF
 
-    # 7. systemdユニットのデプロイと有効化
-    - name: Deploy systemd unit and enable
-      run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
-          if [ -f /opt/minecraft/bot/systemd/discord-bot.service ]; then
-            sudo cp /opt/minecraft/bot/systemd/discord-bot.service /etc/systemd/system/discord-bot.service
-            sudo chmod 644 /etc/systemd/system/discord-bot.service
-            sudo systemctl daemon-reload
-            sudo systemctl enable discord-bot
-          fi
-        EOF
-
-    # 8. 依存関係の更新
+    # 7. 依存関係を更新
     - name: Install dependencies
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           cd /opt/minecraft/bot
           ./venv/bin/python -m pip install --upgrade pip==26.1.2
           ./venv/bin/python -m pip install --upgrade --require-hashes -r requirements.txt
@@ -118,7 +123,7 @@ jobs:
     # 9. サービス起動と稼働状態復元の確認
     - name: Start service and verify runtime restoration
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
           sudo systemctl daemon-reload
           sudo systemctl start discord-bot
@@ -130,13 +135,28 @@ jobs:
             --timeout 600
           sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py finalize
           rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
+          sudo systemd-analyze verify \
+            /etc/systemd/system/discord-bot.service \
+            /etc/systemd/system/minecraft-maintenance-reboot.service \
+            /etc/systemd/system/minecraft-maintenance-reboot.timer \
+            /etc/systemd/system/minecraft-post-reboot.service
+          sudo systemctl is-enabled minecraft-maintenance-reboot.timer
+          sudo systemctl is-active minecraft-maintenance-reboot.timer
+          sudo systemctl is-enabled minecraft-post-reboot.service
+          sudo test -x /usr/local/sbin/oci-mc-maintenance-reboot-finalize
+          sudo test \
+            "$(stat -c '%U:%G:%a' /usr/local/sbin/oci-mc-maintenance-reboot-finalize)" \
+            = "root:root:750"
+          test \
+            "$(sudo stat -c '%U:%G:%a' /var/lib/oci-mc-maintenance)" \
+            = "ubuntu:ubuntu:700"
         EOF
 
     # 10. 途中失敗時はPaperを旧jarへ戻して稼働状態を復旧
     - name: Recover service on failure
       if: failure()
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.OCI_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
           if [ -f /opt/minecraft/.bot-runtime/deploy_restore_required ]; then
             sudo systemctl stop discord-bot || true

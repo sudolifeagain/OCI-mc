@@ -39,7 +39,12 @@ async def wait_for_port_close(port: int, timeout: int = 90) -> bool:
     return False
 
 
-async def stop_server(server_id: str, config: dict) -> bool:
+async def stop_server(
+    server_id: str,
+    config: dict,
+    *,
+    allow_active_players: bool = True,
+) -> bool:
     from utils.rcon import get_rcon_client
 
     port = int(config["port"])
@@ -59,6 +64,13 @@ async def stop_server(server_id: str, config: dict) -> bool:
 
     match = re.search(r"There are (\d+)", response)
     player_count = int(match.group(1)) if match else 0
+    if player_count and not allow_active_players:
+        logging.warning(
+            "Server '%s' still has %d active players; refusing automatic stop",
+            server_id,
+            player_count,
+        )
+        return False
     if player_count:
         await client.execute("say サーバーメンテナンスのため60秒後に停止します")
         await asyncio.sleep(50)

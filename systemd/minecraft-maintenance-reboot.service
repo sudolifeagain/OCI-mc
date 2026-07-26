@@ -1,0 +1,25 @@
+[Unit]
+Description=Safe Ubuntu reboot for OCI Minecraft host
+Documentation=https://github.com/sudolifeagain/OCI-mc
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/run/reboot-required
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/minecraft/bot
+ExecStart=/opt/minecraft/bot/venv/bin/python3 /opt/minecraft/bot/scripts/maintenance_reboot.py prepare
+ExecStartPost=+/usr/local/sbin/oci-mc-maintenance-reboot-finalize
+TimeoutStartSec=900s
+RuntimeDirectory=oci-mc-maintenance
+RuntimeDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/minecraft/.bot-runtime /var/lib/oci-mc-maintenance /run/oci-mc-maintenance
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

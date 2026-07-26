@@ -1,0 +1,198 @@
+---
+- name: Require Ubuntu
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == "Ubuntu"
+      - ansible_facts.distribution_major_version == "24"
+    fail_msg: This playbook supports Ubuntu 24.04 only
+
+- name: Install host management packages
+  ansible.builtin.apt:
+    name:
+      - acl
+      - curl
+      - git
+      - python3
+      - python3-venv
+      - rsync
+      - unattended-upgrades
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Read host timezone
+  ansible.builtin.command:
+    cmd: /usr/bin/timedatectl show --property=Timezone --value
+  register: minecraft_current_timezone
+  changed_when: false
+  check_mode: false
+
+- name: Set host timezone
+  ansible.builtin.command:
+    cmd: "/usr/bin/timedatectl set-timezone {{ minecraft_timezone }}"
+  when: minecraft_current_timezone.stdout != minecraft_timezone
+  changed_when: true
+
+- name: Disable unattended automatic reboot
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/52oci-mc-maintenance
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      // Security updates are installed automatically. Reboots are gated by
+      // minecraft-maintenance-reboot.service.
+      Unattended-Upgrade::Automatic-Reboot "false";
+      Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
+
+- name: Disable swap activation from fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^\s*[^#]\S+\s+\S+\s+swap\s+'
+    state: absent
+    backup: true
+
+- name: Disable active swap
+  ansible.builtin.command:
+    cmd: /sbin/swapoff -a
+  when: ansible_facts.swaptotal_mb | int > 0
+  changed_when: true
+
+- name: Configure Minecraft swappiness
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-disable-swap.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      vm.swappiness=0
+  notify: Apply sysctl settings
+
+- name: Create Minecraft server groups
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    system: true
+    state: present
+  loop: "{{ minecraft_server_accounts }}"
+
+- name: Create Minecraft server users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    group: "{{ item.name }}"
+    home: "{{ item.home }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    state: present
+  loop: "{{ minecraft_server_accounts }}"
+
+- name: Grant the bot access to server groups
+  ansible.builtin.user:
+    name: "{{ minecraft_bot_user }}"
+    groups: "{{ minecraft_server_accounts | map(attribute='name') | join(',') }}"
+    append: true
+
+- name: Protect Minecraft server root directories
+  ansible.builtin.file:
+    path: "{{ item.home }}"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: "2770"
+    state: directory
+  loop: "{{ minecraft_server_accounts }}"
+
+- name: Protect server.properties files
+  ansible.builtin.stat:
+    path: "{{ item.home }}/server.properties"
+  loop: "{{ minecraft_server_accounts }}"
+  register: minecraft_server_properties
+
+- name: Protect existing server.properties files
+  ansible.builtin.file:
+    path: "{{ item.item.home }}/server.properties"
+    owner: "{{ item.item.name }}"
+    group: "{{ item.item.name }}"
+    mode: "0640"
+    state: file
+  loop: "{{ minecraft_server_properties.results }}"
+  when: item.stat.exists
+
+- name: Create bot runtime directory
+  ansible.builtin.file:
+    path: "{{ minecraft_runtime_dir }}"
+    owner: "{{ minecraft_bot_user }}"
+    group: "{{ minecraft_bot_user }}"
+    mode: "0700"
+    state: directory
+
+- name: Create bot PID directory
+  ansible.builtin.file:
+    path: "{{ minecraft_runtime_dir }}/pids"
+    owner: "{{ minecraft_bot_user }}"
+    group: "{{ minecraft_bot_user }}"
+    mode: "0700"
+    state: directory
+
+- name: Create maintenance state directory
+  ansible.builtin.file:
+    path: "{{ minecraft_maintenance_state_dir }}"
+    owner: "{{ minecraft_bot_user }}"
+    group: "{{ minecraft_bot_user }}"
+    mode: "0700"
+    state: directory
+
+- name: Install privileged reboot finalizer
+  ansible.builtin.copy:
+    src: oci-mc-maintenance-reboot-finalize
+    dest: "{{ minecraft_reboot_finalize_path }}"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Check bot environment file
+  ansible.builtin.stat:
+    path: "{{ minecraft_repo_root }}/.env"
+  register: minecraft_env_file
+
+- name: Protect bot environment file
+  ansible.builtin.file:
+    path: "{{ minecraft_repo_root }}/.env"
+    owner: "{{ minecraft_bot_user }}"
+    group: "{{ minecraft_bot_user }}"
+    mode: "0600"
+  when: minecraft_env_file.stat.exists
+
+- name: Install systemd units
+  ansible.builtin.copy:
+    src: "{{ minecraft_repo_root }}/systemd/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ minecraft_systemd_units }}"
+  notify: Reload systemd
+
+- name: Flush systemd handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Read installed services
+  ansible.builtin.service_facts:
+
+- name: Enable Discord bot service
+  ansible.builtin.systemd_service:
+    name: discord-bot.service
+    enabled: true
+
+- name: Enable maintenance reboot timer
+  ansible.builtin.systemd_service:
+    name: minecraft-maintenance-reboot.timer
+    enabled: true
+    state: started
+  when: not ansible_check_mode or "minecraft-maintenance-reboot.timer" in ansible_facts.services
+
+- name: Enable post-reboot verification
+  ansible.builtin.systemd_service:
+    name: minecraft-post-reboot.service
+    enabled: true
+  when: not ansible_check_mode or "minecraft-post-reboot.service" in ansible_facts.services
