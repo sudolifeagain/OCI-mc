@@ -95,7 +95,9 @@ jobs:
           sudo /opt/minecraft/ansible-venv/bin/python -m pip install \
             --upgrade --require-hashes \
             -r /opt/minecraft/bot/infra/ansible/requirements.txt
-          sudo env OCI_MC_REPO_ROOT=/opt/minecraft/bot \
+          sudo env \
+            ANSIBLE_CONFIG=/opt/minecraft/bot/infra/ansible/ansible.cfg \
+            OCI_MC_REPO_ROOT=/opt/minecraft/bot \
             /opt/minecraft/ansible-venv/bin/ansible-playbook \
             -i /opt/minecraft/bot/infra/ansible/inventory/localhost.yml \
             /opt/minecraft/bot/infra/ansible/playbooks/host.yml

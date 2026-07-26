@@ -10,6 +10,7 @@ fi
 
 if ! /usr/bin/systemctl stop discord-bot.service; then
     rm -f "$ready_file" "$marker_file"
+    /usr/bin/systemctl start discord-bot.service
     exit 1
 fi
 
