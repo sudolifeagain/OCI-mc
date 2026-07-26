@@ -15,18 +15,26 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from importlib import import_module
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from dotenv import load_dotenv
+_capture_running_servers = import_module("scripts.capture_running_servers")
+_graceful_shutdown = import_module("scripts.graceful_shutdown")
+_backup_fingerprint = import_module("utils.backup_fingerprint")
+_rcon = import_module("utils.rcon")
 
-from scripts.capture_running_servers import load_json, write_state
-from scripts.graceful_shutdown import port_is_open, stop_server
-from utils.backup_fingerprint import backup_is_acceptable
-from utils.rcon import get_rcon_client
+load_json = _capture_running_servers.load_json
+write_state = _capture_running_servers.write_state
+port_is_open = _graceful_shutdown.port_is_open
+stop_server = _graceful_shutdown.stop_server
+backup_is_acceptable = _backup_fingerprint.backup_is_acceptable
+get_rcon_client = _rcon.get_rcon_client
 
 try:
     import fcntl
