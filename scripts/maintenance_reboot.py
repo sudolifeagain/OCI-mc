@@ -17,6 +17,10 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
 from dotenv import load_dotenv
 
 from scripts.capture_running_servers import load_json, write_state

@@ -1,5 +1,7 @@
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -110,6 +112,19 @@ class BackupFingerprintTests(unittest.TestCase):
 
 
 class MaintenanceRebootTests(unittest.IsolatedAsyncioTestCase):
+    def test_script_resolves_repository_imports_outside_working_directory(self) -> None:
+        script = Path(__file__).resolve().parents[1] / "scripts" / "maintenance_reboot.py"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = subprocess.run(
+                [sys.executable, str(script), "--help"],
+                cwd=temp_dir,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_parse_player_count(self) -> None:
         self.assertEqual(
             parse_player_count("There are 3 of a max of 20 players online"),
