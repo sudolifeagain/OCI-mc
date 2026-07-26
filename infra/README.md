@@ -6,7 +6,7 @@ OCI側のリソース情報はTerraform、Ubuntuゲスト内部はAnsibleで管�
 
 `infra/terraform`は既存Computeインスタンスを読み取り、対象コンパートメント、稼働状態、シェイプを検証する。stateとOCIDは公開リポジトリへ保存しない。OCI Resource Managerで次のスタック変数を機密扱いで設定する。
 
-Terraform CLIはOCI Resource Managerが対応する1.5.7へ固定する。OCI Providerは8.23.0へ固定し、DependabotのPRで更新可否を検証する。
+Terraform CLIはOCI Resource Managerが対応する1.5.7へ固定する。OCI Providerは8.24.0へ固定し、DependabotのPRで更新可否を検証する。
 
 - `region`
 - `compartment_ocid`
