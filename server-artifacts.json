@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-27",
+  "updated_at": "2026-07-29",
   "minecraft_version": "26.2",
   "java_major": 25,
   "paper": {
-    "version": "26.2-84",
+    "version": "26.2-87",
     "channel": "STABLE",
     "filename": "paper.jar",
-    "source_filename": "paper-26.2-84.jar",
-    "url": "https://fill-data.papermc.io/v1/objects/defe82c1c89067186895de34cf32983e9f5a2ea387cfe7597c020faebb98ca16/paper-26.2-84.jar",
-    "size": 61757193,
+    "source_filename": "paper-26.2-87.jar",
+    "url": "https://fill-data.papermc.io/v1/objects/3ab7536642d04c504a06fe43174b8a94f8c5f25d5847d4672212413f6e54b906/paper-26.2-87.jar",
+    "size": 61756982,
     "hash": {
       "algorithm": "sha256",
-      "value": "defe82c1c89067186895de34cf32983e9f5a2ea387cfe7597c020faebb98ca16"
+      "value": "3ab7536642d04c504a06fe43174b8a94f8c5f25d5847d4672212413f6e54b906"
     }
   },
   "mod_loaders": [
