@@ -59,7 +59,7 @@ jobs:
     - name: Validate candidate
       if: steps.paper.outputs.update_available == 'true'
       run: |
-        python -m pip install --upgrade pip==26.1.2
+        python -m pip install --upgrade pip==26.2.1
         pip install --require-hashes -r requirements-dev.txt
         pip-audit --strict -r requirements.txt
         python -m unittest discover -s tests -v
