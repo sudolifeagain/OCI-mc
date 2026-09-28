@@ -5,6 +5,7 @@ minecraft_runtime_dir: /opt/minecraft/.bot-runtime
 minecraft_maintenance_state_dir: /var/lib/oci-mc-maintenance
 minecraft_reboot_finalize_path: /usr/local/sbin/oci-mc-maintenance-reboot-finalize
 minecraft_timezone: Asia/Tokyo
+minecraft_journald_max_use: 500M
 minecraft_server_accounts:
   - name: mc-paper
     home: /opt/minecraft/paper

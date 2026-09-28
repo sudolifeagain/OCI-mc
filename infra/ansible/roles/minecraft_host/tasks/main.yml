@@ -68,6 +68,25 @@
       vm.swappiness=0
   notify: Apply sysctl settings
 
+- name: Create journald drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+
+- name: Limit persistent journal size
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/50-oci-mc.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Journal]
+      SystemMaxUse={{ minecraft_journald_max_use }}
+  notify: Restart journald
+
 - name: Create Minecraft server groups
   ansible.builtin.group:
     name: "{{ item.name }}"

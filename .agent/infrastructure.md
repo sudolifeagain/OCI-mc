@@ -151,6 +151,13 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - **監視推奨**: `free -h`でメモリ使用量を定期確認
 - ホストメモリは17GiB。Forge 14G、Forge Alt 12G、Paper 4Gのため、Minecraftサーバーは1台ずつ起動する
 
+### Journal Size
+journaldの永続ログは500Mを上限とする。Ansibleロール `minecraft_host` が `/etc/systemd/journald.conf.d/50-oci-mc.conf` に `SystemMaxUse` を設定する（変数: `minecraft_journald_max_use`）。
+
+```bash
+journalctl --disk-usage
+```
+
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.
