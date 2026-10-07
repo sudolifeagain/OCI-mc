@@ -1,9 +1,10 @@
 import unittest
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 from requests import Response
 
-from utils.notion_api import MAX_RETRIES, RETRY_AFTER_CAP, _request_with_retry
+from utils.notion_api import MAX_RETRIES, RETRY_AFTER_CAP, _request_with_retry, register_to_database
 
 
 def make_response(status_code: int, retry_after: str | None = None) -> Response:
@@ -15,6 +16,14 @@ def make_response(status_code: int, retry_after: str | None = None) -> Response:
 
 
 class NotionRetryTests(unittest.TestCase):
+    @patch("utils.notion_api.get_data_source_id", return_value="test-data-source")
+    @patch("utils.notion_api._request_with_retry", return_value=make_response(200))
+    def test_backup_registration_includes_timezone(self, request_mock: Mock, source_mock: Mock) -> None:
+        self.assertTrue(register_to_database("test-upload", "backup.zip", 1))
+        payload = request_mock.call_args.kwargs["json"]
+        date = datetime.fromisoformat(payload["properties"]["Date"]["date"]["start"])
+        self.assertIsNotNone(date.utcoffset())
+
     @patch("utils.notion_api.time.sleep")
     def test_529_respects_retry_after(self, sleep_mock: Mock) -> None:
         method = Mock(

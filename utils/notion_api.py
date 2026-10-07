@@ -203,7 +203,7 @@ def register_to_database(file_upload_id, filename, size_mb):
         "parent": {"type": "data_source_id", "data_source_id": get_data_source_id()},
         "properties": {
             "Backup Name": {"title": [{"text": {"content": filename}}]},
-            "Date": {"date": {"start": datetime.now().isoformat()}},
+            "Date": {"date": {"start": datetime.now().astimezone().isoformat()}},
             "Size": {"number": size_mb},
             "File": {
                 "files": [

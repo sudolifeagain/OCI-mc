@@ -14,7 +14,9 @@ class RconClient:
 
     SERVERDATA_AUTH = 3
     SERVERDATA_EXECCOMMAND = 2
-    MAX_PACKET_SIZE = 4096
+    # Minecraftは4096文字ごとに分割する。UTF-8と10バイトのヘッダーを含む。
+    MAX_PACKET_SIZE = 4096 * 4 + 10
+    MAX_RESPONSE_BYTES = 1024 * 1024
 
     def __init__(self, host: str, port: int, password: str):
         self.host = host
@@ -84,7 +86,10 @@ class RconClient:
             return False, f"Error: {e}"
         finally:
             writer.close()
-            await writer.wait_closed()
+            try:
+                await writer.wait_closed()
+            except ConnectionError:
+                pass
 
     async def _authenticate(
         self,
@@ -123,15 +128,35 @@ class RconClient:
 
         # コマンドパケット送信
         await self._write_packet(writer, request_id, self.SERVERDATA_EXECCOMMAND, command)
-
-        # レスポンス読み取り
-        response_id, _, payload = await self._read_packet(reader)
-
-        # request_id照合
-        if response_id != request_id:
-            logging.warning(f"Request ID mismatch: expected {request_id}, got {response_id}")
-
-        return payload
+        # 後続の空コマンドへの応答を終端とし、長い応答の全パケットを回収する。
+        end_id = request_id + 1
+        chunks = []
+        total = 0
+        end_sent = False
+        while True:
+            try:
+                response_id, _, payload = await self._read_packet(reader)
+            except (asyncio.IncompleteReadError, ConnectionError):
+                if command.strip() == "stop" and chunks:
+                    return "".join(chunks)
+                raise
+            if response_id == end_id:
+                return "".join(chunks)
+            if response_id != request_id:
+                raise ValueError(f"Unexpected RCON response ID: {response_id}")
+            total += len(payload.encode("utf-8"))
+            if total > self.MAX_RESPONSE_BYTES:
+                raise ValueError("RCON response exceeds size limit")
+            chunks.append(payload)
+            # Minecraftが最初の要求を受信した後に終端要求を送る。
+            if not end_sent:
+                try:
+                    await self._write_packet(writer, end_id, self.SERVERDATA_EXECCOMMAND, "")
+                except ConnectionError:
+                    if command.strip() == "stop":
+                        return "".join(chunks)
+                    raise
+                end_sent = True
 
     async def _write_packet(
         self,

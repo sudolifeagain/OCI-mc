@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-03",
+  "updated_at": "2026-10-07",
   "minecraft_version": "26.2",
   "java_major": 25,
   "paper": {
-    "version": "26.2-92",
+    "version": "26.2-132",
     "channel": "STABLE",
     "filename": "paper.jar",
-    "source_filename": "paper-26.2-92.jar",
-    "url": "https://fill-data.papermc.io/v1/objects/059d00bbce0fa1707739618b3276f5c80b9655dc0f964306fa799a9c7cb01cc2/paper-26.2-92.jar",
-    "size": 61757064,
+    "source_filename": "paper-26.2-132.jar",
+    "url": "https://fill-data.papermc.io/v1/objects/5ab560a769c1ab413cb7f637dd0dc697974571f2db0a667cfbac511422e51b26/paper-26.2-132.jar",
+    "size": 64524844,
     "hash": {
       "algorithm": "sha256",
-      "value": "059d00bbce0fa1707739618b3276f5c80b9655dc0f964306fa799a9c7cb01cc2"
+      "value": "5ab560a769c1ab413cb7f637dd0dc697974571f2db0a667cfbac511422e51b26"
     }
   },
   "mod_loaders": [
@@ -28,8 +28,9 @@
         "value": "fcde7b40c0f5e5d2cdfb568f13d6d4c6d2a647768eec60ea235d8b0d03da9c62"
       },
       "mods": {
-        "file_count": 540,
-        "manifest_sha256": "1d888cf59c2a4b09f6fabb0c5ad3ed9828641099ab5a1ab5c81c49dc5f68a975"
+        "file_count": 533,
+        "manifest_sha256": "3e4a6f54e8eb471238692d408795a2a60a39858619ba4be1016612a5f05b6a2b",
+        "manifest_format": "sha256sum lines sorted by filename, UTF-8, LF"
       }
     },
     {

@@ -28,6 +28,8 @@ jobs:
     - name: Audit dependencies
       run: |
         pip-audit --strict -r requirements.txt
+        pip-audit --strict -r requirements-dev.txt
+        pip-audit --strict -r infra/ansible/requirements.txt
 
     - name: Check Python syntax
       run: |

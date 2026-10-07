@@ -116,6 +116,7 @@ jobs:
     - name: Install dependencies
       run: |
         ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
+          set -e
           cd /opt/minecraft/bot
           ./venv/bin/python -m pip install --upgrade pip==26.2.1
           ./venv/bin/python -m pip install --upgrade --require-hashes -r requirements.txt
@@ -135,7 +136,12 @@ jobs:
             --config /opt/minecraft/bot/config.json \
             --state /opt/minecraft/.bot-runtime/desired_servers.json \
             --timeout 600
+          python3 /opt/minecraft/bot/scripts/repair_forge_data.py inventory \
+            --plan /opt/minecraft/bot/infra/forge-resource-fixes.json \
+            --manifest /opt/minecraft/bot/server-artifacts.json
           sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py finalize
+          sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py finalize \
+            --plan /opt/minecraft/bot/infra/forge-resource-fixes.json
           rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
           sudo systemd-analyze verify \
             /etc/systemd/system/discord-bot.service \
@@ -164,6 +170,10 @@ jobs:
             sudo systemctl stop discord-bot || true
             if [ -f /opt/minecraft/bot/scripts/manage_paper_artifact.py ]; then
               sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py rollback
+            fi
+            if [ -f /opt/minecraft/bot/scripts/repair_forge_data.py ]; then
+              sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py rollback \
+                --plan /opt/minecraft/bot/infra/forge-resource-fixes.json
             fi
             sudo systemctl start discord-bot
             if [ -f /opt/minecraft/.bot-runtime/desired_servers.json ]; then

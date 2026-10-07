@@ -136,6 +136,28 @@
   loop: "{{ minecraft_server_properties.results }}"
   when: item.stat.exists
 
+- name: Apply reviewed Forge data repairs
+  ansible.builtin.command:
+    cmd: >-
+      /usr/bin/python3 {{ minecraft_repo_root }}/scripts/repair_forge_data.py apply
+      --plan {{ minecraft_repo_root }}/infra/forge-resource-fixes.json
+  register: minecraft_forge_data_repairs
+  changed_when: "'Changed jars: 0' not in minecraft_forge_data_repairs.stdout"
+  when: not ansible_check_mode
+
+- name: Read Cold Sweat configuration
+  ansible.builtin.stat:
+    path: /opt/minecraft/forge/config/coldsweat/world.toml
+  register: minecraft_cold_sweat_config
+
+- name: Remove references to unavailable Cold Sweat biomes and dimensions
+  ansible.builtin.lineinfile:
+    path: /opt/minecraft/forge/config/coldsweat/world.toml
+    regexp: '^\s*\["(?:environmental:marsh|twilightforest:twilight_forest_type)",.*\],?\s*$'
+    state: absent
+    backup: true
+  when: minecraft_cold_sweat_config.stat.exists
+
 - name: Create bot runtime directory
   ansible.builtin.file:
     path: "{{ minecraft_runtime_dir }}"

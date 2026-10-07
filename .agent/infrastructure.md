@@ -7,13 +7,13 @@
 
 ## Directory Map (Remote)
 - **/opt/minecraft/**: Root
-  - **paper/**: Paper 26.2 build 62 (BETA)
+  - **paper/**: Paper 26.2 STABLE（buildとSHA-256は `server-artifacts.json` を参照）
     - `paper.jar`, `plugins/`, `world/`
     - Java: `/usr/lib/jvm/java-25-openjdk-arm64/bin/java`
     - JVMメモリ設定: `-Xmx4G -Xms4G`
     - 実行ユーザー: `mc-paper`
   - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
-    - `run.sh`, `mods/` (540 files, 1.2GB), `world/`
+    - `run.sh`, `mods/` (533 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - 実行ユーザー: `mc-forge`
     - Memory: 14G, Port: 25566
@@ -157,6 +157,20 @@ journaldの永続ログは500Mを上限とする。Ansibleロール `minecraft_h
 ```bash
 journalctl --disk-usage
 ```
+
+### Forge data repairs
+
+`infra/forge-resource-fixes.json` は2026-10-07に確認したJSONデータの修復計画である。Ansibleがゲーム停止中に適用し、元のリソースのSHA-256と一致しない場合は停止する。MODのクラスファイルとバージョンは変更しない。署名付きMODには互換データパックで適用する。
+
+- 不在アイテム・MODを参照するレシピにはForgeの存在条件を付与する
+- 空JSONで無効化されていたレシピは `forge:false` で表現する
+- 無効なルート項目のみを除去し、有効なドロップとタグを保持する
+- Epic VillagesのバイオームID重複とJSON誤記、shapelessレシピの形式を修正する
+- Cold Sweatから不在バイオーム・ディメンションの設定を除去する
+
+変更前のMODは `/opt/minecraft/.forge-data-backups` に退避する。デプロイの復旧確認に失敗した場合は自動復元する。MODを更新する場合は修復計画も再確認する。ForgeのMOD全体のハッシュは、ファイル名順に並べた `SHA256  filename\n` のUTF-8文字列をSHA-256でハッシュした値である。
+
+AllTheLeaksが報告する `BlockTestLevel (supplementaries): 1` は、Moonlightの `FakeLevelManager.INSTANCES` が稼働中に保持するテスト用ワールドである。保持数1の警告だけではメモリリークと判定しない。実ヒープの増加、保持数の増加、TPS低下を併せて確認する。
 
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).

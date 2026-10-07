@@ -3,3 +3,7 @@ python-dotenv==1.2.3
 requests==2.34.2
 psutil==7.2.2
 PyYAML==6.0.3
+
+# Dependabot再生成でもPython 3.12/3.13の条件を保持する。
+audioop-lts==0.2.2 ; python_version >= '3.13'
+typing-extensions==4.16.0 ; python_version < '3.13'
