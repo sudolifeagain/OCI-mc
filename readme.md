@@ -3,7 +3,7 @@
 Oracle Cloud Infrastructure (OCI) 上の Minecraft サーバーを Discord から管理する Bot。
 Notion バックアップ、プラグイン更新、Paper artifact の検証付きデプロイ、Claude Code セッション管理など、リモート運用に必要な機能を備えている。
 
-本番で使用する Minecraft、Paper、Mod ローダー、プラグインのバージョンとハッシュは `server-artifacts.json` を正とする。現在の Paper は 26.2 build 62 BETA であり、26.2 の STABLE 公開後に自動更新する構成である。
+本番で使用する Minecraft、Paper、Mod ローダー、プラグインのバージョンとハッシュは `server-artifacts.json` を正とする。Paper は Minecraft 26.2 の STABLE チャンネルを対象に自動更新する構成である。
 
 ## 機能一覧
 
@@ -225,7 +225,9 @@ python -m unittest discover -s tests -v
 ruff check . --select=E,F,W --ignore=E501 --exclude=venv
 ```
 
-CI は Python 3.12 で依存関係の脆弱性監査、構文・import確認、単体テスト、ruff を実行する。
+CI は Python 3.12 で本番・開発・Ansibleの依存関係の脆弱性監査、構文・import確認、単体テスト、ruff を実行する。
+
+依存ロックは `uv pip compile --universal --python-version 3.12 --generate-hashes` で `.in` から再生成する。`audioop-lts` と `typing-extensions` のPythonバージョン条件を保持し、生成後はPython 3.12で `pip install --require-hashes` を確認する。
 
 ## 公開リポジトリでの秘密情報管理
 

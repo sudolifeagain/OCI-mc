@@ -22,18 +22,23 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip==26.1.2
+        python -m pip install --upgrade pip==26.2.1
         pip install --require-hashes -r requirements-dev.txt
 
     - name: Audit dependencies
       run: |
         pip-audit --strict -r requirements.txt
+        pip-audit --strict -r requirements-dev.txt
+        pip-audit --strict -r infra/ansible/requirements.txt
 
     - name: Check Python syntax
       run: |
         python -m py_compile bot.py settings.py
         python -m py_compile cogs/*.py
         python -m py_compile utils/*.py
+
+    - name: Check public repository secrets policy
+      run: python scripts/check_public_secrets.py
 
     - name: Verify imports
       run: |
@@ -76,7 +81,7 @@ jobs:
 
     - name: Install Ansible
       run: |
-        python -m pip install --upgrade pip==26.1.2
+        python -m pip install --upgrade pip==26.2.1
         pip install --require-hashes -r infra/ansible/requirements.txt
 
     - name: Validate Ansible

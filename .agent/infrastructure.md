@@ -7,13 +7,13 @@
 
 ## Directory Map (Remote)
 - **/opt/minecraft/**: Root
-  - **paper/**: Paper 26.2 build 62 (BETA)
+  - **paper/**: Paper 26.2 STABLE（buildとSHA-256は `server-artifacts.json` を参照）
     - `paper.jar`, `plugins/`, `world/`
     - Java: `/usr/lib/jvm/java-25-openjdk-arm64/bin/java`
     - JVMメモリ設定: `-Xmx4G -Xms4G`
     - 実行ユーザー: `mc-paper`
   - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
-    - `run.sh`, `mods/` (540 files, 1.2GB), `world/`
+    - `run.sh`, `mods/` (533 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - 実行ユーザー: `mc-forge`
     - Memory: 14G, Port: 25566
@@ -81,6 +81,12 @@ FORGE_ALT_RCON_PASSWORD=<password>
 ```
 
 #### config.json
+
+認証情報は `.env` と GitHub Repository/Environment secrets で管理する。公開設定には記録しない。
+リアクションロールのチャンネル ID と対応関係は `reaction_roles.local.json` に保存する。
+同ファイルは Git 管理外であり、デプロイ時の削除・上書き対象外である。
+旧 `config.json` の値はデプロイ前に権限 0600 の非公開設定へ移行する。
+秘密情報が漏えいした場合は、失効・ローテーションを先に行い、その後に Git 履歴を処理する。
 各サーバーに`rcon_port`と`rcon_password_env`を設定:
 ```json
 {
@@ -150,6 +156,27 @@ sudo sysctl -p /etc/sysctl.d/99-disable-swap.conf         # 永続化
 - **OOM Killer**: メモリ枯渇時はスワップへの退避ではなくプロセス強制終了が発生
 - **監視推奨**: `free -h`でメモリ使用量を定期確認
 - ホストメモリは17GiB。Forge 14G、Forge Alt 12G、Paper 4Gのため、Minecraftサーバーは1台ずつ起動する
+
+### Journal Size
+journaldの永続ログは500Mを上限とする。Ansibleロール `minecraft_host` が `/etc/systemd/journald.conf.d/50-oci-mc.conf` に `SystemMaxUse` を設定する（変数: `minecraft_journald_max_use`）。
+
+```bash
+journalctl --disk-usage
+```
+
+### Forge data repairs
+
+`infra/forge-resource-fixes.json` は2026-10-07に確認したJSONデータの修復計画である。Ansibleがゲーム停止中に適用し、元のリソースのSHA-256と一致しない場合は停止する。MODのクラスファイルとバージョンは変更しない。署名付きMODには互換データパックで適用する。
+
+- 不在アイテム・MODを参照するレシピにはForgeの存在条件を付与する
+- 空JSONで無効化されていたレシピは `forge:false` で表現する
+- 無効なルート項目のみを除去し、有効なドロップとタグを保持する
+- Epic VillagesのバイオームID重複とJSON誤記、shapelessレシピの形式を修正する
+- Cold Sweatから不在バイオーム・ディメンションの設定を除去する
+
+変更前のMODは `/opt/minecraft/.forge-data-backups` に退避する。デプロイの復旧確認に失敗した場合は自動復元する。MODを更新する場合は修復計画も再確認する。ForgeのMOD全体のハッシュは、ファイル名順に並べた `SHA256  filename\n` のUTF-8文字列をSHA-256でハッシュした値である。
+
+AllTheLeaksが報告する `BlockTestLevel (supplementaries): 1` は、Moonlightの `FakeLevelManager.INSTANCES` が稼働中に保持するテスト用ワールドである。保持数1の警告だけではメモリリークと判定しない。実ヒープの増加、保持数の増加、TPS低下を併せて確認する。
 
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
