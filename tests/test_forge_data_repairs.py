@@ -8,11 +8,37 @@ import zipfile
 from pathlib import Path
 
 from scripts.repair_forge_data import (
-    apply_plan, decode, encode, repair_loot, repair_recipe, repair_tag, rollback,
+    apply_plan, build_plan, decode, encode, repair_loot, repair_recipe, repair_tag, rollback,
 )
 
 
 class ForgeDataRepairTests(unittest.TestCase):
+    def test_unnamespaced_loot_item_keeps_registered_fallback(self) -> None:
+        data = {"children": [{"type": "item", "name": "other:missing"},
+                             {"type": "item", "name": "minecraft:stone"}]}
+        self.assertEqual(repair_loot(data, {"other:missing"})["children"], [data["children"][1]])
+
+    def test_plan_normalizes_rejected_tag_json_and_reads_all_reference_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            server = Path(folder)
+            (server / "mods").mkdir()
+            bad_json = b'{"values":["minecraft:stone",]}'
+            missing = {"values": ["minecraft:gone", "minecraft:also_gone", "minecraft:stone"]}
+            with zipfile.ZipFile(server / "mods/test.jar", "w") as archive:
+                archive.writestr("data/minecraft/tags/blocks/syntax.json", bad_json)
+                archive.writestr("data/minecraft/tags/blocks/missing.json", encode(missing))
+            log = server / "latest.log"
+            log.write_text("[ERROR] Couldn't read tag list minecraft:syntax from minecraft:tags/blocks/syntax.json in data pack test.jar\n"
+                           "[ERROR] Couldn't load tag minecraft:missing as it is missing following references: minecraft:gone (from test.jar),\n"
+                           "minecraft:also_gone (from test.jar)\n", encoding="utf-8")
+            plan = build_plan(server, log)
+            by_resource = {row["resource"]: row["data"] for row in plan["changes"]}
+            self.assertEqual(by_resource["data/minecraft/tags/blocks/syntax.json"], {"values": ["minecraft:stone"]})
+            self.assertEqual(by_resource["data/minecraft/tags/blocks/missing.json"]["values"], [
+                {"id": "minecraft:gone", "required": False}, {"id": "minecraft:also_gone", "required": False},
+                "minecraft:stone",
+            ])
+
     def test_chest_loot_keeps_inventory_name_lock_and_function_conditions(self) -> None:
         condition = [{"condition": "minecraft:survives_explosion"}]
         data = {"functions": [{"function": "minecraft:copy_components", "source": "block_entity",

@@ -29,7 +29,7 @@
       },
       "mods": {
         "file_count": 533,
-        "manifest_sha256": "3cdf0e74aab65ff82ff3f19412c90f184ab13c48c042897b0e227784ceb8733b",
+        "manifest_sha256": "03fec213cd30049f05003e7b890c0a08118e842eac2c1cd2101b8de8ac4928c3",
         "manifest_format": "sha256sum lines sorted by filename, UTF-8, LF"
       }
     },
