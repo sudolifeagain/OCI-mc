@@ -20,6 +20,7 @@ jobs:
       OCI_HOST: ${{ secrets.OCI_HOST }}
       OCI_KNOWN_HOSTS: ${{ secrets.OCI_KNOWN_HOSTS }}
       OCI_SSH_KEY: ${{ secrets.OCI_SSH_KEY }}
+      RELEASE_SHA: ${{ github.sha }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -47,6 +48,9 @@ jobs:
     # 3. 稼働サーバー状態を保存してBotを停止
     - name: Preserve runtime state and stop service
       run: |
+        scp -i ~/.ssh/id_rsa scripts/migrate_runtime_config.py "ubuntu@$OCI_HOST:/tmp/migrate_runtime_config.py"
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" \
+          "python3 /tmp/migrate_runtime_config.py --config /opt/minecraft/bot/config.json && rm /tmp/migrate_runtime_config.py"
         scp -i ~/.ssh/id_rsa \
           scripts/capture_running_servers.py \
           scripts/graceful_shutdown.py \
@@ -75,9 +79,13 @@ jobs:
         rsync -avz --delete \
           --exclude '.git' \
           --exclude '.env' \
+          --exclude '.env.*' \
           --exclude 'venv' \
           --exclude 'user_permissions.json' \
           --exclude '.backup_fingerprints.json' \
+          --exclude 'reaction_roles.local.json' \
+          --exclude 'reaction_role_state.json' \
+          --exclude '.claude_session_active' \
           --exclude 'logs' \
           -e "ssh -i ~/.ssh/id_rsa" \
           ./ "ubuntu@$OCI_HOST:/opt/minecraft/bot/"
@@ -126,13 +134,13 @@ jobs:
     # 9. サービス起動と稼働状態復元の確認
     - name: Start service and verify runtime restoration
       run: |
-        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
+        ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" bash -s -- "$RELEASE_SHA" << 'EOF'
           set -e
           sudo systemctl daemon-reload
           sudo systemctl start discord-bot
           sleep 3
           sudo systemctl is-active discord-bot
-          python3 /opt/minecraft/bot/scripts/verify_runtime.py \
+          /opt/minecraft/bot/venv/bin/python /opt/minecraft/bot/scripts/verify_runtime.py \
             --config /opt/minecraft/bot/config.json \
             --state /opt/minecraft/.bot-runtime/desired_servers.json \
             --timeout 600
@@ -158,6 +166,7 @@ jobs:
           test \
             "$(sudo stat -c '%U:%G:%a' /var/lib/oci-mc-maintenance)" \
             = "ubuntu:ubuntu:700"
+          printf '%s\n' "$1" > /opt/minecraft/.bot-runtime/deployed_commit
         EOF
 
     # 10. 途中失敗時はPaperを旧jarへ戻して稼働状態を復旧
@@ -177,7 +186,7 @@ jobs:
             fi
             sudo systemctl start discord-bot
             if [ -f /opt/minecraft/.bot-runtime/desired_servers.json ]; then
-              python3 /opt/minecraft/bot/scripts/verify_runtime.py \
+              /opt/minecraft/bot/venv/bin/python /opt/minecraft/bot/scripts/verify_runtime.py \
                 --config /opt/minecraft/bot/config.json \
                 --state /opt/minecraft/.bot-runtime/desired_servers.json \
                 --timeout 600

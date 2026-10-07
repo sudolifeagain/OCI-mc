@@ -4,6 +4,197 @@
   "changes": [
     {
       "jar": "AetherVillages-1.20.1-1.0.7-forge.jar",
+      "resource": "data/aether_villages/loot_tables/chests/olympic_citadel/olympic_citadel_supply.json",
+      "before_sha256": "893600111da923dd96eed5d8e34252d84322157e9b8a2c2cd8bf64ddb6fa1211",
+      "data": {
+        "type": "minecraft:chest",
+        "pools": [
+          {
+            "rolls": {
+              "min": 1,
+              "max": 2
+            },
+            "bonus_rolls": 7,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:gold_nugget",
+                "weight": 3,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 3,
+                      "max": 15
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:glistering_melon_slice",
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:golden_carrot",
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 5
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:golden_apple"
+              }
+            ]
+          },
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": "Wine"
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"CustomPotionColor\":9765032,\"CustomPotionEffects\":[{\"Id\":8,\"Amplifier\":2,\"Duration\":700},{\"Id\":26,\"Amplifier\":2,\"Duration\":700},{\"Id\":9,\"Amplifier\":3,\"Duration\":300}]}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": "Ambrosia"
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"CustomPotionColor\":16248600,\"Potion\":\"minecraft:water\",\"CustomPotionEffects\":[{\"Id\":11,\"Amplifier\":2,\"Duration\":700},{\"Id\":22,\"Amplifier\":2,\"Duration\":700},{\"Id\":10,\"Amplifier\":2,\"Duration\":700}]}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "rolls": {
+              "type": "minecraft:uniform",
+              "min": 2,
+              "max": 3
+            },
+            "bonus_rolls": 0,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:baked_potato",
+                "weight": 20,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 7,
+                      "max": 16
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:melon_slice",
+                "weight": 20,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "type": "minecraft:uniform",
+                      "min": 4,
+                      "max": 10
+                    },
+                    "add": false
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:bread",
+                "weight": 20,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "type": "minecraft:uniform",
+                      "min": 1,
+                      "max": 8
+                    },
+                    "add": false
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:cooked_beef",
+                "weight": 20,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:blue_orchid",
+                "weight": 30
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:golden_carrot",
+                "weight": 10,
+                "functions": [
+                  {
+                    "function": "minecraft:set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:suspicious_stew",
+                "weight": 10
+              }
+            ]
+          }
+        ],
+        "random_sequence": "minecraft:chests/village/village_armorer"
+      }
+    },
+    {
+      "jar": "AetherVillages-1.20.1-1.0.7-forge.jar",
       "resource": "data/aether_villages/tags/worldgen/biome/collections/aether_redux_biomes.json",
       "before_sha256": "79915ee526dd533f22ad65e1016b52f17d0484fd9e0fe6d7b6f7b2d32c0dbd72",
       "data": {
@@ -12,12 +203,27 @@
             "id": "aether_redux:skyfields",
             "required": false
           },
-          "aether_redux:gilded_groves",
-          "aether_redux:cloudcaps",
-          "aether_redux:frosted_forests",
-          "aether_redux:glacial_tundra"
+          {
+            "id": "aether_redux:gilded_groves",
+            "required": false
+          },
+          {
+            "id": "aether_redux:cloudcaps",
+            "required": false
+          },
+          {
+            "id": "aether_redux:frosted_forests",
+            "required": false
+          },
+          {
+            "id": "aether_redux:glacial_tundra",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "6e7c337d75e1cf58a0fda6ae229bbfbcd7bf6202950fcd3d44b3e8b4bd333306"
+      ]
     },
     {
       "jar": "AetherVillages-1.20.1-1.0.7-forge.jar",
@@ -42,9 +248,1042 @@
             "id": "deep_aether:aerlavender_fields",
             "required": false
           },
-          "deep_aether:aerglow_forest",
-          "deep_aether:yagroot_swamp"
+          {
+            "id": "deep_aether:aerglow_forest",
+            "required": false
+          },
+          {
+            "id": "deep_aether:yagroot_swamp",
+            "required": false
+          }
         ]
+      },
+      "accepted_before_sha256": [
+        "2505f0ba577620bfcdabb00e72ac38c523a40dacf07aa3470d8f71f24bfa6e07"
+      ]
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/dense_vine.json",
+      "before_sha256": "78d95daeb2548fb08fef543dcb4bd4770d9b2003ade080d12dadf2297e6462d2",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:dense_vine"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/dense_vine"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/dragon_tree_chest.json",
+      "before_sha256": "e276e3148dda4b3374e01cada03270000f5474c5b6a888ffcbd55116b09631d0",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:dragon_tree_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/dragon_tree_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/end_lotus_chest.json",
+      "before_sha256": "cd2c10e60c1ccaadc4caa7f2aae2b9ddda08956ab573ba091435a74cf3839be1",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:end_lotus_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/end_lotus_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/filalux.json",
+      "before_sha256": "4b0b409f18ed51179cbf6840f731668c80d5c9f06571512348f70de93da83977",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:filalux"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/filalux"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/helix_tree_chest.json",
+      "before_sha256": "166ed118f8be652418dba76e71bc6e6aff9adfd4b7be5fbb474afab41e25504a",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:helix_tree_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/helix_tree_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/jellyshroom_chest.json",
+      "before_sha256": "323b17e87f9513f5d57e0df9473028938cdc59fae81bdea0e5ff0948b16df65b",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:jellyshroom_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/jellyshroom_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/jungle_vine.json",
+      "before_sha256": "186c1b740f9652268b2ffd22e9dea6f22ad65317d58ea2c3e17f9b1c0e536459",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:jungle_vine"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/jungle_vine"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/lacugrove_chest.json",
+      "before_sha256": "e6d5fe18fe6d9c04a223c86e8bf50bb15fbd76584852128aa56c700856472de8",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:lacugrove_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/lacugrove_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/lucernia_chest.json",
+      "before_sha256": "0eec9beff37603dc49344671fec93254ad7de1d8e909319fb051b946e94740f6",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:lucernia_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/lucernia_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/magnula.json",
+      "before_sha256": "328798298c8bd1ffb86ed5b48ad7d16c00572515103c1b19adf65d08b4e8c276",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:magnula"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/magnula"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/mossy_glowshroom_chest.json",
+      "before_sha256": "96b593a0a8776966f98aff7efcfd548e6aa97243c3c73ccc2a03636fc89bbaca",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:mossy_glowshroom_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/mossy_glowshroom_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/pythadendron_chest.json",
+      "before_sha256": "dc3132187f284a1c7a2f8ef827d17ea121f53e2dbc315fe6e53aa6311b5051dc",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:pythadendron_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/pythadendron_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/rubinea.json",
+      "before_sha256": "0418c698f626fc925c30e821497e26c788cb8e3ef026af937f51c66b3c3eeeef",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:rubinea"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/rubinea"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/tenanea_chest.json",
+      "before_sha256": "b607ee7acb876f174b182c83128d8f0329120fed6815cfd5ef256c5736281c1f",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:tenanea_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/tenanea_chest"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/tenanea_flowers.json",
+      "before_sha256": "f067c2ba2aab1954685e2c0d8be3e9f6124bb1247eea985c72834ad779f37067",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:tenanea_flowers"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/tenanea_flowers"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/twisted_vine.json",
+      "before_sha256": "2458037315810159039d1e379c35b53ca0665193cf22973e4acc415b1ac89ece",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:any_of",
+                "terms": [
+                  {
+                    "condition": "minecraft:match_tool",
+                    "predicate": {
+                      "tag": "c:tools/shears"
+                    }
+                  },
+                  {
+                    "condition": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "tag": "minecraft:hoes"
+                        }
+                      },
+                      {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                          "enchantments": [
+                            {
+                              "levels": {
+                                "min": 1
+                              },
+                              "enchantment": "minecraft:silk_touch"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "betterend:twisted_vine"
+              }
+            ],
+            "rolls": {
+              "type": "minecraft:uniform",
+              "max": 2.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "random_sequence": "betterend:blocks/twisted_vine"
+      }
+    },
+    {
+      "jar": "BetterEnd-20.0.6.jar",
+      "resource": "data/betterend/loot_tables/blocks/umbrella_tree_chest.json",
+      "before_sha256": "5cd06317441d52c630ad227c0218a661600c9747dbd5ccbba1b822103eeb0ab9",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "function": "minecraft:copy_nbt",
+                    "source": "block_entity",
+                    "ops": [
+                      {
+                        "source": "CustomName",
+                        "target": "display.Name",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Items",
+                        "target": "BlockEntityTag.Items",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "Lock",
+                        "target": "BlockEntityTag.Lock",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTable",
+                        "target": "BlockEntityTag.LootTable",
+                        "op": "replace"
+                      },
+                      {
+                        "source": "LootTableSeed",
+                        "target": "BlockEntityTag.LootTableSeed",
+                        "op": "replace"
+                      }
+                    ]
+                  }
+                ],
+                "name": "betterend:umbrella_tree_chest"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "betterend:blocks/umbrella_tree_chest"
       }
     },
     {
@@ -2374,23 +3613,19 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/cobbled_andesite_bricks.json",
-      "before_sha256": "47d50a9dfb6bcc92a03b476d26bed0a097d322b3f08ea89dab76128a31bf6d4c",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_andesite_brick_slab.json",
+      "before_sha256": "c0200b7e67859af61176e030d0130c0afc083a240dee329129b3a45b8de6e335",
       "data": {
         "type": "minecraft:block",
         "pools": [
           {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
+            "bonus_rolls": 0.0,
             "entries": [
               {
                 "type": "minecraft:empty"
               }
-            ]
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -2466,8 +3701,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/cobbled_diorite_bricks.json",
-      "before_sha256": "ccc9953f2cc5a914a610c1d269c62f0b1a65ebfeaf20379f1c8007343da39f9e",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_andesite_bricks.json",
+      "before_sha256": "47d50a9dfb6bcc92a03b476d26bed0a097d322b3f08ea89dab76128a31bf6d4c",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -2483,6 +3718,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_diorite_brick_slab.json",
+      "before_sha256": "db8a71d47405091eaee19d889976094a7fdf95682851ca233f600b67cbe18394",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -2558,8 +3812,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/cobbled_granite_bricks.json",
-      "before_sha256": "1dc0f8572b0694b4cc14ab86d78aef5baa43664142036994f47490d7d96ff0f0",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_diorite_bricks.json",
+      "before_sha256": "ccc9953f2cc5a914a610c1d269c62f0b1a65ebfeaf20379f1c8007343da39f9e",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -2575,6 +3829,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_granite_brick_slab.json",
+      "before_sha256": "9dbe47def7539f5ba6a255a6e19496f9faedf39a3a6342edba72867ad5ec5d0b",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -2629,6 +3902,29 @@
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/cobbled_granite_brick_wall.json",
       "before_sha256": "45d702e7348853c1539f2453d7021a064360ff1d549eeaaedcb3f4de2429e673",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/cobbled_granite_bricks.json",
+      "before_sha256": "1dc0f8572b0694b4cc14ab86d78aef5baa43664142036994f47490d7d96ff0f0",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -3035,6 +4331,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/cracked_polished_brimstone_brick_slab.json",
+      "before_sha256": "d540842c02e06dd2b9cddf10318edfa064d9ad5bdab4b5d49d03c18a0ac00c13",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -3576,23 +4891,19 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/dripstone_bricks.json",
-      "before_sha256": "83f0906150018f9db4eaae68c4957f45c515761b67cc4233008c6e987e4965d5",
+      "resource": "data/excessive_building/loot_tables/blocks/dripstone_brick_slab.json",
+      "before_sha256": "b4fabad8888ada866fff88b4ac394f138c97b00de9c732dcfa9d80f42b5c744a",
       "data": {
         "type": "minecraft:block",
         "pools": [
           {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
+            "bonus_rolls": 0.0,
             "entries": [
               {
                 "type": "minecraft:empty"
               }
-            ]
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -3645,8 +4956,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/dripstone_tiles.json",
-      "before_sha256": "b221283487f049560d19d6f9eeb0d5aeecda4dc0d467d0b12724f54309389e6c",
+      "resource": "data/excessive_building/loot_tables/blocks/dripstone_bricks.json",
+      "before_sha256": "83f0906150018f9db4eaae68c4957f45c515761b67cc4233008c6e987e4965d5",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -3662,6 +4973,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/dripstone_tile_slab.json",
+      "before_sha256": "4513df82f3915e975f547684aefe81a1ba1f5d9540d400632893089b1b965cef",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -3693,6 +5023,29 @@
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/dripstone_tile_vertical_stairs.json",
       "before_sha256": "27683e689b8be39d651ee46697f6b51cbb6ced1a41a4c0db37e714341ec527e3",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/dripstone_tiles.json",
+      "before_sha256": "b221283487f049560d19d6f9eeb0d5aeecda4dc0d467d0b12724f54309389e6c",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -3772,6 +5125,25 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/end_stone_slab.json",
+      "before_sha256": "69d34ad818d0b8b55562181dcf8ce1833bc70994404ec87058752ea9d0764710",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/end_stone_stairs.json",
       "before_sha256": "3ce33cf16c625b00296c1ef9f1fa942b3f8ccc80b5c5b132374f12041639569b",
       "data": {
@@ -3814,6 +5186,31 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/iron_bar_door.json",
+      "before_sha256": "9fad971a5d0b3d41e7c1e4c2e8f5f782235d9b9dbab7d6ec8a73157622574aef",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ],
+        "random_sequence": "excessive_building:blocks/iron_bar_door"
       }
     },
     {
@@ -4634,29 +6031,6 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/marquina_marble_tiles.json",
-      "before_sha256": "4fc41c88484ebba54228c1f8905b01465a7ea0d5cb47099f1df13874947454e4",
-      "data": {
-        "type": "minecraft:block",
-        "pools": [
-          {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
-            "entries": [
-              {
-                "type": "minecraft:empty"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/marquina_marble_tile_slab.json",
       "before_sha256": "913ec398db09c3bff3dabda5bbfcf8c5436ffbc4a7ffaf071c9a373f89250bca",
       "data": {
@@ -4726,31 +6100,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/netherrack_stairs.json",
-      "before_sha256": "36a57f56572f5498da819c63a52386f93695d1fec658fa003773c7e0c3c4ec63",
-      "data": {
-        "type": "minecraft:block",
-        "pools": [
-          {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
-            "entries": [
-              {
-                "type": "minecraft:empty"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/netherrack_vertical_stairs.json",
-      "before_sha256": "3ed53f69a2034a1d22769da3853dc7533aa001a748f9945cc67d2d164e3483b4",
+      "resource": "data/excessive_building/loot_tables/blocks/marquina_marble_tiles.json",
+      "before_sha256": "4fc41c88484ebba54228c1f8905b01465a7ea0d5cb47099f1df13874947454e4",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -4807,8 +6158,27 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/oak_crafting_table.json",
-      "before_sha256": "98e420bdf0933b75596b208991956f6438f58d6c8a41ea045829be09badecc3a",
+      "resource": "data/excessive_building/loot_tables/blocks/netherrack_slab.json",
+      "before_sha256": "a05f5121548773ccfe9ddf8b05aa0d1d5a3f8ccf53d67a337869c5992e1ff022",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/netherrack_stairs.json",
+      "before_sha256": "36a57f56572f5498da819c63a52386f93695d1fec658fa003773c7e0c3c4ec63",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -4830,8 +6200,31 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_bricks.json",
-      "before_sha256": "4848fc9890ec8fb5f42772efc81fb18675f4b3bb05326bb73185e41143a67769",
+      "resource": "data/excessive_building/loot_tables/blocks/netherrack_vertical_stairs.json",
+      "before_sha256": "3ed53f69a2034a1d22769da3853dc7533aa001a748f9945cc67d2d164e3483b4",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/oak_crafting_table.json",
+      "before_sha256": "98e420bdf0933b75596b208991956f6438f58d6c8a41ea045829be09badecc3a",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -4922,8 +6315,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_pillar.json",
-      "before_sha256": "c4992bf5de01cb1d42e3f1e0e58574f28eea0d52ea4f913a5e477cda09c8b53b",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_bricks.json",
+      "before_sha256": "4848fc9890ec8fb5f42772efc81fb18675f4b3bb05326bb73185e41143a67769",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -4945,8 +6338,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_tiles.json",
-      "before_sha256": "882c3015781a238f09d2459d3a5fa7758c735ee266e03487d90ed32822f91bde",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_pillar.json",
+      "before_sha256": "c4992bf5de01cb1d42e3f1e0e58574f28eea0d52ea4f913a5e477cda09c8b53b",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5037,8 +6430,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_wall.json",
-      "before_sha256": "9b66136eb6bfb45b01b679a294cf2987b925a579e9d2825b72fa85d14bfcd1e6",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_tiles.json",
+      "before_sha256": "882c3015781a238f09d2459d3a5fa7758c735ee266e03487d90ed32822f91bde",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5060,8 +6453,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_sandstone_bricks.json",
-      "before_sha256": "5132884ab71bbf3d78cd9701c40459c96c4004510c78aedc8bbdf97247297221",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_red_sandstone_wall.json",
+      "before_sha256": "9b66136eb6bfb45b01b679a294cf2987b925a579e9d2825b72fa85d14bfcd1e6",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5152,8 +6545,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_sandstone_wall.json",
-      "before_sha256": "f04da68ffc81e38fb8abd0b9ef01506412c26bb66dba7e530ccd4ca3ad144e1a",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sandstone_bricks.json",
+      "before_sha256": "5132884ab71bbf3d78cd9701c40459c96c4004510c78aedc8bbdf97247297221",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5175,8 +6568,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_bricks.json",
-      "before_sha256": "d093a9ceac3e1ff9245e17874210f4c5c3378ca5c362f9c4121905951fe6062b",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sandstone_wall.json",
+      "before_sha256": "f04da68ffc81e38fb8abd0b9ef01506412c26bb66dba7e530ccd4ca3ad144e1a",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5267,8 +6660,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_pillar.json",
-      "before_sha256": "ea88a9a26f2bc7902fca7c9e3de76e74b1e65c2663ad1ec3b3cb53096502942d",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_bricks.json",
+      "before_sha256": "d093a9ceac3e1ff9245e17874210f4c5c3378ca5c362f9c4121905951fe6062b",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5290,8 +6683,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_tiles.json",
-      "before_sha256": "5db6a164e25ecd679f48d649f5e06bec4b7bc15842b7d882701863a35adcef3a",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_pillar.json",
+      "before_sha256": "ea88a9a26f2bc7902fca7c9e3de76e74b1e65c2663ad1ec3b3cb53096502942d",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5382,6 +6775,29 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_tiles.json",
+      "before_sha256": "5db6a164e25ecd679f48d649f5e06bec4b7bc15842b7d882701863a35adcef3a",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/polished_soul_sandstone_wall.json",
       "before_sha256": "62af61d9d50ff7c702432a6fced7357daa432d309beab018ca96855b1e0c6d08",
       "data": {
@@ -5428,23 +6844,19 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_bricks.json",
-      "before_sha256": "221f249e6da3c4e618c083e58c7be34fa7b4fddf939efc2e1a14fe5df1ae8650",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_brick_slab.json",
+      "before_sha256": "7afa3acbb9076108cd33b02aa87a5f5c15fc16bd54d7ac61943f5e180210f40e",
       "data": {
         "type": "minecraft:block",
         "pools": [
           {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
+            "bonus_rolls": 0.0,
             "entries": [
               {
                 "type": "minecraft:empty"
               }
-            ]
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -5520,6 +6932,29 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_bricks.json",
+      "before_sha256": "221f249e6da3c4e618c083e58c7be34fa7b4fddf939efc2e1a14fe5df1ae8650",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_pedestal.json",
       "before_sha256": "dc9bb647590094533ba44bcfa73c5551c676c2727e04e2afb82268f1704e645c",
       "data": {
@@ -5566,6 +7001,25 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_slab.json",
+      "before_sha256": "650a38dd4050bdc0a767ab16717880a860a8b57012ecea8aff48114a674fba6b",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_stairs.json",
       "before_sha256": "cce045cc28abe08018ee873eb38804088b6d7263ea5a9d6e015452eeb716e2ab",
       "data": {
@@ -5589,23 +7043,19 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_tiles.json",
-      "before_sha256": "051f9e6e017e178263585114ef6fce0604a948792914a60265c7bbce6ced37eb",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_tile_slab.json",
+      "before_sha256": "30833c591bb4c22915db883eea2f32053d91418c8a9ef9d272b7525fe35cf40c",
       "data": {
         "type": "minecraft:block",
         "pools": [
           {
-            "rolls": 1,
-            "conditions": [
-              {
-                "condition": "minecraft:survives_explosion"
-              }
-            ],
+            "bonus_rolls": 0.0,
             "entries": [
               {
                 "type": "minecraft:empty"
               }
-            ]
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -5660,6 +7110,29 @@
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_tile_wall.json",
       "before_sha256": "9b19456078b7fd8d5f18a951cb886c73c3b0d5231c7d9f6a93b75b711c36bf22",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ],
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/polished_sulfuric_brimstone_tiles.json",
+      "before_sha256": "051f9e6e017e178263585114ef6fce0604a948792914a60265c7bbce6ced37eb",
       "data": {
         "type": "minecraft:block",
         "pools": [
@@ -5804,6 +7277,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/smooth_basalt_slab.json",
+      "before_sha256": "5551ae1802fe5b225fd6991ef6ed2c05afa53bddd185ff90470aaf4899982cbc",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -6135,6 +7627,25 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/sulfuric_brimstone_slab.json",
+      "before_sha256": "717653d79f83782a0b857ad1fd5d843f4f18d9dabdc18d5b41752e51ac27df2b",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/loot_tables/blocks/sulfuric_brimstone_stairs.json",
       "before_sha256": "8a4bdbe3732f8109e7c7dddf7b977eb8544883c52de1de5d53f06218dca2fd9c",
       "data": {
@@ -6221,6 +7732,25 @@
                 "type": "minecraft:empty"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/loot_tables/blocks/swift_asphalt_slab.json",
+      "before_sha256": "b9b6e77291c7d16726835a1bf7e5c4a9fba78f29acd6383327bbbed8e1e57da0",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "bonus_rolls": 0.0,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "rolls": 1.0
           }
         ]
       }
@@ -8273,33 +9803,6 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/cobbled_andesite_bricks.json",
-      "before_sha256": "8dd67c9106fc7c2c18a8753bb208d302e929a7b7606ac21f0ab34d2d2b4f5ccd",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "pattern": [
-          "## ",
-          "## "
-        ],
-        "key": {
-          "#": {
-            "item": "excessive_building:cobbled_andesite"
-          }
-        },
-        "result": {
-          "count": 4,
-          "item": "excessive_building:cobbled_andesite_bricks"
-        },
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:cobbled_andesite_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/cobbled_andesite_brick_slab.json",
       "before_sha256": "7e288a2b9f31408f16078e1190938416cbbeb856edd3c6bb51cba2b014971cfb",
       "data": {
@@ -8425,8 +9928,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/cobbled_diorite_bricks.json",
-      "before_sha256": "0e9abc4382c9a139bc9fa42022e4ba8c1df3444dffa8d674dbd32dee8ec34bf0",
+      "resource": "data/excessive_building/recipes/cobbled_andesite_bricks.json",
+      "before_sha256": "8dd67c9106fc7c2c18a8753bb208d302e929a7b7606ac21f0ab34d2d2b4f5ccd",
       "data": {
         "type": "minecraft:crafting_shaped",
         "pattern": [
@@ -8435,17 +9938,17 @@
         ],
         "key": {
           "#": {
-            "item": "excessive_building:cobbled_diorite"
+            "item": "excessive_building:cobbled_andesite"
           }
         },
         "result": {
           "count": 4,
-          "item": "excessive_building:cobbled_diorite_bricks"
+          "item": "excessive_building:cobbled_andesite_bricks"
         },
         "conditions": [
           {
             "type": "forge:item_exists",
-            "item": "excessive_building:cobbled_diorite_bricks"
+            "item": "excessive_building:cobbled_andesite_bricks"
           }
         ]
       }
@@ -8577,8 +10080,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/cobbled_granite_bricks.json",
-      "before_sha256": "ce94f6bd65c7f05de0145b332f0d7f3cf19abb83303269c5e7bd840dada21b91",
+      "resource": "data/excessive_building/recipes/cobbled_diorite_bricks.json",
+      "before_sha256": "0e9abc4382c9a139bc9fa42022e4ba8c1df3444dffa8d674dbd32dee8ec34bf0",
       "data": {
         "type": "minecraft:crafting_shaped",
         "pattern": [
@@ -8587,17 +10090,17 @@
         ],
         "key": {
           "#": {
-            "item": "excessive_building:cobbled_granite"
+            "item": "excessive_building:cobbled_diorite"
           }
         },
         "result": {
           "count": 4,
-          "item": "excessive_building:cobbled_granite_bricks"
+          "item": "excessive_building:cobbled_diorite_bricks"
         },
         "conditions": [
           {
             "type": "forge:item_exists",
-            "item": "excessive_building:cobbled_granite_bricks"
+            "item": "excessive_building:cobbled_diorite_bricks"
           }
         ]
       }
@@ -8720,6 +10223,33 @@
             "type": "forge:item_exists",
             "item": "excessive_building:cobbled_granite_brick_wall"
           },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:cobbled_granite_bricks"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/cobbled_granite_bricks.json",
+      "before_sha256": "ce94f6bd65c7f05de0145b332f0d7f3cf19abb83303269c5e7bd840dada21b91",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+          "## ",
+          "## "
+        ],
+        "key": {
+          "#": {
+            "item": "excessive_building:cobbled_granite"
+          }
+        },
+        "result": {
+          "count": 4,
+          "item": "excessive_building:cobbled_granite_bricks"
+        },
+        "conditions": [
           {
             "type": "forge:item_exists",
             "item": "excessive_building:cobbled_granite_bricks"
@@ -9776,33 +11306,6 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/dripstone_bricks.json",
-      "before_sha256": "b5c7376b999dacd3d2e31d6c3b42ae82cdfe06fa158903793e89c00ed411c3d6",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "pattern": [
-          "## ",
-          "## "
-        ],
-        "key": {
-          "#": {
-            "item": "minecraft:dripstone_block"
-          }
-        },
-        "result": {
-          "count": 4,
-          "item": "excessive_building:dripstone_bricks"
-        },
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:dripstone_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/dripstone_brick_slab.json",
       "before_sha256": "afe8e69f06548df98970af134531ba5aa22c15e3cef694113085126b34d0b8ef",
       "data": {
@@ -9928,8 +11431,8 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/dripstone_tiles.json",
-      "before_sha256": "71a39ae26ac6a614d83339881e2001dcfa5ef97a4f504f218c6a9bc3ad3d3c71",
+      "resource": "data/excessive_building/recipes/dripstone_bricks.json",
+      "before_sha256": "b5c7376b999dacd3d2e31d6c3b42ae82cdfe06fa158903793e89c00ed411c3d6",
       "data": {
         "type": "minecraft:crafting_shaped",
         "pattern": [
@@ -9938,18 +11441,14 @@
         ],
         "key": {
           "#": {
-            "item": "excessive_building:dripstone_bricks"
+            "item": "minecraft:dripstone_block"
           }
         },
         "result": {
           "count": 4,
-          "item": "excessive_building:dripstone_tiles"
+          "item": "excessive_building:dripstone_bricks"
         },
         "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:dripstone_tiles"
-          },
           {
             "type": "forge:item_exists",
             "item": "excessive_building:dripstone_bricks"
@@ -10078,6 +11577,37 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:dripstone_tiles"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/dripstone_tiles.json",
+      "before_sha256": "71a39ae26ac6a614d83339881e2001dcfa5ef97a4f504f218c6a9bc3ad3d3c71",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+          "## ",
+          "## "
+        ],
+        "key": {
+          "#": {
+            "item": "excessive_building:dripstone_bricks"
+          }
+        },
+        "result": {
+          "count": 4,
+          "item": "excessive_building:dripstone_tiles"
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:dripstone_tiles"
+          },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:dripstone_bricks"
           }
         ]
       }
@@ -10943,35 +12473,6 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_red_sandstone_bricks.json",
-      "before_sha256": "6754bbc948b51d7967754ec14b3ef2c14439c31e4541adabf0dd8c0bc7d38929",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "category": "building",
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_red_sandstone"
-          }
-        },
-        "pattern": [
-          "##",
-          "##"
-        ],
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_red_sandstone_bricks"
-        },
-        "show_notification": true,
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_red_sandstone_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_red_sandstone_brick_slab.json",
       "before_sha256": "2980a47726558a0a1fb14df6e37bef7d8865e87c105a5e04552436da7dc2ea32",
       "data": {
@@ -11071,6 +12572,35 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_red_sandstone_bricks.json",
+      "before_sha256": "6754bbc948b51d7967754ec14b3ef2c14439c31e4541adabf0dd8c0bc7d38929",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "category": "building",
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_red_sandstone"
+          }
+        },
+        "pattern": [
+          "##",
+          "##"
+        ],
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_red_sandstone_bricks"
+        },
+        "show_notification": true,
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_red_sandstone_bricks"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_red_sandstone_pillar.json",
       "before_sha256": "158ec5a42b205a721c59a177546f23137b8101d172e7a8ab6621aa686be23e76",
       "data": {
@@ -11094,39 +12624,6 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:polished_red_sandstone_pillar"
-          },
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_red_sandstone_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_red_sandstone_tiles.json",
-      "before_sha256": "44de596583e2592bd24e0d7b9a6a9d88999a419152d8e1dd327e8ac52df5c388",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "category": "building",
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_red_sandstone_bricks"
-          }
-        },
-        "pattern": [
-          "##",
-          "##"
-        ],
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_red_sandstone_tiles"
-        },
-        "show_notification": true,
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_red_sandstone_tiles"
           },
           {
             "type": "forge:item_exists",
@@ -11230,6 +12727,39 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:polished_red_sandstone_tiles"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_red_sandstone_tiles.json",
+      "before_sha256": "44de596583e2592bd24e0d7b9a6a9d88999a419152d8e1dd327e8ac52df5c388",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "category": "building",
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_red_sandstone_bricks"
+          }
+        },
+        "pattern": [
+          "##",
+          "##"
+        ],
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_red_sandstone_tiles"
+        },
+        "show_notification": true,
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_red_sandstone_tiles"
+          },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_red_sandstone_bricks"
           }
         ]
       }
@@ -11393,35 +12923,6 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_soul_sandstone_bricks.json",
-      "before_sha256": "492cda44ca87275a37a15a2a0fb624d866b955f4fd97f544c8e73065cab36575",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "category": "building",
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_soul_sandstone"
-          }
-        },
-        "pattern": [
-          "##",
-          "##"
-        ],
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_soul_sandstone_bricks"
-        },
-        "show_notification": true,
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_soul_sandstone_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_soul_sandstone_brick_slab.json",
       "before_sha256": "f8debcc0b66b2a838cf7c83365a83976159d6b85bf61172f6c57b51c66c674e8",
       "data": {
@@ -11521,6 +13022,35 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_soul_sandstone_bricks.json",
+      "before_sha256": "492cda44ca87275a37a15a2a0fb624d866b955f4fd97f544c8e73065cab36575",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "category": "building",
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_soul_sandstone"
+          }
+        },
+        "pattern": [
+          "##",
+          "##"
+        ],
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_soul_sandstone_bricks"
+        },
+        "show_notification": true,
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_soul_sandstone_bricks"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_soul_sandstone_pillar.json",
       "before_sha256": "cf7fe6be7e1fee8548f1ef69906125567993afa37da1e4f07ec38718cbb07409",
       "data": {
@@ -11544,39 +13074,6 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:polished_soul_sandstone_pillar"
-          },
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_soul_sandstone_bricks"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_soul_sandstone_tiles.json",
-      "before_sha256": "5e2597721d8aee17124e7aedf13e5ce895901b457ada35c49ea5c3fbf17cd226",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "category": "building",
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_soul_sandstone_bricks"
-          }
-        },
-        "pattern": [
-          "##",
-          "##"
-        ],
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_soul_sandstone_tiles"
-        },
-        "show_notification": true,
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_soul_sandstone_tiles"
           },
           {
             "type": "forge:item_exists",
@@ -11686,6 +13183,39 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_soul_sandstone_tiles.json",
+      "before_sha256": "5e2597721d8aee17124e7aedf13e5ce895901b457ada35c49ea5c3fbf17cd226",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "category": "building",
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_soul_sandstone_bricks"
+          }
+        },
+        "pattern": [
+          "##",
+          "##"
+        ],
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_soul_sandstone_tiles"
+        },
+        "show_notification": true,
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_soul_sandstone_tiles"
+          },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_soul_sandstone_bricks"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_soul_sandstone_wall.json",
       "before_sha256": "547900e83bdc2a5755f43f289d55d1b9a140eeb08eef05fd0cc51884071aa5af",
       "data": {
@@ -11740,37 +13270,6 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:sulfuric_brimstone"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_sulfuric_brimstone_bricks.json",
-      "before_sha256": "b37e553d6f589045fa9caf67979829b3039859bccd33a9b2d25d0dcbfc5bc834",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "pattern": [
-          "## ",
-          "## "
-        ],
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_sulfuric_brimstone"
-          }
-        },
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_sulfuric_brimstone_bricks"
-        },
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
-          },
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_sulfuric_brimstone"
           }
         ]
       }
@@ -11870,6 +13369,37 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_sulfuric_brimstone_bricks.json",
+      "before_sha256": "b37e553d6f589045fa9caf67979829b3039859bccd33a9b2d25d0dcbfc5bc834",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+          "## ",
+          "## "
+        ],
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_sulfuric_brimstone"
+          }
+        },
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_sulfuric_brimstone_bricks"
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
+          },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_sulfuric_brimstone"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/excessive_building/recipes/polished_sulfuric_brimstone_slab.json",
       "before_sha256": "686d64914ea0a925bde08ebee8d2b1a9ee2d16b5167b37049efed4a27af97afd",
       "data": {
@@ -11926,37 +13456,6 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:polished_sulfuric_brimstone"
-          }
-        ]
-      }
-    },
-    {
-      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
-      "resource": "data/excessive_building/recipes/polished_sulfuric_brimstone_tiles.json",
-      "before_sha256": "5934c15534775b879ebb770670c0b671e6d9318441e1bcc96808c62bdf18bd42",
-      "data": {
-        "type": "minecraft:crafting_shaped",
-        "pattern": [
-          "## ",
-          "## "
-        ],
-        "key": {
-          "#": {
-            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
-          }
-        },
-        "result": {
-          "count": 4,
-          "item": "excessive_building:polished_sulfuric_brimstone_tiles"
-        },
-        "conditions": [
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_sulfuric_brimstone_tiles"
-          },
-          {
-            "type": "forge:item_exists",
-            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
           }
         ]
       }
@@ -12050,6 +13549,37 @@
           {
             "type": "forge:item_exists",
             "item": "excessive_building:polished_sulfuric_brimstone_tiles"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/excessive_building/recipes/polished_sulfuric_brimstone_tiles.json",
+      "before_sha256": "5934c15534775b879ebb770670c0b671e6d9318441e1bcc96808c62bdf18bd42",
+      "data": {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+          "## ",
+          "## "
+        ],
+        "key": {
+          "#": {
+            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
+          }
+        },
+        "result": {
+          "count": 4,
+          "item": "excessive_building:polished_sulfuric_brimstone_tiles"
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_sulfuric_brimstone_tiles"
+          },
+          {
+            "type": "forge:item_exists",
+            "item": "excessive_building:polished_sulfuric_brimstone_bricks"
           }
         ]
       }
@@ -13067,7 +14597,10 @@
             "id": "excessive_building:colored_crimson_crafting_table",
             "required": false
           },
-          "excessive_building:colored_warped_crafting_table",
+          {
+            "id": "excessive_building:colored_warped_crafting_table",
+            "required": false
+          },
           "excessive_building:warped_ladder",
           "excessive_building:crimson_ladder",
           "excessive_building:crimson_empty_shelf",
@@ -13087,7 +14620,10 @@
           "excessive_building:hollow_stripped_warped_stem",
           "excessive_building:hollow_warped_stem"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "4a31c493c0873338ecf25bbc4039ffe73f50999235c24f650da32fefbb6aed30"
+      ]
     },
     {
       "jar": "ImmersiveEngineering-1.20.1-10.2.0-183.jar",
@@ -13283,6 +14819,29 @@
     },
     {
       "jar": "MyNethersDelight-1.20.1-0.1.8.jar",
+      "resource": "data/mynethersdelight/loot_tables/blocks/blackstone_cooking_pot.json",
+      "before_sha256": "ac4a05384aa8c7649047a2bea144f163a97a6403ee5def164cc4543bd7f160ae",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ],
+            "conditions": [
+              {
+                "condition": "minecraft:survives_explosion"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "MyNethersDelight-1.20.1-0.1.8.jar",
       "resource": "data/nethersdelight/recipes/cutting/hoglin_sausage_alt.json",
       "before_sha256": "428336de9da551be8804160fff35b9536a6c92c464f4d419912b1df6dc709c5a",
       "data": {
@@ -13350,10 +14909,19 @@
             "id": "netherite_ore_mod:ancientdebrisore",
             "required": false
           },
-          "netherite_ore_mod:deepslate_ancient_debris_ore",
-          "netherite_ore_mod:netherite_ancient_debris_ore"
+          {
+            "id": "netherite_ore_mod:deepslate_ancient_debris_ore",
+            "required": false
+          },
+          {
+            "id": "netherite_ore_mod:netherite_ancient_debris_ore",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "3705ad3b4c79cc86e25fd059fa6947f249397a1347ddb0d647c41f0355bcf1b4"
+      ]
     },
     {
       "jar": "Warium 1.2.7.jar",
@@ -14083,7 +15651,10 @@
             "id": "cozy_home:oak_planked_wall",
             "required": false
           },
-          "cozy_home:spruce_planked_wall",
+          {
+            "id": "cozy_home:spruce_planked_wall",
+            "required": false
+          },
           "cozy_home:birch_planked_wall",
           "cozy_home:acacia_planked_wall",
           "cozy_home:dark_oak_planked_wall",
@@ -14587,7 +16158,10 @@
           "cozy_home:warped_bench_middle",
           "cozy_home:warped_bench_right"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "a8813b3688a14c10410d792819468638dc1fa1a0f6e137a58e1faf3a5b6b15ab"
+      ]
     },
     {
       "jar": "cozy_home-3.0.4-forge-1.20.1.jar",
@@ -14601,7 +16175,10 @@
             "id": "cozy_home:counter_oak",
             "required": false
           },
-          "cozy_home:counter_oak_storage",
+          {
+            "id": "cozy_home:counter_oak_storage",
+            "required": false
+          },
           "cozy_home:counter_oak_sink",
           "cozy_home:counter_spruce",
           "cozy_home:counter_spruce_storage",
@@ -14727,7 +16304,10 @@
           "cozy_home:fireplace_oak_bottom_middle",
           "cozy_home:fireplace_oak_bottom_right"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "f4e6ea20064db237d04909827e5bf3b0694d9e79e99640d3a693dfd999d5f52f"
+      ]
     },
     {
       "jar": "cozy_home-3.0.4-forge-1.20.1.jar",
@@ -14740,11 +16320,17 @@
             "id": "cozy_home:couch_oak_white_middle",
             "required": false
           },
-          "cozy_home:couch_oak_white_right",
+          {
+            "id": "cozy_home:couch_oak_white_right",
+            "required": false
+          },
           "cozy_home:couch_oak_white",
           "cozy_home:couch_oak_white_left"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "6d03927de078e174c260d8169c64f3c6c4f8c93e1df5a595ed145b215f7a2a4f"
+      ]
     },
     {
       "jar": "crabbersdelight-1.20.1-1.2.3.jar",
@@ -14848,6 +16434,27 @@
         "conditions": [
           {
             "type": "forge:false"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "create_ad_astra_compat-forge-1.20.1-1.0.0.jar",
+      "resource": "data/create/tags/items/crushed_ores.json",
+      "before_sha256": "c0ea2146b1d6bffe15d6fc0e5939ae5bc5ac5d2da67b32e0a45762eb22a13386",
+      "data": {
+        "values": [
+          {
+            "id": "crushed_calorite_ore",
+            "required": false
+          },
+          {
+            "id": "crushed_desh_ore",
+            "required": false
+          },
+          {
+            "id": "crushed_ostrum_ore",
+            "required": false
           }
         ]
       }
@@ -15223,9 +16830,15 @@
             "id": "create:sand_paper",
             "required": false
           },
-          "createaddition:red_sand_paper"
+          {
+            "id": "createaddition:red_sand_paper",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "5b2bc1d44f070493dff65370c10c7fd183a7c15d6df4274243a415672b33dbec"
+      ]
     },
     {
       "jar": "createchromaticreturn-1.5.2.jar",
@@ -15253,9 +16866,15 @@
             "id": "sliceanddice:slicer",
             "required": false
           },
-          "sliceanddice:sprinkler"
+          {
+            "id": "sliceanddice:sprinkler",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "ec8bcc72b5685d5acc04714b65a58b6bb777554d45ed5cfe41ea4ed0ccfbfd2d"
+      ]
     },
     {
       "jar": "createchromaticreturn-1.5.2.jar",
@@ -15268,9 +16887,15 @@
             "id": "create:red_sand_paper",
             "required": false
           },
-          "create:sand_paper"
+          {
+            "id": "create:sand_paper",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "b351ecca5db2ac3c9d0ea98aef5a88939b806231dfd1a9f17e110fb7d10811b3"
+      ]
     },
     {
       "jar": "createnuclear-1.3.1-forge.jar",
@@ -15329,11 +16954,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:blue_painted_lattice",
-                "properties": {
-                  "north": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15349,11 +16971,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:blue_painted_lattice",
-                "properties": {
-                  "west": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15369,11 +16988,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:blue_painted_lattice",
-                "properties": {
-                  "south": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15389,11 +17005,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:blue_painted_lattice",
-                "properties": {
-                  "east": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15401,7 +17014,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "ce4e4dd3c1fdc49bd427b6a0325d24b07ea2de5c8981ecfbc3fe826c2a764e2d"
+      ]
     },
     {
       "jar": "dawnoftimebuilder-forge-1.20.1-1.5.44.jar",
@@ -15580,11 +17196,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:puuc_limestone_lattice",
-                "properties": {
-                  "north": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15600,11 +17213,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:puuc_limestone_lattice",
-                "properties": {
-                  "west": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15620,11 +17230,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:puuc_limestone_lattice",
-                "properties": {
-                  "south": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15640,11 +17247,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:puuc_limestone_lattice",
-                "properties": {
-                  "east": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15652,7 +17256,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "6504c7b775fb0bf25eef01f4150a973f50bdba1e9b7e2f880cf9b312d29d6704"
+      ]
     },
     {
       "jar": "dawnoftimebuilder-forge-1.20.1-1.5.44.jar",
@@ -15716,11 +17323,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_round_template",
-                "properties": {
-                  "north": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15736,11 +17340,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_round_template",
-                "properties": {
-                  "west": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15756,11 +17357,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_round_template",
-                "properties": {
-                  "south": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15776,11 +17374,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_round_template",
-                "properties": {
-                  "east": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15788,7 +17383,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "637b27bd0fb296d76c4557ff193dd56e3fdd97272eda4eb921fdbc83bf472b19"
+      ]
     },
     {
       "jar": "dawnoftimebuilder-forge-1.20.1-1.5.44.jar",
@@ -15806,11 +17404,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_spiral_template",
-                "properties": {
-                  "north": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15826,11 +17421,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_spiral_template",
-                "properties": {
-                  "west": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15846,11 +17438,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_spiral_template",
-                "properties": {
-                  "south": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15866,11 +17455,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_spiral_template",
-                "properties": {
-                  "east": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15878,7 +17464,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "10d5d04c7ac8ab5a582a88a70697baaa360084b6d8c4695a2ad723b9cbe1bdb6"
+      ]
     },
     {
       "jar": "dawnoftimebuilder-forge-1.20.1-1.5.44.jar",
@@ -15896,11 +17485,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_wave_template",
-                "properties": {
-                  "north": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15916,11 +17502,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_wave_template",
-                "properties": {
-                  "west": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15936,11 +17519,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_wave_template",
-                "properties": {
-                  "south": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15956,11 +17536,8 @@
             ],
             "conditions": [
               {
-                "condition": "minecraft:block_state_property",
-                "block": "dawnoftimebuilder:stone_wave_template",
-                "properties": {
-                  "east": "true"
-                }
+                "condition": "minecraft:random_chance",
+                "chance": 0
               },
               {
                 "condition": "minecraft:survives_explosion"
@@ -15968,7 +17545,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "f4eda13d25c79604b5638bf81fb564895421060aaf39e47d1977c31d8a7f10b4"
+      ]
     },
     {
       "jar": "dawnoftimebuilder-forge-1.20.1-1.5.44.jar",
@@ -17616,20 +19196,6 @@
     },
     {
       "jar": "idas_forge-1.12.1+1.20.1.jar",
-      "resource": "data/idas/tags/worldgen/biome/has_structure/bygmohogany_biomes.json",
-      "before_sha256": "a0b19e0aa3ab61eaa6bcce651de61f2012753d2f6473e0269836c95a3aafd850",
-      "data": {
-        "replace": false,
-        "values": [
-          {
-            "id": "byg:tropical_rainforest",
-            "required": false
-          }
-        ]
-      }
-    },
-    {
-      "jar": "idas_forge-1.12.1+1.20.1.jar",
       "resource": "data/idas/tags/worldgen/biome/has_structure/byg_redwood_biomes.json",
       "before_sha256": "b81fb8c99d75c661f4dbcc1baa6c45b4d9565454bb405e0eb07bb5a3ec27ac13",
       "data": {
@@ -17637,6 +19203,20 @@
         "values": [
           {
             "id": "byg:redwood_thicket",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "jar": "idas_forge-1.12.1+1.20.1.jar",
+      "resource": "data/idas/tags/worldgen/biome/has_structure/bygmohogany_biomes.json",
+      "before_sha256": "a0b19e0aa3ab61eaa6bcce651de61f2012753d2f6473e0269836c95a3aafd850",
+      "data": {
+        "replace": false,
+        "values": [
+          {
+            "id": "byg:tropical_rainforest",
             "required": false
           }
         ]
@@ -17843,6 +19423,243 @@
       }
     },
     {
+      "jar": "irons_spellbooks-1.20.1-3.15.3.jar",
+      "resource": "data/irons_spellbooks/loot_tables/chests/citadel/citadel_tomes.json",
+      "before_sha256": "abe4ad7bca0b9f748ed540c5c36b1047d7760fb5e65c1e0abf9db20a457680f4",
+      "data": {
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.construction_ledger\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.soul_research\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.planar_travel\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.legion_war_journal\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.armory_ledger\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.training_manual\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.cinderous_rituals\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.architectural_diagrams\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.fire_notes\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.quarry\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.complaint\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.soul_warning\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "lukis-woodland-mansions-v.1.0-1.20-1.20.6.jar",
+      "resource": "data/mansions/loot_tables/mansion_common.json",
+      "before_sha256": "9307557f1042822af5eb87c24c55d9816b98194d147aa4f4f6cc59bd95623eba",
+      "data": {
+        "type": "minecraft:chest",
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:loot_table",
+                "name": "minecraft:chests/woodland_mansion"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "jar": "mekanism_tfmg_compat-1.1-1.20.1.jar",
       "resource": "data/create/recipes/blasting/ingot_lead_compat_mekanism.json",
       "before_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
@@ -18010,6 +19827,76 @@
         "conditions": [
           {
             "type": "forge:false"
+          }
+        ]
+      }
+    },
+    {
+      "jar": "mekanismoresfornetherandend-1.0.0-forge-1.20.1.jar",
+      "resource": "data/mekanismoresfornetherandend/loot_tables/blocks/netherfluorite.json",
+      "before_sha256": "241dffbbe2c83bdf748a77e7768fb51c0d33973111195cf97a405994f8ebf913",
+      "data": {
+        "type": "minecraft:block",
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "mekanism:fluorite_gem",
+                "weight": 1,
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 5
+                    }
+                  },
+                  {
+                    "function": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:ore_drops"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "random_sequence": "mekanismoresfornetherandend:blocks/netherfluorite"
+      }
+    },
+    {
+      "jar": "naturalist-5.0pre2+forge-1.20.1.jar",
+      "resource": "data/naturalist/loot_tables/entities/tortoise.json",
+      "before_sha256": "1349dad8ff43e44ebd508046997fe48995c80c9e684aa9cb57680deb83b607b1",
+      "data": {
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:scute",
+                "weight": 1,
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  },
+                  {
+                    "function": "looting_enchant",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -19290,10 +21177,19 @@
             "id": "good_nights_sleep:luxurious_bed",
             "required": false
           },
-          "good_nights_sleep:wretched_bed",
-          "good_nights_sleep:strange_bed"
+          {
+            "id": "good_nights_sleep:wretched_bed",
+            "required": false
+          },
+          {
+            "id": "good_nights_sleep:strange_bed",
+            "required": false
+          }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "19ac5f9b67e5b9d5332eb6a73906b9395f64ff2b85ee9fd14a8a7bc9da72d7da"
+      ]
     },
     {
       "jar": "spelunkeryplus-1.7.1.jar",
@@ -19662,11 +21558,17 @@
             "id": "spelunkeryplus:cc_andesite_silver_ore",
             "required": false
           },
-          "spelunkeryplus:cc_diorite_silver_ore",
+          {
+            "id": "spelunkeryplus:cc_diorite_silver_ore",
+            "required": false
+          },
           "spelunkeryplus:cc_granite_silver_ore",
           "spelunkeryplus:cc_tuff_silver_ore"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "34f653182bfede79a4a8a176e6342c145fc6f601fab112fc68f77a00f4fde93c"
+      ]
     },
     {
       "jar": "spelunkeryplus-1.7.1.jar",
@@ -24594,6 +26496,53 @@
       }
     },
     {
+      "jar": "tfmg-1.0.2f.jar",
+      "resource": "data/forge/tags/items/buckets/sulfuric_acid.json",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "data": {
+        "values": []
+      }
+    },
+    {
+      "jar": "trajans-tanks-forge-1.20.1-2.6.jar",
+      "resource": "data/trajanstanks/advancements/assembly/cruisermk1.json",
+      "before_sha256": "87ccb3e7b31264d6c85246bd73ca28558fcb8aa8e2eedfba89305aa22ed7c2d5",
+      "data": {
+        "parent": "trajanstanks:assembly/start",
+        "display": {
+          "icon": {
+            "item": "trajanstanks:cruiser_mk1_item"
+          },
+          "title": "Just Cruisin'",
+          "description": "Craft the Cruiser MK 1",
+          "frame": "task",
+          "show_toast": true,
+          "hidden": false,
+          "announce_to_chat": true
+        },
+        "criteria": {
+          "requirement": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+              "items": [
+                {
+                  "items": [
+                    "trajanstanks:cruiser_mk1_item"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "trajanstanks:crafter_block"
+          }
+        ]
+      }
+    },
+    {
       "jar": "trajans-tanks-forge-1.20.1-2.6.jar",
       "resource": "data/trajanstanks/advancements/assembly/panzer2.json",
       "before_sha256": "16569e96aa2c15694ca67b0f4b4b02b62a71b306182c9f655a53401cbe9e42a2",
@@ -27426,7 +29375,10 @@
           "minecraft:eroded_badlands",
           "minecraft:wooded_badlands",
           "minecraft:meadow",
-          "minecraft:groove",
+          {
+            "id": "minecraft:grove",
+            "required": false
+          },
           "minecraft:snowy_slopes",
           "minecraft:frozen_peaks",
           "minecraft:jagged_peaks",
@@ -27436,7 +29388,10 @@
           "minecraft:stony_shore",
           "minecraft:mushroom_fields"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "ad853c8d2430f59f47b4ac5613851a20977dd0451bddad7e59d4476c88a86c08"
+      ]
     },
     {
       "jar": "urushi-1.20.1-6.6.2.jar",
@@ -27564,7 +29519,10 @@
           "minecraft:eroded_badlands",
           "minecraft:wooded_badlands",
           "minecraft:meadow",
-          "minecraft:groove",
+          {
+            "id": "minecraft:grove",
+            "required": false
+          },
           "minecraft:snowy_slopes",
           "minecraft:frozen_peaks",
           "minecraft:jagged_peaks",
@@ -27574,7 +29532,10 @@
           "minecraft:stony_shore",
           "minecraft:mushroom_fields"
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "ad853c8d2430f59f47b4ac5613851a20977dd0451bddad7e59d4476c88a86c08"
+      ]
     },
     {
       "jar": "urushi-1.20.1-6.6.2.jar",

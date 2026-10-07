@@ -37,6 +37,9 @@ jobs:
         python -m py_compile cogs/*.py
         python -m py_compile utils/*.py
 
+    - name: Check public repository secrets policy
+      run: python scripts/check_public_secrets.py
+
     - name: Verify imports
       run: |
         python -c "

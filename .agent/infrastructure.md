@@ -81,6 +81,12 @@ FORGE_ALT_RCON_PASSWORD=<password>
 ```
 
 #### config.json
+
+認証情報は `.env` と GitHub Repository/Environment secrets で管理する。公開設定には記録しない。
+リアクションロールのチャンネル ID と対応関係は `reaction_roles.local.json` に保存する。
+同ファイルは Git 管理外であり、デプロイ時の削除・上書き対象外である。
+旧 `config.json` の値はデプロイ前に権限 0600 の非公開設定へ移行する。
+秘密情報が漏えいした場合は、失効・ローテーションを先に行い、その後に Git 履歴を処理する。
 各サーバーに`rcon_port`と`rcon_password_env`を設定:
 ```json
 {

@@ -2,7 +2,9 @@ import os
 import sys
 import json
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
+from utils.runtime_config import load_reaction_roles
 
 # --- 初期設定 ---
 load_dotenv()
@@ -14,6 +16,8 @@ try:
 except FileNotFoundError:
     print("config.jsonが見つかりません。")
     sys.exit(1)
+
+CONFIG['reaction_roles'] = load_reaction_roles(CONFIG, Path('reaction_roles.local.json'))
 
 # user_permissions.json 読み込み（なければ空辞書、壊れていても空辞書）
 USER_PERMISSIONS_FILE = 'user_permissions.json'

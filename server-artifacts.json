@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-07",
+  "updated_at": "2026-10-08",
   "minecraft_version": "26.2",
   "java_major": 25,
   "paper": {
@@ -29,7 +29,7 @@
       },
       "mods": {
         "file_count": 533,
-        "manifest_sha256": "3e4a6f54e8eb471238692d408795a2a60a39858619ba4be1016612a5f05b6a2b",
+        "manifest_sha256": "3cdf0e74aab65ff82ff3f19412c90f184ab13c48c042897b0e227784ceb8733b",
         "manifest_format": "sha256sum lines sorted by filename, UTF-8, LF"
       }
     },

@@ -18,6 +18,12 @@ from typing import Any
 
 
 RESOURCE_ID = r"[a-z0-9_.-]+:[a-z0-9_./-]+"
+LEGACY_IDS = {
+    "minecraft:mekanism:fluorite_gem": "mekanism:fluorite_gem",
+    "minecraft:turtle_scute": "minecraft:scute",
+    "minecraft:groove": "minecraft:grove",
+    "minecraft:crushed_calorite_ore": "create_ad_astra_compat:crushed_calorite_ore",
+}
 
 
 def digest(data: bytes) -> str:
@@ -112,31 +118,103 @@ def repair_recipe(data: dict, reason: str, loaded_mods: set[str]) -> dict:
     return add_condition(data, {"type": "forge:false"})
 
 
-def repair_loot(data: Any, missing: set[str]) -> Any:
+def snbt(data: Any) -> str:
     if isinstance(data, dict):
-        if data.get("type") == "minecraft:item" and data.get("name") in missing:
+        return "{" + ",".join(json.dumps(key) + ":" + snbt(value) for key, value in data.items()) + "}"
+    if isinstance(data, list):
+        return "[" + ",".join(snbt(value) for value in data) + "]"
+    if isinstance(data, bool):
+        return "1b" if data else "0b"
+    return json.dumps(data, ensure_ascii=False)
+
+
+def legacy_loot_function(data: dict) -> list[dict] | None:
+    kind = data.get("function")
+    if kind == "minecraft:copy_components":
+        mappings = {
+            "minecraft:custom_name": [("CustomName", "display.Name")],
+            "minecraft:container": [("Items", "BlockEntityTag.Items")],
+            "minecraft:lock": [("Lock", "BlockEntityTag.Lock")],
+            "minecraft:container_loot": [("LootTable", "BlockEntityTag.LootTable"),
+                                         ("LootTableSeed", "BlockEntityTag.LootTableSeed")],
+        }
+        ops = [dict(source=source, target=target, op="replace")
+               for component in data["include"] for source, target in mappings[component]]
+        return [{"function": "minecraft:copy_nbt", "source": data["source"], "ops": ops}]
+    if kind == "minecraft:set_written_book_pages":
+        tag = {"pages": [json.dumps(page, ensure_ascii=False) for page in data["pages"]],
+               "title": "", "author": "", "resolved": True}
+        return [{"function": "minecraft:set_nbt", "tag": snbt(tag)}]
+    if kind == "minecraft:set_components":
+        components = data["components"]
+        if set(components) - {"minecraft:custom_name", "minecraft:item_name", "minecraft:potion_contents"}:
+            raise ValueError("未対応のloot component")
+        functions = []
+        name = components.get("minecraft:custom_name", components.get("minecraft:item_name"))
+        if name is not None:
+            functions.append({"function": "minecraft:set_name", "name": name})
+        if "minecraft:potion_contents" in components:
+            potion = components["minecraft:potion_contents"]
+            effects = {"minecraft:jump_boost": 8, "minecraft:luck": 26, "minecraft:nausea": 9,
+                       "minecraft:resistance": 11, "minecraft:absorption": 22, "minecraft:regeneration": 10}
+            tag = {}
+            if "custom_color" in potion:
+                tag["CustomPotionColor"] = potion["custom_color"]
+            if "potion" in potion:
+                tag["Potion"] = potion["potion"]
+            if "custom_effects" in potion:
+                tag["CustomPotionEffects"] = [
+                    {"Id": effects[effect["id"]], "Amplifier": effect.get("amplifier", 0),
+                     "Duration": effect["duration"]} for effect in potion["custom_effects"]
+                ]
+            functions.append({"function": "minecraft:set_nbt", "tag": snbt(tag)})
+        return functions
+    return None
+
+
+def repair_loot(data: Any, missing: set[str], missing_block: str | None = None) -> Any:
+    if isinstance(data, dict):
+        if data.get("type") == "minecraft:item" and LEGACY_IDS.get(data.get("name"), data.get("name")) in missing:
             return None
+        if missing_block and data.get("condition") == "minecraft:block_state_property" and data.get("block") == missing_block:
+            return {"condition": "minecraft:random_chance", "chance": 0}
         result = {}
         for key, value in data.items():
-            fixed = repair_loot(value, missing)
+            if key == "functions" and isinstance(value, list):
+                fixed = []
+                for function in value:
+                    legacy = legacy_loot_function(function)
+                    if legacy is not None and "conditions" in function:
+                        for converted in legacy:
+                            converted["conditions"] = copy.deepcopy(function["conditions"])
+                    fixed.extend(legacy if legacy is not None else [repair_loot(function, missing, missing_block)])
+            else:
+                fixed = repair_loot(value, missing, missing_block)
             if key in ("entries", "children") and isinstance(fixed, list) and not fixed:
                 fixed = [{"type": "minecraft:empty"}]
             result[key] = fixed
+        if result.get("type") == "minecraft:loot_table" and "value" in result and "name" not in result:
+            result["name"] = result.pop("value")
+        if isinstance(result.get("items"), list) and len(result["items"]) == 1 and result["items"][0].startswith("#"):
+            result["tag"] = result.pop("items")[0][1:]
         return result
     if isinstance(data, list):
-        return [fixed for value in data if (fixed := repair_loot(value, missing)) is not None]
-    return data
+        return [fixed for value in data if (fixed := repair_loot(value, missing, missing_block)) is not None]
+    return LEGACY_IDS.get(data, data) if isinstance(data, str) else data
 
 
-def repair_tag(data: dict, missing: set[str]) -> dict:
+def repair_tag(data: dict | None, missing: set[str], loaded_mods: set[str] | None = None) -> dict:
+    if data is None:
+        return {"values": []}
     result = copy.deepcopy(data)
     values = []
     for value in result.get("values", []):
         identifier = value if isinstance(value, str) else value.get("id", "")
-        fixed = re.sub(r"^([a-z0-9_.-]+):\1:", r"\1:", identifier)
+        fixed = LEGACY_IDS.get(identifier, re.sub(r"^([a-z0-9_.-]+):\1:", r"\1:", identifier))
         if fixed != identifier:
             value = fixed if isinstance(value, str) else {**value, "id": fixed}
-        if identifier in missing:
+        absent_mod = loaded_mods is not None and not fixed.startswith("#") and fixed.split(":")[0] not in loaded_mods | {"minecraft", "forge", "c", "fabric"}
+        if identifier in missing or absent_mod:
             value = {"id": fixed, "required": False} if isinstance(value, str) else {
                 **value, "required": False
             }
@@ -152,6 +230,8 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
     loaded = {m[1] for line in lines if (m := re.match(r"\s+- ([a-z0-9_]+) \S+$", line))}
     recipes: dict[str, str] = {}
     loot: dict[str, set[str]] = {}
+    loot_blocks: dict[str, str] = {}
+    invalid_tags: set[str] = set()
     missing_tags: dict[str, set[str]] = {}
     advancements: dict[str, str] = {}
     orphan_parents: dict[str, str] = {}
@@ -164,8 +244,13 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
             context = "\n".join(lines[index + 1:index + 6])
             missing = set(re.findall(r"unknown string '([^']+)'|Unknown item '([^']+)'", context))
             items = {item for pair in missing for item in pair if item}
-            if items:
-                loot.setdefault(match[1], set()).update(items)
+            loot.setdefault(match[1], set()).update(items)
+            block = re.search(r"Can't find block (" + RESOURCE_ID + r")", context)
+            if block:
+                loot_blocks[match[1]] = block[1]
+        match = re.search(r"Couldn't read tag list .* from ([a-z0-9_.-]+):([a-z0-9_./-]+\.json)", line)
+        if match:
+            invalid_tags.add(f"data/{match[1]}/{match[2]}")
         match = re.search(rf"Couldn't load tag ({RESOURCE_ID}) as it is missing following references: (.*)", line)
         if match:
             missing_tags.setdefault(match[1], set()).update(
@@ -175,7 +260,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
         if match:
             advancements[match[1]] = match[2]
         match = re.search(rf"Couldn't load advancement ({RESOURCE_ID}): Task Advancement\{{parentId=({RESOURCE_ID})", line)
-        if match and (match[1] == match[2] or match[2].endswith(":deleted_mod_element")):
+        if match:
             orphan_parents[match[1]] = match[2]
     changes = []
     for jar in sorted((server_dir / "mods").glob("*.jar")):
@@ -191,6 +276,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                     or (kind == "loot_tables" and identifier in loot)
                     or (kind == "advancements" and identifier in advancements | orphan_parents)
                     or (kind.startswith("tags/") and identifier in missing_tags)
+                    or name in invalid_tags
                     or (kind == "tags/worldgen/biome" and jar.name.startswith("Epic Villages "))
                 ):
                     continue
@@ -198,6 +284,8 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                 parse_bytes = before
                 if kind == "tags/worldgen/biome" and jar.name.startswith("Epic Villages "):
                     parse_bytes = re.sub(rb'\{o(?=\s+"id")', b"{", before)
+                if kind.startswith("tags/") and not parse_bytes.strip():
+                    parse_bytes = b"null"
                 try:
                     data = decode(parse_bytes)
                 except ValueError as error:
@@ -207,16 +295,24 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                     for item in sorted(item_names(data) & known_missing):
                         fixed = add_condition(fixed, {"type": "forge:item_exists", "item": item})
                 elif kind == "loot_tables":
-                    fixed = repair_loot(data, loot[identifier] | known_missing)
+                    fixed = repair_loot(data, loot[identifier] | known_missing, loot_blocks.get(identifier))
                 elif kind.startswith("tags/"):
                     missing = missing_tags.get(identifier, set())
                     if kind == "tags/items":
                         missing = missing | known_missing
-                    fixed = repair_tag(data, missing)
+                    fixed = repair_tag(data, missing, loaded)
                 elif identifier in orphan_parents:
                     fixed = copy.deepcopy(data)
                     if fixed.get("parent") == orphan_parents[identifier]:
-                        fixed.pop("parent")
+                        parent = orphan_parents[identifier]
+                        parent_ns, parent_path = parent.split(":", 1)
+                        parent_resource = f"data/{parent_ns}/advancements/{parent_path}.json"
+                        if parent_resource in archive.namelist() and parent != identifier:
+                            parent_data = decode(archive.read(parent_resource))
+                            for condition in parent_data.get("conditions", []):
+                                fixed = add_condition(fixed, condition)
+                        else:
+                            fixed.pop("parent")
                 else:
                     reason = advancements[identifier]
                     fixed = copy.deepcopy(data)
@@ -285,7 +381,7 @@ def apply_plan(server_dir: Path, plan: dict, backup_dir: Path, dry_run: bool = F
                     replacement = encode(change["data"])
                     if current == replacement:
                         continue
-                    if digest(current) != change["before_sha256"]:
+                    if digest(current) not in {change["before_sha256"], *change.get("accepted_before_sha256", [])}:
                         raise ValueError(f"元データとの不一致: {filename}:{change['resource']}")
                     edits[change["resource"]] = replacement
                 if not edits:

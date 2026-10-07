@@ -92,13 +92,8 @@
 		"schedule_time": "04:00"
 	},
 	"reaction_roles": {
-		"channel_id": 1448157321590079572,
-		"mappings": {
-			"\u2705": {
-				"channel_id": 1485199249053454367,
-				"label": "開発チャンネル"
-			}
-		}
+		"channel_id": 0,
+		"mappings": {}
 	},
 	"plugins": {
 		"paper": {

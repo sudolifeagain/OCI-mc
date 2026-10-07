@@ -13,6 +13,74 @@ from scripts.repair_forge_data import (
 
 
 class ForgeDataRepairTests(unittest.TestCase):
+    def test_chest_loot_keeps_inventory_name_lock_and_function_conditions(self) -> None:
+        condition = [{"condition": "minecraft:survives_explosion"}]
+        data = {"functions": [{"function": "minecraft:copy_components", "source": "block_entity",
+                              "include": ["minecraft:custom_name", "minecraft:container", "minecraft:lock"],
+                              "conditions": condition}]}
+        fixed = repair_loot(data, set())["functions"][0]
+        self.assertEqual(fixed["function"], "minecraft:copy_nbt")
+        self.assertEqual(fixed["conditions"], condition)
+        self.assertEqual(fixed["ops"], [
+            {"source": "CustomName", "target": "display.Name", "op": "replace"},
+            {"source": "Items", "target": "BlockEntityTag.Items", "op": "replace"},
+            {"source": "Lock", "target": "BlockEntityTag.Lock", "op": "replace"},
+        ])
+
+    def test_loot_converts_tag_predicate_and_table_reference(self) -> None:
+        data = {"pools": [{"conditions": [{"condition": "minecraft:match_tool",
+                                          "predicate": {"items": ["#c:tools/shears"]}}],
+                           "entries": [{"type": "minecraft:loot_table", "value": "test:chests/demo"}]}]}
+        fixed = repair_loot(data, set())["pools"][0]
+        self.assertEqual(fixed["conditions"][0]["predicate"], {"tag": "c:tools/shears"})
+        self.assertEqual(fixed["entries"][0], {"type": "minecraft:loot_table", "name": "test:chests/demo"})
+
+    def test_potion_and_book_loot_preserve_content_in_legacy_nbt(self) -> None:
+        data = {"functions": [
+            {"function": "minecraft:set_components", "components": {
+                "minecraft:item_name": {"text": "Wine"}, "minecraft:potion_contents": {
+                    "potion": "minecraft:water", "custom_color": 123,
+                    "custom_effects": [{"id": "minecraft:luck", "duration": 100, "amplifier": 2}]}}},
+            {"function": "minecraft:set_written_book_pages", "pages": [{"text": "Lore"}]},
+        ]}
+        fixed = repair_loot(data, set())["functions"]
+        self.assertEqual(fixed[0], {"function": "minecraft:set_name", "name": {"text": "Wine"}})
+        self.assertIn('"Potion":"minecraft:water"', fixed[1]["tag"])
+        self.assertIn('"Id":26,"Amplifier":2,"Duration":100', fixed[1]["tag"])
+        self.assertIn('Lore', fixed[2]["tag"])
+        self.assertIn('"resolved":1b', fixed[2]["tag"])
+        with self.assertRaises(ValueError):
+            repair_loot({"functions": [{"function": "minecraft:set_components",
+                                        "components": {"test:unknown": {}}}]}, set())
+
+    def test_null_tag_and_legacy_aliases_are_repaired(self) -> None:
+        self.assertEqual(repair_tag(None, set()), {"values": []})
+        self.assertEqual(repair_tag({"values": ["minecraft:groove"]}, set()),
+                         {"values": ["minecraft:grove"]})
+        self.assertEqual(repair_loot({"type": "minecraft:item", "name": "minecraft:turtle_scute"}, set()),
+                         {"type": "minecraft:item", "name": "minecraft:scute"})
+
+    def test_verified_intermediate_resource_can_be_upgraded_and_rolled_back(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            server = Path(folder)
+            (server / "mods").mkdir()
+            jar = server / "mods/test.jar"
+            resource = "data/test/tags/items/test.json"
+            intermediate = b'{"values":[]}'
+            with zipfile.ZipFile(jar, "w") as archive:
+                archive.writestr(resource, intermediate)
+            original = jar.read_bytes()
+            plan = {"schema_version": 1, "minecraft_version": "1.20.1", "changes": [{
+                "jar": jar.name, "resource": resource, "before_sha256": hashlib.sha256(b"null").hexdigest(),
+                "accepted_before_sha256": [hashlib.sha256(intermediate).hexdigest()],
+                "data": {"values": ["minecraft:stone"]},
+            }]}
+            backup = server / "backups"
+            self.assertEqual(apply_plan(server, plan, backup), 1)
+            self.assertEqual(apply_plan(server, plan, backup), 0)
+            rollback(server, backup)
+            self.assertEqual(jar.read_bytes(), original)
+
     def test_missing_item_recipe_is_conditional_and_keeps_ingredients(self) -> None:
         recipe = {"type": "minecraft:crafting_shaped", "key": {"A": {"item": "other:missing"}}}
         fixed = repair_recipe(recipe, "Unknown item 'other:missing'", {"other"})
