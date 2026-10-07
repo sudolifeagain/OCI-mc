@@ -14574,6 +14574,21 @@
     },
     {
       "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
+      "resource": "data/minecraft/tags/blocks/mineable/hoe.json",
+      "before_sha256": "ddebe855869d67075a0d125efbe9a83d4f0b512be2d88a3e45eb1dcbae7744af",
+      "data": {
+        "replace": false,
+        "values": [
+          "excessive_building:ancient_leaves",
+          "excessive_building:red_maple_leaves",
+          "excessive_building:orange_maple_leaves",
+          "excessive_building:yellow_maple_leaves",
+          "excessive_building:golden_birch_leaves"
+        ]
+      }
+    },
+    {
+      "jar": "Excessive Building 1.20.1-1.20.1-3.0.1.jar",
       "resource": "data/minecraft/tags/blocks/non_flammable_wood.json",
       "before_sha256": "85ed93f242719d5da43b166fc5e16890fee184050c020b3f6632d5f9478cc1b1",
       "data": {
@@ -14603,17 +14618,47 @@
           },
           "excessive_building:warped_ladder",
           "excessive_building:crimson_ladder",
-          "excessive_building:crimson_empty_shelf",
-          "excessive_building:crimson_empty_potion_shelf",
-          "excessive_building:crimson_water_potion_shelf",
-          "excessive_building:crimson_potion_shelf",
-          "excessive_building:crimson_alchemist_shelf",
+          {
+            "id": "excessive_building:crimson_empty_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:crimson_empty_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:crimson_water_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:crimson_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:crimson_alchemist_shelf",
+            "required": false
+          },
           "excessive_building:crimson_bookshelf",
-          "excessive_building:warped_empty_shelf",
-          "excessive_building:warped_empty_potion_shelf",
-          "excessive_building:warped_water_potion_shelf",
-          "excessive_building:warped_potion_shelf",
-          "excessive_building:warped_alchemist_shelf",
+          {
+            "id": "excessive_building:warped_empty_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:warped_empty_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:warped_water_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:warped_potion_shelf",
+            "required": false
+          },
+          {
+            "id": "excessive_building:warped_alchemist_shelf",
+            "required": false
+          },
           "excessive_building:warped_bookshelf",
           "excessive_building:hollow_crimson_stem",
           "excessive_building:hollow_stripped_crimson_stem",
@@ -14622,7 +14667,8 @@
         ]
       },
       "accepted_before_sha256": [
-        "4a31c493c0873338ecf25bbc4039ffe73f50999235c24f650da32fefbb6aed30"
+        "4a31c493c0873338ecf25bbc4039ffe73f50999235c24f650da32fefbb6aed30",
+        "cde6f4b3c02aa6f15f2455cb49731aaed93f85a96787cb3f227ef01d1e86dff7"
       ]
     },
     {
@@ -14680,6 +14726,2397 @@
           "minecraft:sculk_catalyst",
           "minecraft:sculk_sensor",
           "minecraft:calibrated_sculk_sensor"
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_advanced_tacz.json",
+      "before_sha256": "5347e58558ecd43742e966023c0d580bf6ef81e76a3b7fea38f8e61f793f818b",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_advanced_tacz",
+            "rolls": {
+              "min": 1,
+              "max": 3
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "tacz:ammo",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{AmmoId:\"tacz:556x45\"}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 5
+                    }
+                  }
+                ],
+                "weight": 10
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_block",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 65
+              },
+              {
+                "type": "item",
+                "name": "minecraft:gold_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 50
+              },
+              {
+                "type": "item",
+                "name": "minecraft:flint_and_steel",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:redstone",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 55
+              },
+              {
+                "type": "item",
+                "name": "minecraft:bucket",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:cooked_porkchop",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 35
+              },
+              {
+                "type": "item",
+                "name": "minecraft:diamond",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_advanced_vics.json",
+      "before_sha256": "23da694832f5396c00bdc3e12d97d6838ff0f6648a8bfd983cb61ca94723db70",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_advanced_vics",
+            "rolls": {
+              "min": 1,
+              "max": 3
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:iron_block",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 65
+              },
+              {
+                "type": "item",
+                "name": "minecraft:gold_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 50
+              },
+              {
+                "type": "item",
+                "name": "minecraft:flint_and_steel",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:redstone",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 55
+              },
+              {
+                "type": "item",
+                "name": "minecraft:bucket",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:cooked_porkchop",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 35
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo556",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 5
+                    }
+                  }
+                ],
+                "weight": 3
+              },
+              {
+                "type": "item",
+                "name": "minecraft:diamond",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_basic_tacz.json",
+      "before_sha256": "47b170e275187cfaa1a03a26fa3faf8a9db9dc31d119eb643bac8df89f8c517d",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_basic_tacz",
+            "rolls": {
+              "min": 1,
+              "max": 5
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "tacz:ammo",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{AmmoId:\"tacz:9mm\"}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 4,
+                      "max": 6
+                    }
+                  }
+                ],
+                "weight": 15
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 75
+              },
+              {
+                "type": "item",
+                "name": "minecraft:coal",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 70
+              },
+              {
+                "type": "item",
+                "name": "minecraft:redstone",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 60
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_pickaxe",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30
+              },
+              {
+                "type": "item",
+                "name": "minecraft:cooked_beef",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_helmet",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 20
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_basic_vics.json",
+      "before_sha256": "6896983ed28187973aeb742ba78ffe8355f88b8128011a5e402a4aaca4df1f4b",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_basic_vics",
+            "rolls": {
+              "min": 1,
+              "max": 5
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:iron_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 75
+              },
+              {
+                "type": "item",
+                "name": "minecraft:coal",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 70
+              },
+              {
+                "type": "item",
+                "name": "minecraft:redstone",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 60
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_pickaxe",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_sword",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 25
+              },
+              {
+                "type": "item",
+                "name": "minecraft:cooked_beef",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 40
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_helmet",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 20
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo46",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 4
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_emergency_tacz.json",
+      "before_sha256": "ba2efd90ee5e8fc15764daf8bf08ba4772c7ffbb4a20e7ecea2c17af69d95216",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_emergency_tacz",
+            "rolls": {
+              "min": 1,
+              "max": 4
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "tacz:ammo",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{AmmoId:\"tacz:50ae\"}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 4,
+                      "max": 6
+                    }
+                  }
+                ],
+                "weight": 10
+              },
+              {
+                "type": "item",
+                "name": "minecraft:bread",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 90
+              },
+              {
+                "type": "item",
+                "name": "minecraft:apple",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 80
+              },
+              {
+                "type": "item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Potion:water}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 70
+              },
+              {
+                "type": "item",
+                "name": "minecraft:golden_apple",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 10
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_axe",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 20
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_boots",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/abandoned_car_emergency_vics.json",
+      "before_sha256": "558d7091536e6f9050bba24b77006635cb92e83a3c6d9797e10e29dd74cdef0f",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:abandoned_car_emergency_vics",
+            "rolls": {
+              "min": 1,
+              "max": 4
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:bread",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 90
+              },
+              {
+                "type": "item",
+                "name": "minecraft:apple",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 80
+              },
+              {
+                "type": "item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Potion:water}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 70
+              },
+              {
+                "type": "item",
+                "name": "minecraft:golden_apple",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 10
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_axe",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 20
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_boots",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo9mm",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 3
+              },
+              {
+                "type": "item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Potion:regeneration}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 10
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/apartment_bathroom_vics.json",
+      "before_sha256": "d5ccccaf471374822c665b2112eca6027f03a2b34c9803b22f6f24f8d2007e9c",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:apartment_bathroom_vics",
+            "rolls": {
+              "min": 2,
+              "max": 4
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Potion:water}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 40448
+              },
+              {
+                "type": "item",
+                "name": "minecraft:paper",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 12
+                    }
+                  }
+                ],
+                "weight": 40000
+              },
+              {
+                "type": "item",
+                "name": "immersive_weathering:moss_clump",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 12
+                    }
+                  }
+                ],
+                "weight": 20000
+              },
+              {
+                "type": "item",
+                "name": "minecraft:moss_carpet",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 20000
+              },
+              {
+                "type": "item",
+                "name": "minecraft:white_wool",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 3
+                    }
+                  }
+                ],
+                "weight": 30312
+              },
+              {
+                "type": "item",
+                "name": "minecraft:rotten_flesh",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 35406
+              },
+              {
+                "type": "item",
+                "name": "minecraft:bone",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 20230
+              },
+              {
+                "type": "item",
+                "name": "minecraft:potion",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Potion:regeneration}"
+                  },
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 10112
+              },
+              {
+                "type": "item",
+                "name": "minecraft:golden_apple",
+                "weight": 2530
+              },
+              {
+                "type": "item",
+                "name": "minecraft:enchanted_book",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{StoredEnchantments:[{id:sharpness,lvl:1}]}"
+                  }
+                ],
+                "weight": 2530
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_sword",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:73}"
+                  }
+                ],
+                "weight": 5070
+              },
+              {
+                "type": "item",
+                "name": "minecraft:bread",
+                "weight": 25324
+              },
+              {
+                "type": "item",
+                "name": "minecraft:flint_and_steel",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:57}"
+                  }
+                ],
+                "weight": 7592
+              },
+              {
+                "type": "item",
+                "name": "minecraft:compass",
+                "weight": 4040
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_boots",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:45}"
+                  },
+                  {
+                    "function": "set_nbt",
+                    "tag": "{display:{color:16119285}}"
+                  }
+                ],
+                "weight": 6068
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_helmet",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:45}"
+                  },
+                  {
+                    "function": "set_nbt",
+                    "tag": "{display:{color:16119285}}"
+                  }
+                ],
+                "weight": 6068
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_chestplate",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:70}"
+                  },
+                  {
+                    "function": "set_nbt",
+                    "tag": "{display:{color:16119285}}"
+                  }
+                ],
+                "weight": 5070
+              },
+              {
+                "type": "item",
+                "name": "minecraft:leather_leggings",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:50}"
+                  },
+                  {
+                    "function": "set_nbt",
+                    "tag": "{display:{color:16119285}}"
+                  }
+                ],
+                "weight": 5070
+              },
+              {
+                "type": "item",
+                "name": "minecraft:string",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 15156
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_sword",
+                "functions": [
+                  {
+                    "function": "set_nbt",
+                    "tag": "{Damage:54}"
+                  }
+                ],
+                "weight": 10000
+              },
+              {
+                "type": "item",
+                "name": "pointblank:glock18",
+                "weight": 189.05
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m1911a1",
+                "weight": 178.7
+              },
+              {
+                "type": "item",
+                "name": "pointblank:tti_viper",
+                "weight": 168.9
+              },
+              {
+                "type": "item",
+                "name": "pointblank:p30l",
+                "weight": 159.63
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mk23",
+                "weight": 150.86
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m9",
+                "weight": 142.58
+              },
+              {
+                "type": "item",
+                "name": "pointblank:deserteagle",
+                "weight": 134.77
+              },
+              {
+                "type": "item",
+                "name": "pointblank:rhino",
+                "weight": 127.42
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo9mm",
+                "weight": 880
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo45acp",
+                "weight": 788
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo57",
+                "weight": 700
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo50ae",
+                "weight": 620
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo357",
+                "weight": 548
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/tacz_ammochest.json",
+      "before_sha256": "007489167c2f3598aad22ef15df5f64d456d3ae780df7f929d3fba3742141742",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:ammochest",
+            "rolls": {
+              "min": 2,
+              "max": 6
+            },
+            "entries": [
+              {
+                "type": "minecraft:empty"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/tacz_gunchest.json",
+      "before_sha256": "465f4a9c74db066176ef2318e5d02fc3d2ea64611120dbd5362fa345be091a8e",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:gunchest",
+            "rolls": {
+              "min": 2,
+              "max": 8
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "minecraft:rotten_flesh",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 4,
+                      "max": 12
+                    }
+                  }
+                ],
+                "weight": 1500
+              },
+              {
+                "type": "item",
+                "name": "minecraft:gunpowder",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 10
+                    }
+                  }
+                ],
+                "weight": 800
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 6
+                    }
+                  }
+                ],
+                "weight": 500
+              },
+              {
+                "type": "item",
+                "name": "minecraft:glowstone_dust",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 5
+                    }
+                  }
+                ],
+                "weight": 200
+              },
+              {
+                "type": "item",
+                "name": "minecraft:diamond",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 40
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/vics_point_blank_ammochest.json",
+      "before_sha256": "02bbf74e3abea7b894a276c722e3c1b1e0903ce6f0be52d599f339177043a702",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:vics_point_blank_ammochest",
+            "rolls": {
+              "min": 2,
+              "max": 6
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "pointblank:ammo45acp",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 4,
+                      "max": 6
+                    }
+                  }
+                ],
+                "weight": 197
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo57",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 3,
+                      "max": 5
+                    }
+                  }
+                ],
+                "weight": 175
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo50ae",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 155
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo357",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 137
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo46",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 121
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo545",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 106
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo556",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 92
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo68",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 80
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo762",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 69
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo762x51",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 59
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo338lapua",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 50
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo50bmg",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 2
+                    }
+                  }
+                ],
+                "weight": 41
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ammo12gauge",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 33
+              },
+              {
+                "type": "item",
+                "name": "pointblank:javelin_rocket",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 20
+              },
+              {
+                "type": "item",
+                "name": "pointblank:smaw_rocket",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 15
+              },
+              {
+                "type": "item",
+                "name": "pointblank:at4_rocket",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 11
+              },
+              {
+                "type": "item",
+                "name": "pointblank:grenade40mm",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 8
+              },
+              {
+                "type": "item",
+                "name": "pointblank:grenade20mm",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 6
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
+      "resource": "data/keerdm_zombie_essentials/loot_tables/chests/vics_point_blank_gunchest.json",
+      "before_sha256": "d804aef58a5332c38fa2fe34046fecf60f00e2d5f055b71a7fabd72941e31c63",
+      "data": {
+        "pools": [
+          {
+            "name": "keerdm_zombie_essentials:vics_point_blank_gunchest",
+            "rolls": {
+              "min": 2,
+              "max": 8
+            },
+            "entries": [
+              {
+                "type": "item",
+                "name": "pointblank:glock18",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 189.05
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m1911a1",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 178.7
+              },
+              {
+                "type": "item",
+                "name": "pointblank:tti_viper",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 168.9
+              },
+              {
+                "type": "item",
+                "name": "pointblank:p30l",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 159.63
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mk23",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 150.86
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m9",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 142.58
+              },
+              {
+                "type": "item",
+                "name": "pointblank:deserteagle",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 134.77
+              },
+              {
+                "type": "item",
+                "name": "pointblank:rhino",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 127.42
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m4a1",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 120.51
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m4a1mod1",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 114.01
+              },
+              {
+                "type": "item",
+                "name": "pointblank:star15",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 107.91
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m4sopmodii",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 102.19
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m16a1",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 96.83
+              },
+              {
+                "type": "item",
+                "name": "pointblank:hk416",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 91.81
+              },
+              {
+                "type": "item",
+                "name": "pointblank:scarl",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 87.11
+              },
+              {
+                "type": "item",
+                "name": "pointblank:xm7",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 82.73
+              },
+              {
+                "type": "item",
+                "name": "pointblank:g36c",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 78.65
+              },
+              {
+                "type": "item",
+                "name": "pointblank:g36k",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 74.86
+              },
+              {
+                "type": "item",
+                "name": "pointblank:aug",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 71.36
+              },
+              {
+                "type": "item",
+                "name": "pointblank:g41",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 68.13
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ak47",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 65.18
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ak74",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 62.48
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ak12",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 60.03
+              },
+              {
+                "type": "item",
+                "name": "pointblank:an94",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 57.81
+              },
+              {
+                "type": "item",
+                "name": "pointblank:xm29",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 55.81
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mp5",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 53.99
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mp7",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 52.33
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ump45",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 50.8
+              },
+              {
+                "type": "item",
+                "name": "pointblank:vector",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 49.38
+              },
+              {
+                "type": "item",
+                "name": "pointblank:p90",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 48.06
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ro635",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 46.83
+              },
+              {
+                "type": "item",
+                "name": "pointblank:tmp",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 45.67
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m950",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 44.58
+              },
+              {
+                "type": "item",
+                "name": "pointblank:sl8",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 43.56
+              },
+              {
+                "type": "item",
+                "name": "pointblank:uar10",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 42.59
+              },
+              {
+                "type": "item",
+                "name": "pointblank:wa2000",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 41.67
+              },
+              {
+                "type": "item",
+                "name": "pointblank:xm3",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 40.79
+              },
+              {
+                "type": "item",
+                "name": "pointblank:c14",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 39.95
+              },
+              {
+                "type": "item",
+                "name": "pointblank:l96a1",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 39.14
+              },
+              {
+                "type": "item",
+                "name": "pointblank:ballista",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 38.36
+              },
+              {
+                "type": "item",
+                "name": "pointblank:gm6lynx",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 37.61
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m590",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 36.89
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m870",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 36.19
+              },
+              {
+                "type": "item",
+                "name": "pointblank:spas12",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 35.51
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m1014",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 34.86
+              },
+              {
+                "type": "item",
+                "name": "pointblank:aa12",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 34.23
+              },
+              {
+                "type": "item",
+                "name": "pointblank:aughbar",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 33.62
+              },
+              {
+                "type": "item",
+                "name": "pointblank:lamg",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 33.04
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mk48",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 32.48
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m249",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 31.95
+              },
+              {
+                "type": "item",
+                "name": "pointblank:mk14ebr",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 31.44
+              },
+              {
+                "type": "item",
+                "name": "pointblank:citoricxs",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30.95
+              },
+              {
+                "type": "item",
+                "name": "pointblank:hs12",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30.48
+              },
+              {
+                "type": "item",
+                "name": "pointblank:smaw",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 30.02
+              },
+              {
+                "type": "item",
+                "name": "pointblank:javelin",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 29.58
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m32mgl",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 29.15
+              },
+              {
+                "type": "item",
+                "name": "pointblank:m134minigun",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 28.74
+              },
+              {
+                "type": "item",
+                "name": "pointblank:at4",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                ],
+                "weight": 28.34
+              },
+              {
+                "type": "item",
+                "name": "minecraft:rotten_flesh",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 4,
+                      "max": 12
+                    }
+                  }
+                ],
+                "weight": 12000
+              },
+              {
+                "type": "item",
+                "name": "minecraft:gunpowder",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 10
+                    }
+                  }
+                ],
+                "weight": 6400
+              },
+              {
+                "type": "item",
+                "name": "minecraft:iron_ingot",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 6
+                    }
+                  }
+                ],
+                "weight": 4000
+              },
+              {
+                "type": "item",
+                "name": "minecraft:glowstone_dust",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 2,
+                      "max": 5
+                    }
+                  }
+                ],
+                "weight": 1600
+              },
+              {
+                "type": "item",
+                "name": "minecraft:diamond",
+                "functions": [
+                  {
+                    "function": "set_count",
+                    "count": {
+                      "min": 1,
+                      "max": 4
+                    }
+                  }
+                ],
+                "weight": 200
+              }
+            ]
+          }
         ]
       }
     },
@@ -14934,6 +17371,39 @@
             "id": "burnt:firestarter",
             "required": false
           }
+        ]
+      }
+    },
+    {
+      "jar": "Warium 1.2.7.jar",
+      "resource": "data/forge/tags/fluids/diesel.json",
+      "before_sha256": "9e15cc827682695e46a00ef772ff7894093f7fa9fe1c7b80bde8372a50104c67",
+      "data": {
+        "replace": false,
+        "values": [
+          "crusty_chunks:diesel"
+        ]
+      }
+    },
+    {
+      "jar": "Warium 1.2.7.jar",
+      "resource": "data/forge/tags/fluids/gasoline.json",
+      "before_sha256": "ad05289f67426781de1e66b502000a028b17eb72dffd00824674c6a5e8766541",
+      "data": {
+        "replace": false,
+        "values": [
+          "crusty_chunks:petrolium"
+        ]
+      }
+    },
+    {
+      "jar": "Warium 1.2.7.jar",
+      "resource": "data/forge/tags/fluids/kerosene.json",
+      "before_sha256": "85baeb2968712986188e76fbd446e899d22efa9ade979e3ab92905e036cc3470",
+      "data": {
+        "replace": false,
+        "values": [
+          "crusty_chunks:kerosene"
         ]
       }
     },
@@ -15655,13 +18125,34 @@
             "id": "cozy_home:spruce_planked_wall",
             "required": false
           },
-          "cozy_home:birch_planked_wall",
-          "cozy_home:acacia_planked_wall",
-          "cozy_home:dark_oak_planked_wall",
-          "cozy_home:jungle_planked_wall",
-          "cozy_home:mangrove_planked_wall",
-          "cozy_home:crimson_planked_wall",
-          "cozy_home:warped_planked_wall",
+          {
+            "id": "cozy_home:birch_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_planked_wall",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_planked_wall",
+            "required": false
+          },
           "cozy_home:oak_chair",
           "cozy_home:spruce_chair",
           "cozy_home:birch_chair",
@@ -15673,17 +18164,50 @@
           "cozy_home:crimson_chair",
           "cozy_home:warped_chair",
           "cozy_home:bamboo_chair",
-          "cozy_home:table_oak_single",
-          "cozy_home:table_spruce_single",
-          "cozy_home:table_birch_single",
-          "cozy_home:table_jungle_single",
-          "cozy_home:table_acacia_single",
-          "cozy_home:table_dark_oak_single",
-          "cozy_home:table_mangrove_single",
-          "cozy_home:table_cherry_single",
-          "cozy_home:desk_crimson",
-          "cozy_home:desk_warped",
-          "cozy_home:table_bamboo_single",
+          {
+            "id": "cozy_home:table_oak_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_crimson",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_warped",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_single",
+            "required": false
+          },
           "cozy_home:oak_bench",
           "cozy_home:spruce_bench",
           "cozy_home:birch_bench",
@@ -15696,16 +18220,46 @@
           "cozy_home:warped_bench",
           "cozy_home:bamboo_bench",
           "cozy_home:quartz_bench",
-          "cozy_home:table_stump_oak_single",
-          "cozy_home:table_stump_spruce_single",
-          "cozy_home:table_stump_birch_single",
-          "cozy_home:table_stump_jungle_single",
-          "cozy_home:table_stump_acacia_single",
-          "cozy_home:table_stump_dark_oak_single",
-          "cozy_home:table_stump_mangrove_single",
-          "cozy_home:table_stump_cherry_single",
-          "cozy_home:table_stump_crimson_single",
-          "cozy_home:table_stump_warped_single",
+          {
+            "id": "cozy_home:table_stump_oak_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_jungle_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_single",
+            "required": false
+          },
           "cozy_home:oak_mirror",
           "cozy_home:spruce_mirror",
           "cozy_home:birch_mirror",
@@ -15718,25 +18272,82 @@
           "cozy_home:warped_mirror",
           "cozy_home:bamboo_mirror",
           "cozy_home:quartz_mirror",
-          "cozy_home:lamp_white",
-          "cozy_home:lamp_orange",
-          "cozy_home:lamp_magenta",
-          "cozy_home:lamp_light_blue",
-          "cozy_home:lamp_yellow",
-          "cozy_home:lamp_lime",
-          "cozy_home:lamp_pink",
-          "cozy_home:lamp_gray",
-          "cozy_home:lamp_light_gray",
-          "cozy_home:lamp_cyan",
-          "cozy_home:lamp_purple",
-          "cozy_home:lamp_blue",
-          "cozy_home:lamp_brown",
-          "cozy_home:lamp_green",
-          "cozy_home:lamp_red",
-          "cozy_home:lamp_black",
-          "cozy_home:counter_quartz",
-          "cozy_home:counter_quartz_storage",
-          "cozy_home:counter_quartz_sink",
+          {
+            "id": "cozy_home:lamp_white",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_orange",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_magenta",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_light_blue",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_yellow",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_lime",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_pink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_gray",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_light_gray",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_cyan",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_purple",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_blue",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_brown",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_green",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_red",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_black",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_sink",
+            "required": false
+          },
           "cozy_home:sofa_white",
           "cozy_home:sofa_orange",
           "cozy_home:sofa_magenta",
@@ -15754,48 +18365,156 @@
           "cozy_home:sofa_red",
           "cozy_home:sofa_black",
           "cozy_home:sofa_quartz",
-          "cozy_home:drawer_oak",
-          "cozy_home:drawer_spruce",
-          "cozy_home:drawer_birch",
-          "cozy_home:drawer_jungle",
-          "cozy_home:drawer_acacia",
-          "cozy_home:drawer_dark_oak",
-          "cozy_home:drawer_mangrove",
-          "cozy_home:drawer_cherry",
-          "cozy_home:drawer_crimson",
-          "cozy_home:drawer_warped",
-          "cozy_home:plank_oak_0",
-          "cozy_home:plank_birch_0",
-          "cozy_home:plank_jungle_0",
-          "cozy_home:plank_dark_oak_0",
-          "cozy_home:plank_mangrove_0",
-          "cozy_home:plank_cherry_0",
-          "cozy_home:plank_bamboo_0",
-          "cozy_home:plank_crimson_0",
-          "cozy_home:plank_warped_0",
-          "cozy_home:plank_spruce_0",
-          "cozy_home:plank_acacia_0",
-          "cozy_home:desk_oak",
-          "cozy_home:desk_spruce",
-          "cozy_home:desk_birch",
-          "cozy_home:desk_jungle",
-          "cozy_home:desk_acacia",
-          "cozy_home:desk_dark_oak",
-          "cozy_home:desk_mangrove",
-          "cozy_home:desk_cherry",
-          "cozy_home:desk_quartz",
-          "cozy_home:table_crimson_single",
-          "cozy_home:table_warped_single",
+          {
+            "id": "cozy_home:drawer_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_spruce",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_birch",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_jungle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_acacia",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_dark_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_mangrove",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_cherry",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_crimson",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_warped",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_oak_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_birch_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_jungle_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_dark_oak_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_mangrove_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_cherry_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_bamboo_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_crimson_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_warped_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_spruce_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_acacia_0",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_spruce",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_birch",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_jungle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_acacia",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_dark_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_mangrove",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_cherry",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_quartz",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_single",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_single",
+            "required": false
+          },
           "cozy_home:chimney_brick",
           "cozy_home:chimney_netherbrick",
           "cozy_home:chimney_stonebrick",
           "cozy_home:chimney_cobblestone",
           "cozy_home:telescope",
-          "cozy_home:tent",
-          "cozy_home:chandelier_golden",
+          {
+            "id": "cozy_home:tent",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chandelier_golden",
+            "required": false
+          },
           "cozy_home:stump_chair",
-          "cozy_home:glass_chair",
-          "cozy_home:rug_trader_single",
+          {
+            "id": "cozy_home:glass_chair",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_single",
+            "required": false
+          },
           "cozy_home:oak_mirror_stand",
           "cozy_home:spruce_mirror_stand",
           "cozy_home:birch_mirror_stand",
@@ -15808,358 +18527,1406 @@
           "cozy_home:warped_mirror_stand",
           "cozy_home:bamboo_mirror_stand",
           "cozy_home:quartz_mirror_stand",
-          "cozy_home:oak_chair_tucked",
-          "cozy_home:oak_mirror_top",
-          "cozy_home:oak_mirror_bottom",
-          "cozy_home:oak_mirror_middle",
-          "cozy_home:spruce_chair_tucked",
-          "cozy_home:birch_chair_tucked",
-          "cozy_home:jungle_chair_tucked",
-          "cozy_home:spruce_mirror_top",
-          "cozy_home:spruce_mirror_middle",
-          "cozy_home:spruce_mirror_bottom",
-          "cozy_home:birch_mirror_top",
-          "cozy_home:birch_mirror_middle",
-          "cozy_home:birch_mirror_bottom",
-          "cozy_home:jungle_mirror_top",
-          "cozy_home:jungle_mirror_middle",
-          "cozy_home:jungle_mirror_bottom",
-          "cozy_home:acacia_mirror_top",
-          "cozy_home:acacia_mirror_middle",
-          "cozy_home:acacia_mirror_bottom",
-          "cozy_home:dark_oak_mirror_top",
-          "cozy_home:dark_oak_mirror_middle",
-          "cozy_home:dark_oak_mirror_bottom",
-          "cozy_home:mangrove_mirror_top",
-          "cozy_home:mangrove_mirror_middle",
-          "cozy_home:mangrove_mirror_bottom",
-          "cozy_home:crimson_mirror_top",
-          "cozy_home:crimson_mirror_middle",
-          "cozy_home:crimson_mirror_bottom",
-          "cozy_home:warped_mirror_top",
-          "cozy_home:warped_mirror_middle",
-          "cozy_home:warped_mirror_bottom",
-          "cozy_home:acacia_chair_tucked",
-          "cozy_home:dark_oak_chair_tucked",
-          "cozy_home:mangrove_chair_tucked",
-          "cozy_home:crimson_chair_tucked",
-          "cozy_home:warped_chair_tucked",
-          "cozy_home:lamp_white_off",
-          "cozy_home:lamp_orange_off",
-          "cozy_home:lamp_magenta_off",
-          "cozy_home:lamp_light_blue_off",
-          "cozy_home:lamp_yellow_off",
-          "cozy_home:lamp_lime_off",
-          "cozy_home:lamp_pink_off",
-          "cozy_home:lamp_gray_off",
-          "cozy_home:lamp_light_gray_off",
-          "cozy_home:lamp_cyan_off",
-          "cozy_home:lamp_purple_off",
-          "cozy_home:lamp_blue_off",
-          "cozy_home:lamp_brown_off",
-          "cozy_home:lamp_green_off",
-          "cozy_home:lamp_red_off",
-          "cozy_home:lamp_black_off",
-          "cozy_home:drawer_oak_left",
-          "cozy_home:drawer_oak_right",
-          "cozy_home:drawer_oak_middle",
-          "cozy_home:drawer_spruce_left",
-          "cozy_home:drawer_spruce_middle",
-          "cozy_home:drawer_spruce_right",
-          "cozy_home:drawer_birch_left",
-          "cozy_home:drawer_birch_middle",
-          "cozy_home:drawer_birch_right",
-          "cozy_home:drawer_jungle_left",
-          "cozy_home:drawer_jungle_middle",
-          "cozy_home:drawer_jungle_right",
-          "cozy_home:drawer_acacia_left",
-          "cozy_home:drawer_acacia_middle",
-          "cozy_home:drawer_acacia_right",
-          "cozy_home:drawer_dark_oak_left",
-          "cozy_home:drawer_dark_oak_middle",
-          "cozy_home:drawer_dark_oak_right",
-          "cozy_home:drawer_mangrove_left",
-          "cozy_home:drawer_mangrove_middle",
-          "cozy_home:drawer_mangrove_right",
-          "cozy_home:drawer_crimson_left",
-          "cozy_home:drawer_crimson_middle",
-          "cozy_home:drawer_crimson_right",
-          "cozy_home:drawer_warped_left",
-          "cozy_home:drawer_warped_middle",
-          "cozy_home:drawer_warped_right",
-          "cozy_home:oak_planked_wall_bottom",
-          "cozy_home:oak_planked_wall_middle",
-          "cozy_home:oak_planked_wall_top",
-          "cozy_home:spruce_planked_wall_bottom",
-          "cozy_home:spruce_planked_wall_middle",
-          "cozy_home:spruce_planked_wall_top",
-          "cozy_home:birch_planked_wall_bottom",
-          "cozy_home:birch_planked_wall_middle",
-          "cozy_home:birch_planked_wall_top",
-          "cozy_home:acacia_planked_wall_bottom",
-          "cozy_home:acacia_planked_wall_middle",
-          "cozy_home:acacia_planked_wall_top",
-          "cozy_home:dark_oak_planked_wall_bottom",
-          "cozy_home:dark_oak_planked_wall_middle",
-          "cozy_home:dark_oak_planked_wall_top",
-          "cozy_home:jungle_planked_wall_bottom",
-          "cozy_home:jungle_planked_wall_middle",
-          "cozy_home:jungle_planked_wall_top",
-          "cozy_home:mangrove_planked_wall_bottom",
-          "cozy_home:mangrove_planked_wall_middle",
-          "cozy_home:mangrove_planked_wall_top",
-          "cozy_home:crimson_planked_wall_bottom",
-          "cozy_home:crimson_planked_wall_middle",
-          "cozy_home:crimson_planked_wall_top",
-          "cozy_home:warped_planked_wall_bottom",
-          "cozy_home:warped_planked_wall_middle",
-          "cozy_home:warped_planked_wall_top",
-          "cozy_home:tent_open",
-          "cozy_home:bamboo_chair_tucked",
-          "cozy_home:table_stump_oak_corner",
-          "cozy_home:table_stump_oak_double",
-          "cozy_home:table_stump_oak_side",
-          "cozy_home:table_stump_oak_straight",
-          "cozy_home:table_stump_oak_middle",
-          "cozy_home:table_stump_birch_middle",
-          "cozy_home:table_stump_birch_straight",
-          "cozy_home:table_stump_birch_side",
-          "cozy_home:table_stump_birch_double",
-          "cozy_home:table_stump_birch_corner",
-          "cozy_home:table_stump_acacia_middle",
-          "cozy_home:table_stump_acacia_straight",
-          "cozy_home:table_stump_acacia_side",
-          "cozy_home:table_stump_acacia_double",
-          "cozy_home:table_stump_acacia_corner",
-          "cozy_home:table_stump_dark_oak_middle",
-          "cozy_home:table_stump_dark_oak_straight",
-          "cozy_home:table_stump_dark_oak_side",
-          "cozy_home:table_stump_dark_oak_double",
-          "cozy_home:table_stump_dark_oak_corner",
-          "cozy_home:table_stump_spruce_middle",
-          "cozy_home:table_stump_spruce_straight",
-          "cozy_home:table_stump_spruce_side",
-          "cozy_home:table_stump_spruce_double",
-          "cozy_home:table_stump_spruce_corner",
-          "cozy_home:table_stump_jungle_middle",
-          "cozy_home:table_stump_jungle_straight",
-          "cozy_home:table_strump_jungle_side",
-          "cozy_home:table_stump_jungle_double",
-          "cozy_home:table_stump_jungle_corner",
-          "cozy_home:table_stump_mangrove_straight",
-          "cozy_home:table_stump_mangrove_side",
-          "cozy_home:table_stump_mangrove_double",
-          "cozy_home:table_stump_mangrove_corner",
-          "cozy_home:table_stump_mangrove_middle",
-          "cozy_home:table_stump_crimson_straight",
-          "cozy_home:table_stump_crimson_side",
-          "cozy_home:table_stump_crimson_double",
-          "cozy_home:table_stump_crimson_corner",
-          "cozy_home:table_stump_crimson_middle",
-          "cozy_home:table_stump_warped_straight",
-          "cozy_home:table_stump_warped_side",
-          "cozy_home:table_stump_warped_double",
-          "cozy_home:table_stump_warped_corner",
-          "cozy_home:table_stump_warped_middle",
-          "cozy_home:plank_oak_1",
-          "cozy_home:plank_oak_2",
-          "cozy_home:plank_oak_3",
-          "cozy_home:plank_birch_1",
-          "cozy_home:plank_birch_2",
-          "cozy_home:plank_birch_3",
-          "cozy_home:plank_jungle_1",
-          "cozy_home:plank_jungle_2",
-          "cozy_home:plank_jungle_3",
-          "cozy_home:plank_dark_oak_1",
-          "cozy_home:plank_dark_oak_2",
-          "cozy_home:plank_dark_oak_3",
-          "cozy_home:plank_mangrove_1",
-          "cozy_home:plank_mangrove_2",
-          "cozy_home:plank_mangrove_3",
-          "cozy_home:plank_bamboo_1",
-          "cozy_home:plank_bamboo_2",
-          "cozy_home:plank_bamboo_3",
-          "cozy_home:plank_crimson_1",
-          "cozy_home:plank_crimson_2",
-          "cozy_home:plank_crimson_3",
-          "cozy_home:plank_warped_1",
-          "cozy_home:plank_warped_2",
-          "cozy_home:plank_warped_3",
-          "cozy_home:plank_spruce_1",
-          "cozy_home:plank_spruce_2",
-          "cozy_home:plank_spruce_3",
-          "cozy_home:plank_acacia_1",
-          "cozy_home:plank_acacia_2",
-          "cozy_home:plank_acacia_3",
-          "cozy_home:desk_oak_left",
-          "cozy_home:desk_oak_right",
-          "cozy_home:desk_oak_middle",
-          "cozy_home:desk_spruce_left",
-          "cozy_home:desk_spruce_right",
-          "cozy_home:desk_spruce_middle",
-          "cozy_home:desk_birch_left",
-          "cozy_home:desk_birch_right",
-          "cozy_home:desk_birch_middle",
-          "cozy_home:desk_jungle_left",
-          "cozy_home:desk_jungle_right",
-          "cozy_home:desk_jungle_middle",
-          "cozy_home:desk_acacia_left",
-          "cozy_home:desk_acacia_right",
-          "cozy_home:desk_acacia_middle",
-          "cozy_home:desk_dark_oak_left",
-          "cozy_home:desk_dark_oak_right",
-          "cozy_home:desk_dark_oak_middle",
-          "cozy_home:desk_mangrove_left",
-          "cozy_home:desk_mangrove_right",
-          "cozy_home:desk_mangrove_middle",
-          "cozy_home:desk_crimson_left",
-          "cozy_home:desk_crimson_right",
-          "cozy_home:desk_crimson_middle",
-          "cozy_home:desk_warped_left",
-          "cozy_home:desk_warped_right",
-          "cozy_home:desk_warped_middle",
-          "cozy_home:table_oak_corner",
-          "cozy_home:table_oak_double",
-          "cozy_home:table_oak_side",
-          "cozy_home:table_oak_straight",
-          "cozy_home:table_oak_middle",
-          "cozy_home:table_spruce_middle",
-          "cozy_home:table_spruce_straight",
-          "cozy_home:table_spruce_side",
-          "cozy_home:table_spruce_double",
-          "cozy_home:table_spruce_corner",
-          "cozy_home:table_birch_middle",
-          "cozy_home:table_birch_straight",
-          "cozy_home:table_birch_side",
-          "cozy_home:table_birch_double",
-          "cozy_home:table_birch_corner",
-          "cozy_home:table_jungle_middle",
-          "cozy_home:table_jungle_straight",
-          "cozy_home:table_jungle_side",
-          "cozy_home:table_jungle_double",
-          "cozy_home:table_jungle_corner",
-          "cozy_home:quartz_mirror_top",
-          "cozy_home:quartz_mirror_middle",
-          "cozy_home:quartz_mirror_bottom",
-          "cozy_home:desk_quartz_left",
-          "cozy_home:desk_quartz_right",
-          "cozy_home:desk_quartz_middle",
-          "cozy_home:bamboo_mirror_top",
-          "cozy_home:bamboo_mirror_bottom",
-          "cozy_home:bamboo_mirror_middle",
-          "cozy_home:chimney_brick_long",
-          "cozy_home:chimney_netherbrick_long",
-          "cozy_home:chimney_stonebrick_long",
-          "cozy_home:chimney_brick_intake",
-          "cozy_home:chimney_stonebrick_intake",
-          "cozy_home:chimney_netherbrick_intake",
-          "cozy_home:chimney_brick_solid",
-          "cozy_home:chimney_stonebrick_solid",
-          "cozy_home:chimney_netherbrick_solid",
-          "cozy_home:chimney_cobblestone_long",
-          "cozy_home:chimney_cobblestone_intake",
-          "cozy_home:chimney_cobblestone_solid",
-          "cozy_home:counter_quartz_outer_corner_left",
-          "cozy_home:counter_quartz_inner_corner_left",
-          "cozy_home:counter_quartz_inner_corner_right",
-          "cozy_home:counter_quartz_outer_corner_right",
-          "cozy_home:rug_trader_corner",
-          "cozy_home:rug_trader_double",
-          "cozy_home:rug_trader_side",
-          "cozy_home:rug_trader_straight",
-          "cozy_home:rug_trader_middle",
-          "cozy_home:table_acacia_middle",
-          "cozy_home:table_acacia_straight",
-          "cozy_home:table_acacia_side",
-          "cozy_home:table_acacia_double",
-          "cozy_home:table_acacia_corner",
-          "cozy_home:table_bamboo_middle",
-          "cozy_home:table_bamboo_straight",
-          "cozy_home:table_bamboo_side",
-          "cozy_home:table_bamboo_double",
-          "cozy_home:table_bamboo_corner",
-          "cozy_home:table_dark_oak_middle",
-          "cozy_home:table_dark_oak_straight",
-          "cozy_home:table_dark_oak_side",
-          "cozy_home:table_dark_oak_double",
-          "cozy_home:table_dark_oak_corner",
-          "cozy_home:table_mangrove_middle",
-          "cozy_home:table_mangrove_straight",
-          "cozy_home:table_mangrove_side",
-          "cozy_home:table_mangrove_double",
-          "cozy_home:table_mangrove_corner",
-          "cozy_home:table_crimson_middle",
-          "cozy_home:table_crimson_straight",
-          "cozy_home:table_crimson_side",
-          "cozy_home:table_crimson_double",
-          "cozy_home:table_crimson_corner",
-          "cozy_home:table_warped_middle",
-          "cozy_home:table_warped_straight",
-          "cozy_home:table_warped_side",
-          "cozy_home:table_warped_double",
-          "cozy_home:table_warped_corner",
-          "cozy_home:cherry_chair_tucked",
-          "cozy_home:plank_cherry_1",
-          "cozy_home:plank_cherry_2",
-          "cozy_home:plank_cherry_3",
-          "cozy_home:drawer_cherry_left",
-          "cozy_home:drawer_cherry_right",
-          "cozy_home:drawer_cherry_middle",
-          "cozy_home:desk_cherry_left",
-          "cozy_home:desk_cherry_right",
-          "cozy_home:desk_cherry_middle",
-          "cozy_home:cherry_mirror_top",
-          "cozy_home:cherry_mirror_bottom",
-          "cozy_home:cherry_mirror_middle",
-          "cozy_home:table_cherry_corner",
-          "cozy_home:table_cherry_double",
-          "cozy_home:table_cherry_side",
-          "cozy_home:table_cherry_straight",
-          "cozy_home:table_cherry_middle",
-          "cozy_home:table_stump_cherry_corner",
-          "cozy_home:table_stump_cherry_double",
-          "cozy_home:table_stump_cherry_side",
-          "cozy_home:table_stump_cherry_straight",
-          "cozy_home:table_stump_cherry_middle",
-          "cozy_home:oak_bench_left",
-          "cozy_home:oak_bench_middle",
-          "cozy_home:oak_bench_right",
-          "cozy_home:spruce_bench_left",
-          "cozy_home:spruce_bench_middle",
-          "cozy_home:spruce_bench_right",
-          "cozy_home:birch_bench_left",
-          "cozy_home:birch_bench_middle",
-          "cozy_home:birch_bench_right",
-          "cozy_home:jungle_bench_left",
-          "cozy_home:jungle_bench_middle",
-          "cozy_home:jungle_bench_right",
-          "cozy_home:acacia_bench_left",
-          "cozy_home:acacia_bench_middle",
-          "cozy_home:acacia_bench_right",
-          "cozy_home:bamboo_bench_left",
-          "cozy_home:bamboo_bench_middle",
-          "cozy_home:bamboo_bench_right",
-          "cozy_home:cherry_bench_left",
-          "cozy_home:cherry_bench_middle",
-          "cozy_home:cherry_bench_right",
-          "cozy_home:dark_oak_bench_left",
-          "cozy_home:dark_oak_bench_middle",
-          "cozy_home:dark_oak_bench_right",
-          "cozy_home:crimson_bench_left",
-          "cozy_home:crimson_bench_middle",
-          "cozy_home:crimson_bench_right",
-          "cozy_home:mangrove_bench_left",
-          "cozy_home:mangrove_bench_middle",
-          "cozy_home:mangrove_bench_right",
-          "cozy_home:quartz_bench_left",
-          "cozy_home:quartz_bench_middle",
-          "cozy_home:quartz_bench_right",
-          "cozy_home:warped_bench_left",
-          "cozy_home:warped_bench_middle",
-          "cozy_home:warped_bench_right"
+          {
+            "id": "cozy_home:oak_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_white_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_orange_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_magenta_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_light_blue_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_yellow_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_lime_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_pink_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_gray_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_light_gray_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_cyan_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_purple_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_blue_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_brown_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_green_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_red_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:lamp_black_off",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_oak_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_oak_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_spruce_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_spruce_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_spruce_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_birch_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_birch_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_birch_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_jungle_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_jungle_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_jungle_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_acacia_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_acacia_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_acacia_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_dark_oak_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_dark_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_dark_oak_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_mangrove_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_mangrove_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_mangrove_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_crimson_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_crimson_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_crimson_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_warped_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_warped_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_warped_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_planked_wall_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_planked_wall_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_planked_wall_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:tent_open",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_oak_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_oak_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_oak_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_oak_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_birch_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_acacia_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_dark_oak_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_spruce_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_jungle_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_jungle_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_strump_jungle_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_jungle_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_jungle_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_mangrove_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_crimson_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_warped_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_oak_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_oak_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_oak_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_birch_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_birch_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_birch_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_jungle_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_jungle_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_jungle_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_dark_oak_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_dark_oak_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_dark_oak_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_mangrove_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_mangrove_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_mangrove_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_bamboo_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_bamboo_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_bamboo_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_crimson_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_crimson_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_crimson_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_warped_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_warped_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_warped_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_spruce_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_spruce_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_spruce_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_acacia_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_acacia_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_acacia_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_oak_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_oak_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_spruce_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_spruce_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_spruce_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_birch_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_birch_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_birch_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_jungle_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_jungle_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_jungle_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_acacia_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_acacia_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_acacia_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_dark_oak_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_dark_oak_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_dark_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_mangrove_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_mangrove_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_mangrove_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_crimson_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_crimson_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_crimson_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_warped_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_warped_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_warped_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_oak_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_oak_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_oak_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_oak_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_spruce_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_birch_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_jungle_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_quartz_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_quartz_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_quartz_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_brick_long",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_netherbrick_long",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_stonebrick_long",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_brick_intake",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_stonebrick_intake",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_netherbrick_intake",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_brick_solid",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_stonebrick_solid",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_netherbrick_solid",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_cobblestone_long",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_cobblestone_intake",
+            "required": false
+          },
+          {
+            "id": "cozy_home:chimney_cobblestone_solid",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_quartz_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:rug_trader_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_acacia_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_bamboo_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_dark_oak_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_mangrove_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_crimson_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_warped_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_cherry_1",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_cherry_2",
+            "required": false
+          },
+          {
+            "id": "cozy_home:plank_cherry_3",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_cherry_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_cherry_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_cherry_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_cherry_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_cherry_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:desk_cherry_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_mirror_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_mirror_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_mirror_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_cherry_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_corner",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_double",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_side",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_straight",
+            "required": false
+          },
+          {
+            "id": "cozy_home:table_stump_cherry_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:oak_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:spruce_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:birch_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:jungle_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:acacia_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:bamboo_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:cherry_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:dark_oak_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:crimson_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:mangrove_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_bench_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_bench_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_bench_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:warped_bench_right",
+            "required": false
+          }
         ]
       },
       "accepted_before_sha256": [
+        "1b715a76ff51cf574a4cdd8b53ce48211ca6d2074731a73cedc219f36699f2a5",
         "a8813b3688a14c10410d792819468638dc1fa1a0f6e137a58e1faf3a5b6b15ab"
       ]
     },
@@ -16179,133 +19946,506 @@
             "id": "cozy_home:counter_oak_storage",
             "required": false
           },
-          "cozy_home:counter_oak_sink",
-          "cozy_home:counter_spruce",
-          "cozy_home:counter_spruce_storage",
-          "cozy_home:counter_spruce_sink",
-          "cozy_home:counter_birch",
-          "cozy_home:counter_birch_storage",
-          "cozy_home:counter_birch_sink",
-          "cozy_home:counter_jungle",
-          "cozy_home:counter_jungle_storage",
-          "cozy_home:counter_jungle_sink",
-          "cozy_home:counter_acacia",
-          "cozy_home:counter_acacia_storage",
-          "cozy_home:counter_acacia_sink",
-          "cozy_home:counter_dark_oak",
-          "cozy_home:counter_dark_oak_storage",
-          "cozy_home:counter_dark_oak_sink",
-          "cozy_home:counter_mangrove",
-          "cozy_home:counter_mangrove_storage",
-          "cozy_home:counter_mangrove_sink",
-          "cozy_home:counter_cherry",
-          "cozy_home:counter_cherry_storage",
-          "cozy_home:counter_cherry_sink",
-          "cozy_home:counter_crimson",
-          "cozy_home:counter_crimson_storage",
-          "cozy_home:counter_crimson_sink",
-          "cozy_home:counter_warped",
-          "cozy_home:counter_warped_storage",
-          "cozy_home:counter_warped_sink",
-          "cozy_home:drawer_quartz",
-          "cozy_home:grandfather_clock_oak_bottom",
-          "cozy_home:grandfather_clock_spruce_bottom",
-          "cozy_home:grandfather_clock_birch_bottom",
-          "cozy_home:grandfather_clock_jungle_bottom",
-          "cozy_home:grandfather_clock_acacia_bottom",
-          "cozy_home:grandfather_clock_dark_oak_bottom",
-          "cozy_home:grandfather_clock_mangrove_bottom",
-          "cozy_home:grandfather_clock_cherry_bottom",
-          "cozy_home:grandfather_clock_crimson_bottom",
-          "cozy_home:grandfather_clock_warped_bottom",
-          "cozy_home:grandfather_clock_bamboo_bottom",
-          "cozy_home:grandfather_clock_quartz_bottom",
-          "cozy_home:fireplace_oak",
-          "cozy_home:drawer_quartz_left",
-          "cozy_home:drawer_quartz_middle",
-          "cozy_home:drawer_quartz_right",
-          "cozy_home:quartz_chair_tucked",
-          "cozy_home:grandfather_clock_oak_middle",
-          "cozy_home:grandfather_clock_oak_top",
-          "cozy_home:grandfather_clock_spruce_middle",
-          "cozy_home:grandfather_clock_spruce_top",
-          "cozy_home:grandfather_clock_birch_middle",
-          "cozy_home:grandfather_clock_birch_top",
-          "cozy_home:grandfather_clock_jungle_middle",
-          "cozy_home:grandfather_clock_jungle_top",
-          "cozy_home:grandfather_clock_acacia_middle",
-          "cozy_home:grandfather_clock_acacia_top",
-          "cozy_home:grandfather_clock_dark_oak_middle",
-          "cozy_home:grandfather_clock_dark_oak_top",
-          "cozy_home:grandfather_clock_mangrove_middle",
-          "cozy_home:grandfather_clock_mangrove_top",
-          "cozy_home:grandfather_clock_crimson_middle",
-          "cozy_home:grandfather_clock_crimson_top",
-          "cozy_home:grandfather_clock_warped_middle",
-          "cozy_home:grandfather_clock_warped_top",
-          "cozy_home:grandfather_clock_bamboo_middle",
-          "cozy_home:grandfather_clock_bamboo_top",
-          "cozy_home:grandfather_clock_quartz_middle",
-          "cozy_home:grandfather_clock_quartz_top",
-          "cozy_home:counter_oak_outer_corner_left",
-          "cozy_home:counter_oak_outer_corner_right",
-          "cozy_home:counter_oak_inner_corner_left",
-          "cozy_home:counter_oak_inner_corner_right",
-          "cozy_home:counter_spruce_outer_corner_left",
-          "cozy_home:counter_spruce_outer_corner_right",
-          "cozy_home:counter_spruce_inner_corner_left",
-          "cozy_home:counter_spruce_inner_corner_right",
-          "cozy_home:counter_birch_outer_corner_left",
-          "cozy_home:counter_birch_inner_corner_left",
-          "cozy_home:counter_birch_inner_corner_right",
-          "cozy_home:counter_jungle_outer_corner_left",
-          "cozy_home:counter_jungle_inner_corner_left",
-          "cozy_home:counter_jungle_inner_corner_right",
-          "cozy_home:counter_birch_outer_corner_right",
-          "cozy_home:counter_jungle_outer_corner_right",
-          "cozy_home:counter_acacia_outer_corner_left",
-          "cozy_home:counter_acacia_inner_corner_left",
-          "cozy_home:counter_acacia_inner_corner_right",
-          "cozy_home:counter_acacia_outer_corner_right",
-          "cozy_home:counter_dark_oak_outer_corner_left",
-          "cozy_home:counter_dark_oak_inner_corner_left",
-          "cozy_home:counter_dark_oak_inner_corner_right",
-          "cozy_home:counter_dark_oak_outer_corner_right",
-          "cozy_home:counter_mangrove_outer_corner_left",
-          "cozy_home:counter_mangrove_inner_corner_left",
-          "cozy_home:counter_mangrove_inner_corner_right",
-          "cozy_home:counter_mangrove_outer_corner_right",
-          "cozy_home:counter_crimson_outer_corner_left",
-          "cozy_home:counter_crimson_inner_corner_left",
-          "cozy_home:counter_crimson_inner_corner_right",
-          "cozy_home:counter_crimson_outer_corner_right",
-          "cozy_home:counter_warped_outer_corner_left",
-          "cozy_home:counter_warped_inner_corner_left",
-          "cozy_home:counter_warped_inner_corner_right",
-          "cozy_home:counter_warped_outer_corner_right",
-          "cozy_home:counter_cherry_outer_corner_left",
-          "cozy_home:counter_cherry_outer_corner_right",
-          "cozy_home:counter_cherry_inner_corner_left",
-          "cozy_home:counter_cherry_corner_right",
-          "cozy_home:grandfather_clock_cherry_middle",
-          "cozy_home:grandfather_clock_cherry_top",
-          "cozy_home:fireplace_oak_horizontal_left",
-          "cozy_home:fireplace_oak_horizontal_middle",
-          "cozy_home:fireplace_oak_horizontal_right",
-          "cozy_home:fireplace_oak_vertical_bottom",
-          "cozy_home:fireplace_oak_vertical_middle",
-          "cozy_home:fireplace_oak_vertical_top",
-          "cozy_home:fireplace_oak_top_left",
-          "cozy_home:fireplace_oak_top_middle",
-          "cozy_home:fireplace_oak_top_right",
-          "cozy_home:fireplace_oak_middle_left",
-          "cozy_home:fireplace_oak_middle_right",
-          "cozy_home:fireplace_oak_bottom_left",
-          "cozy_home:fireplace_oak_bottom_middle",
-          "cozy_home:fireplace_oak_bottom_right"
+          {
+            "id": "cozy_home:counter_oak_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_storage",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_sink",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_quartz",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_oak_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_spruce_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_birch_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_jungle_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_acacia_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_dark_oak_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_mangrove_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_cherry_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_crimson_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_warped_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_bamboo_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_quartz_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_quartz_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_quartz_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:drawer_quartz_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:quartz_chair_tucked",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_oak_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_spruce_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_spruce_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_birch_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_birch_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_jungle_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_jungle_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_acacia_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_acacia_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_dark_oak_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_dark_oak_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_mangrove_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_mangrove_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_crimson_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_crimson_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_warped_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_warped_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_bamboo_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_bamboo_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_quartz_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_quartz_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_oak_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_oak_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_oak_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_oak_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_spruce_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_birch_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_jungle_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_acacia_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_dark_oak_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_mangrove_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_crimson_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_inner_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_warped_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_outer_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_outer_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_inner_corner_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:counter_cherry_corner_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_cherry_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:grandfather_clock_cherry_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_horizontal_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_horizontal_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_horizontal_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_vertical_bottom",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_vertical_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_vertical_top",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_top_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_top_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_top_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_middle_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_middle_right",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_bottom_left",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_bottom_middle",
+            "required": false
+          },
+          {
+            "id": "cozy_home:fireplace_oak_bottom_right",
+            "required": false
+          }
         ]
       },
       "accepted_before_sha256": [
+        "11e0c5eaf9bf72ab6d5b7e27d04d2e455ef6e8561d509cd7231b679af4246e29",
         "f4e6ea20064db237d04909827e5bf3b0694d9e79e99640d3a693dfd999d5f52f"
       ]
     },
@@ -16324,11 +20464,18 @@
             "id": "cozy_home:couch_oak_white_right",
             "required": false
           },
-          "cozy_home:couch_oak_white",
-          "cozy_home:couch_oak_white_left"
+          {
+            "id": "cozy_home:couch_oak_white",
+            "required": false
+          },
+          {
+            "id": "cozy_home:couch_oak_white_left",
+            "required": false
+          }
         ]
       },
       "accepted_before_sha256": [
+        "67ccce245cca755f5f64ad5ab2c90c4d6e40c1014b9d1bef18a6730bd25a12cc",
         "6d03927de078e174c260d8169c64f3c6c4f8c93e1df5a595ed145b215f7a2a4f"
       ]
     },
@@ -21562,12 +25709,19 @@
             "id": "spelunkeryplus:cc_diorite_silver_ore",
             "required": false
           },
-          "spelunkeryplus:cc_granite_silver_ore",
-          "spelunkeryplus:cc_tuff_silver_ore"
+          {
+            "id": "spelunkeryplus:cc_granite_silver_ore",
+            "required": false
+          },
+          {
+            "id": "spelunkeryplus:cc_tuff_silver_ore",
+            "required": false
+          }
         ]
       },
       "accepted_before_sha256": [
-        "34f653182bfede79a4a8a176e6342c145fc6f601fab112fc68f77a00f4fde93c"
+        "34f653182bfede79a4a8a176e6342c145fc6f601fab112fc68f77a00f4fde93c",
+        "6dbca8cd2e65f39e109c3cb43f64ff635327c3cde1e9b27aba2e24a23f5dae92"
       ]
     },
     {

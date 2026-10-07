@@ -69,7 +69,7 @@ def item_names(data: Any) -> set[str]:
         for key in ("item", "result"):
             if isinstance(data.get(key), str) and re.fullmatch(RESOURCE_ID, data[key]):
                 items.add(data[key])
-        if data.get("type") == "minecraft:item" and isinstance(data.get("name"), str):
+        if data.get("type") in {"minecraft:item", "item"} and isinstance(data.get("name"), str):
             items.add(data["name"])
         if isinstance(data.get("items"), list):
             items.update(value for value in data["items"] if isinstance(value, str))
@@ -174,7 +174,7 @@ def legacy_loot_function(data: dict) -> list[dict] | None:
 
 def repair_loot(data: Any, missing: set[str], missing_block: str | None = None) -> Any:
     if isinstance(data, dict):
-        if data.get("type") == "minecraft:item" and LEGACY_IDS.get(data.get("name"), data.get("name")) in missing:
+        if data.get("type") in {"minecraft:item", "item"} and LEGACY_IDS.get(data.get("name"), data.get("name")) in missing:
             return None
         if missing_block and data.get("condition") == "minecraft:block_state_property" and data.get("block") == missing_block:
             return {"condition": "minecraft:random_chance", "chance": 0}
@@ -231,7 +231,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
     recipes: dict[str, str] = {}
     loot: dict[str, set[str]] = {}
     loot_blocks: dict[str, str] = {}
-    invalid_tags: set[str] = set()
+    invalid_tags: set[tuple[str, str]] = set()
     missing_tags: dict[str, set[str]] = {}
     advancements: dict[str, str] = {}
     orphan_parents: dict[str, str] = {}
@@ -248,13 +248,19 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
             block = re.search(r"Can't find block (" + RESOURCE_ID + r")", context)
             if block:
                 loot_blocks[match[1]] = block[1]
-        match = re.search(r"Couldn't read tag list .* from ([a-z0-9_.-]+):([a-z0-9_./-]+\.json)", line)
+        match = re.search(r"Couldn't read tag list .* from ([a-z0-9_.-]+):([a-z0-9_./-]+\.json) in data pack (.+)$", line)
         if match:
-            invalid_tags.add(f"data/{match[1]}/{match[2]}")
+            invalid_tags.add((match[3], f"data/{match[1]}/{match[2]}"))
         match = re.search(rf"Couldn't load tag ({RESOURCE_ID}) as it is missing following references: (.*)", line)
         if match:
+            continuation = []
+            for following in lines[index + 1:]:
+                if following.startswith("["):
+                    break
+                continuation.append(following)
+            context = match[2] + "\n" + "\n".join(continuation)
             missing_tags.setdefault(match[1], set()).update(
-                re.findall(rf"(#?{RESOURCE_ID}) \(from ", match[2])
+                re.findall(rf"(#?{RESOURCE_ID}) \(from ", context)
             )
         match = re.search(rf"Parsing error loading custom advancement ({RESOURCE_ID}): (.*)", line)
         if match:
@@ -276,7 +282,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                     or (kind == "loot_tables" and identifier in loot)
                     or (kind == "advancements" and identifier in advancements | orphan_parents)
                     or (kind.startswith("tags/") and identifier in missing_tags)
-                    or name in invalid_tags
+                    or (jar.name, name) in invalid_tags
                     or (kind == "tags/worldgen/biome" and jar.name.startswith("Epic Villages "))
                 ):
                     continue
@@ -298,7 +304,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                     fixed = repair_loot(data, loot[identifier] | known_missing, loot_blocks.get(identifier))
                 elif kind.startswith("tags/"):
                     missing = missing_tags.get(identifier, set())
-                    if kind == "tags/items":
+                    if kind in {"tags/items", "tags/blocks"}:
                         missing = missing | known_missing
                     fixed = repair_tag(data, missing, loaded)
                 elif identifier in orphan_parents:
@@ -326,7 +332,7 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                                     predicate["items"] = [predicate["items"]]
                     else:
                         fixed = add_condition(fixed, {"type": "forge:false"})
-                if fixed != data or parse_bytes != before:
+                if fixed != data or parse_bytes != before or (jar.name, name) in invalid_tags:
                     changes.append({"jar": jar.name, "resource": name,
                                     "before_sha256": digest(before), "data": fixed})
     return {"schema_version": 1, "minecraft_version": "1.20.1", "changes": changes}
