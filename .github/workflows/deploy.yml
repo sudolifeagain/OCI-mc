@@ -147,6 +147,11 @@ jobs:
           python3 /opt/minecraft/bot/scripts/repair_forge_data.py inventory \
             --plan /opt/minecraft/bot/infra/forge-resource-fixes.json \
             --manifest /opt/minecraft/bot/server-artifacts.json
+          if /opt/minecraft/bot/venv/bin/python -c \
+            'import json,sys; sys.exit("forge" not in json.load(open("/opt/minecraft/.bot-runtime/desired_servers.json"))["servers"])'; then
+            python3 /opt/minecraft/bot/scripts/check_forge_runtime.py \
+              --log /opt/minecraft/forge/logs/latest.log
+          fi
           sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py finalize
           sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py finalize \
             --plan /opt/minecraft/bot/infra/forge-resource-fixes.json

@@ -14744,24 +14744,6 @@
             "entries": [
               {
                 "type": "item",
-                "name": "tacz:ammo",
-                "functions": [
-                  {
-                    "function": "set_nbt",
-                    "tag": "{AmmoId:\"tacz:556x45\"}"
-                  },
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 5
-                    }
-                  }
-                ],
-                "weight": 10
-              },
-              {
-                "type": "item",
                 "name": "minecraft:iron_block",
                 "functions": [
                   {
@@ -14861,7 +14843,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "33f29a416ddd810c27635c077a74c5851c6d5671b423b19bd2bddad1fa58d29c"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -14962,20 +14947,6 @@
               },
               {
                 "type": "item",
-                "name": "pointblank:ammo556",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 5
-                    }
-                  }
-                ],
-                "weight": 3
-              },
-              {
-                "type": "item",
                 "name": "minecraft:diamond",
                 "functions": [
                   {
@@ -14991,7 +14962,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "0369cddb3cbb4e2d37f461bbe26ae03e4acf68e3e1c612b017d52eae8d585fdf"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15006,24 +14980,6 @@
               "max": 5
             },
             "entries": [
-              {
-                "type": "item",
-                "name": "tacz:ammo",
-                "functions": [
-                  {
-                    "function": "set_nbt",
-                    "tag": "{AmmoId:\"tacz:9mm\"}"
-                  },
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 4,
-                      "max": 6
-                    }
-                  }
-                ],
-                "weight": 15
-              },
               {
                 "type": "item",
                 "name": "minecraft:iron_ingot",
@@ -15111,7 +15067,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "ca58624493c9baa99626cb921ae38c44331afb03b887bee6f3d3651ee2c6c8b1"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15223,25 +15182,14 @@
                   }
                 ],
                 "weight": 20
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo46",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 1,
-                      "max": 3
-                    }
-                  }
-                ],
-                "weight": 4
               }
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "20dfdecf51f3c0a4eb77777d99daf8849132d0c0e1ce2807775ffc9f79f3d3aa"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15256,24 +15204,6 @@
               "max": 4
             },
             "entries": [
-              {
-                "type": "item",
-                "name": "tacz:ammo",
-                "functions": [
-                  {
-                    "function": "set_nbt",
-                    "tag": "{AmmoId:\"tacz:50ae\"}"
-                  },
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 4,
-                      "max": 6
-                    }
-                  }
-                ],
-                "weight": 10
-              },
               {
                 "type": "item",
                 "name": "minecraft:bread",
@@ -15365,7 +15295,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "5853d323ea8aefe5db6a76249eb1d47dfa57347db7d1a1c394815cfa03ae8f58"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15470,20 +15403,6 @@
               },
               {
                 "type": "item",
-                "name": "pointblank:ammo9mm",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 1,
-                      "max": 3
-                    }
-                  }
-                ],
-                "weight": 3
-              },
-              {
-                "type": "item",
                 "name": "minecraft:potion",
                 "functions": [
                   {
@@ -15503,7 +15422,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "a369ced9f7d3dc4968be0eef96cf4c7314abaa6d7539133ff2f22d7fd44325f0"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15770,76 +15692,14 @@
                   }
                 ],
                 "weight": 10000
-              },
-              {
-                "type": "item",
-                "name": "pointblank:glock18",
-                "weight": 189.05
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m1911a1",
-                "weight": 178.7
-              },
-              {
-                "type": "item",
-                "name": "pointblank:tti_viper",
-                "weight": 168.9
-              },
-              {
-                "type": "item",
-                "name": "pointblank:p30l",
-                "weight": 159.63
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mk23",
-                "weight": 150.86
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m9",
-                "weight": 142.58
-              },
-              {
-                "type": "item",
-                "name": "pointblank:deserteagle",
-                "weight": 134.77
-              },
-              {
-                "type": "item",
-                "name": "pointblank:rhino",
-                "weight": 127.42
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo9mm",
-                "weight": 880
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo45acp",
-                "weight": 788
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo57",
-                "weight": 700
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo50ae",
-                "weight": 620
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo357",
-                "weight": 548
               }
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "293607597220ac2b031992d2c04f6f4695979dbd9a7226425cbb57ddff18eddb"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -15964,261 +15824,15 @@
             },
             "entries": [
               {
-                "type": "item",
-                "name": "pointblank:ammo45acp",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 4,
-                      "max": 6
-                    }
-                  }
-                ],
-                "weight": 197
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo57",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 3,
-                      "max": 5
-                    }
-                  }
-                ],
-                "weight": 175
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo50ae",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 155
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo357",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 137
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo46",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 121
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo545",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 106
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo556",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 92
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo68",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 80
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo762",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 69
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo762x51",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 59
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo338lapua",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 1,
-                      "max": 2
-                    }
-                  }
-                ],
-                "weight": 50
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo50bmg",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 1,
-                      "max": 2
-                    }
-                  }
-                ],
-                "weight": 41
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ammo12gauge",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 2,
-                      "max": 4
-                    }
-                  }
-                ],
-                "weight": 33
-              },
-              {
-                "type": "item",
-                "name": "pointblank:javelin_rocket",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 20
-              },
-              {
-                "type": "item",
-                "name": "pointblank:smaw_rocket",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 15
-              },
-              {
-                "type": "item",
-                "name": "pointblank:at4_rocket",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 11
-              },
-              {
-                "type": "item",
-                "name": "pointblank:grenade40mm",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 8
-              },
-              {
-                "type": "item",
-                "name": "pointblank:grenade20mm",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 6
+                "type": "minecraft:empty"
               }
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "4aa9a04b00e762aa7e960b4bdc767814d7f5214524f23d6ad32b4161d8f5fecf"
+      ]
     },
     {
       "jar": "Keerdm Zombie Apocalypse Essentials (TACZ) 1.41.jar",
@@ -16233,818 +15847,6 @@
               "max": 8
             },
             "entries": [
-              {
-                "type": "item",
-                "name": "pointblank:glock18",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 189.05
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m1911a1",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 178.7
-              },
-              {
-                "type": "item",
-                "name": "pointblank:tti_viper",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 168.9
-              },
-              {
-                "type": "item",
-                "name": "pointblank:p30l",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 159.63
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mk23",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 150.86
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m9",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 142.58
-              },
-              {
-                "type": "item",
-                "name": "pointblank:deserteagle",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 134.77
-              },
-              {
-                "type": "item",
-                "name": "pointblank:rhino",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 127.42
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m4a1",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 120.51
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m4a1mod1",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 114.01
-              },
-              {
-                "type": "item",
-                "name": "pointblank:star15",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 107.91
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m4sopmodii",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 102.19
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m16a1",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 96.83
-              },
-              {
-                "type": "item",
-                "name": "pointblank:hk416",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 91.81
-              },
-              {
-                "type": "item",
-                "name": "pointblank:scarl",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 87.11
-              },
-              {
-                "type": "item",
-                "name": "pointblank:xm7",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 82.73
-              },
-              {
-                "type": "item",
-                "name": "pointblank:g36c",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 78.65
-              },
-              {
-                "type": "item",
-                "name": "pointblank:g36k",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 74.86
-              },
-              {
-                "type": "item",
-                "name": "pointblank:aug",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 71.36
-              },
-              {
-                "type": "item",
-                "name": "pointblank:g41",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 68.13
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ak47",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 65.18
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ak74",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 62.48
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ak12",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 60.03
-              },
-              {
-                "type": "item",
-                "name": "pointblank:an94",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 57.81
-              },
-              {
-                "type": "item",
-                "name": "pointblank:xm29",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 55.81
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mp5",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 53.99
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mp7",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 52.33
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ump45",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 50.8
-              },
-              {
-                "type": "item",
-                "name": "pointblank:vector",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 49.38
-              },
-              {
-                "type": "item",
-                "name": "pointblank:p90",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 48.06
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ro635",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 46.83
-              },
-              {
-                "type": "item",
-                "name": "pointblank:tmp",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 45.67
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m950",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 44.58
-              },
-              {
-                "type": "item",
-                "name": "pointblank:sl8",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 43.56
-              },
-              {
-                "type": "item",
-                "name": "pointblank:uar10",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 42.59
-              },
-              {
-                "type": "item",
-                "name": "pointblank:wa2000",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 41.67
-              },
-              {
-                "type": "item",
-                "name": "pointblank:xm3",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 40.79
-              },
-              {
-                "type": "item",
-                "name": "pointblank:c14",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 39.95
-              },
-              {
-                "type": "item",
-                "name": "pointblank:l96a1",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 39.14
-              },
-              {
-                "type": "item",
-                "name": "pointblank:ballista",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 38.36
-              },
-              {
-                "type": "item",
-                "name": "pointblank:gm6lynx",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 37.61
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m590",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 36.89
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m870",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 36.19
-              },
-              {
-                "type": "item",
-                "name": "pointblank:spas12",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 35.51
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m1014",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 34.86
-              },
-              {
-                "type": "item",
-                "name": "pointblank:aa12",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 34.23
-              },
-              {
-                "type": "item",
-                "name": "pointblank:aughbar",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 33.62
-              },
-              {
-                "type": "item",
-                "name": "pointblank:lamg",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 33.04
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mk48",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 32.48
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m249",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 31.95
-              },
-              {
-                "type": "item",
-                "name": "pointblank:mk14ebr",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 31.44
-              },
-              {
-                "type": "item",
-                "name": "pointblank:citoricxs",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 30.95
-              },
-              {
-                "type": "item",
-                "name": "pointblank:hs12",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 30.48
-              },
-              {
-                "type": "item",
-                "name": "pointblank:smaw",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 30.02
-              },
-              {
-                "type": "item",
-                "name": "pointblank:javelin",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 29.58
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m32mgl",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 29.15
-              },
-              {
-                "type": "item",
-                "name": "pointblank:m134minigun",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 28.74
-              },
-              {
-                "type": "item",
-                "name": "pointblank:at4",
-                "functions": [
-                  {
-                    "function": "set_count",
-                    "count": {
-                      "min": 0,
-                      "max": 1
-                    }
-                  }
-                ],
-                "weight": 28.34
-              },
               {
                 "type": "item",
                 "name": "minecraft:rotten_flesh",
@@ -17118,7 +15920,10 @@
             ]
           }
         ]
-      }
+      },
+      "accepted_before_sha256": [
+        "17f87876bfe5224be286eb84f5e9874deb1be13d1c57e9796e118ac50e38cb8a"
+      ]
     },
     {
       "jar": "Laendli_1.7.7a (1.20.1_forge).jar",
