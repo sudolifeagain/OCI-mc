@@ -99,7 +99,7 @@ jobs:
             sudo python3 -m venv /opt/minecraft/ansible-venv
           fi
           sudo /opt/minecraft/ansible-venv/bin/python -m pip install \
-            --upgrade pip==26.2.1
+            --upgrade pip==26.2.2
           sudo /opt/minecraft/ansible-venv/bin/python -m pip install \
             --upgrade --require-hashes \
             -r /opt/minecraft/bot/infra/ansible/requirements.txt
@@ -126,7 +126,7 @@ jobs:
         ssh -i ~/.ssh/id_rsa "ubuntu@$OCI_HOST" << 'EOF'
           set -e
           cd /opt/minecraft/bot
-          ./venv/bin/python -m pip install --upgrade pip==26.2.1
+          ./venv/bin/python -m pip install --upgrade pip==26.2.2
           ./venv/bin/python -m pip install --upgrade --require-hashes -r requirements.txt
           ./venv/bin/python -m pip check
         EOF

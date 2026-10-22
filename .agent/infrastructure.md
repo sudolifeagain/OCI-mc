@@ -12,12 +12,12 @@
     - Java: `/usr/lib/jvm/java-25-openjdk-arm64/bin/java`
     - JVMメモリ設定: `-Xmx4G -Xms4G`
     - 実行ユーザー: `mc-paper`
-  - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
+  - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.28)
     - `run.sh`, `mods/` (533 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - 実行ユーザー: `mc-forge`
     - Memory: 14G, Port: 25566
-  - **forge-alt/**: Forge server (Minecraft 1.20.1 / Forge 47.4.21)
+  - **forge-alt/**: Forge server (Minecraft 1.20.1 / Forge 47.4.28)
     - `run.sh`, `mods/` (54 files, 590MB), `world/`
     - 実行ユーザー: `mc-forge-alt`
     - Memory: 12G, Port: 25567
