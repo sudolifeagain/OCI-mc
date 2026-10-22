@@ -136,6 +136,88 @@
   loop: "{{ minecraft_server_properties.results }}"
   when: item.stat.exists
 
+- name: Check Forge process before installing the reviewed compatibility addon
+  ansible.builtin.command:
+    argv: [pgrep, -u, mc-forge, -f, java]
+  register: minecraft_forge_java_process
+  changed_when: false
+  failed_when: minecraft_forge_java_process.rc not in [0, 1]
+  check_mode: false
+
+- name: Require Forge to be stopped for addon installation
+  ansible.builtin.assert:
+    that:
+      - minecraft_forge_java_process.rc == 1
+    fail_msg: Stop Forge through the bot deployment lifecycle before modifying mods
+  when: not ansible_check_mode
+
+- name: Check whether TFMG Optimizer is already installed
+  ansible.builtin.stat:
+    path: /opt/minecraft/forge/mods/tfmg_patch-1.0.2.jar
+  register: minecraft_tfmg_optimizer
+
+- name: Create private Forge upgrade backup directory
+  ansible.builtin.file:
+    path: /opt/minecraft/.forge-client-upgrade-backups
+    owner: root
+    group: root
+    mode: "0700"
+    state: directory
+  when: not minecraft_tfmg_optimizer.stat.exists
+
+- name: Preserve world and configuration before adding TFMG Optimizer
+  ansible.builtin.command:
+    argv:
+      - tar
+      - -czf
+      - /opt/minecraft/.forge-client-upgrade-backups/pre-tfmg-optimizer-8007822.partial.tar.gz
+      - -C
+      - /opt/minecraft/forge
+      - world
+      - mods
+      - config
+      - defaultconfigs
+      - server.properties
+      - user_jvm_args.txt
+    creates: /opt/minecraft/.forge-client-upgrade-backups/pre-tfmg-optimizer-8007822.tar.gz
+  register: minecraft_tfmg_upgrade_backup
+  when:
+    - not ansible_check_mode
+    - not minecraft_tfmg_optimizer.stat.exists
+
+- name: Finalize the complete Forge upgrade backup
+  ansible.builtin.command:
+    argv:
+      - mv
+      - --
+      - /opt/minecraft/.forge-client-upgrade-backups/pre-tfmg-optimizer-8007822.partial.tar.gz
+      - /opt/minecraft/.forge-client-upgrade-backups/pre-tfmg-optimizer-8007822.tar.gz
+  when:
+    - not ansible_check_mode
+    - minecraft_tfmg_upgrade_backup is changed
+  changed_when: true
+
+- name: Protect the Forge upgrade archive
+  ansible.builtin.file:
+    path: /opt/minecraft/.forge-client-upgrade-backups/pre-tfmg-optimizer-8007822.tar.gz
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - not ansible_check_mode
+    - not minecraft_tfmg_optimizer.stat.exists
+
+- name: Install published TFMG Optimizer
+  ansible.builtin.get_url:
+    url: https://mediafilez.forgecdn.net/files/8007/822/tfmg_patch.jar
+    dest: /opt/minecraft/forge/mods/tfmg_patch-1.0.2.jar
+    checksum: sha256:7bd2852c2d93f48f6c97ceb8139e6e1e0d94e41b61163db9b91b85a5044afe98
+    owner: mc-forge
+    group: mc-forge
+    mode: "0640"
+    timeout: 60
+  when: not ansible_check_mode
+
 - name: Apply reviewed Forge data repairs
   ansible.builtin.command:
     cmd: >-

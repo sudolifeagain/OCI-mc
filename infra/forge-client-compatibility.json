@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "minecraft": "1.20.1",
+  "forge": "47.4.28",
+  "client_mod_count": 534,
+  "server_mod_count": 534,
+  "published_addon": {
+    "file": "tfmg_patch-1.0.2.jar",
+    "release": "1.0.2",
+    "embedded_version": "1.0.0",
+    "curseforge_file_id": 8007822,
+    "url": "https://mediafilez.forgecdn.net/files/8007/822/tfmg_patch.jar",
+    "sha256": "7bd2852c2d93f48f6c97ceb8139e6e1e0d94e41b61163db9b91b85a5044afe98"
+  },
+  "client_only_class_patches": [
+    {
+      "file": "mods/BCLib-20.0.6.jar",
+      "before_sha256": "3367fdb12faa2fb38c556deaa0df9a695e5c1a2af586e374a388f1e4bb5ec43a",
+      "after_sha256": "555ad0c15e060606e4087caa9103cd5de4c0a164ec8b3d8ba3b9b9e60c4fe60e",
+      "changed_entries": [
+        "org/betterx/worlds/together/world/event/WorldBootstrap.class"
+      ],
+      "added_entries": [
+        "org/betterx/bclib/client/oci/RegistryAccessBridge.class"
+      ],
+      "mode": "registry"
+    },
+    {
+      "file": "mods/supplementaries-1.20-3.1.42-forge.jar",
+      "before_sha256": "203e3658fb9a65b5622c8819e96dfbef6727ab11cc1f3e11024dc4950fdb1199",
+      "after_sha256": "4ae02db14832e98d481a1b8b2355fea93185b38fb790991342e83ff06d0a9091",
+      "changed_entries": [
+        "net/mehvahdjukaar/supplementaries/common/items/crafting/SpecialRecipeDisplays.class"
+      ],
+      "added_entries": [
+        "net/mehvahdjukaar/supplementaries/client/oci/SackColorResolver.class"
+      ],
+      "mode": "sacks"
+    }
+  ],
+  "removed_class_patches": [
+    "TFMG goggles overlay: replaced by the published addon",
+    "JEI watchdog: restore published 5-second reporting"
+  ],
+  "existing_server_data_repairs": "infra/forge-resource-fixes.json",
+  "validation_report": "docs/forge-client-compatibility.md"
+}

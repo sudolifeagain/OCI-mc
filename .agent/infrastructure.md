@@ -13,7 +13,7 @@
     - JVMメモリ設定: `-Xmx4G -Xms4G`
     - 実行ユーザー: `mc-paper`
   - **forge/**: Forge server (Minecraft 1.20.1 / Forge 47.4.28)
-    - `run.sh`, `mods/` (533 files, 1.2GB), `world/`
+    - `run.sh`, `mods/` (534 files, 1.2GB), `world/`
     - `start.sh` - 起動スクリプト (`stdbuf -oL ./run.sh`)
     - 実行ユーザー: `mc-forge`
     - Memory: 14G, Port: 25566
