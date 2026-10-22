@@ -269,7 +269,9 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
         if match:
             orphan_parents[match[1]] = match[2]
     changes = []
-    for jar in sorted((server_dir / "mods").glob("*.jar")):
+    archives = [("mods", path) for path in sorted((server_dir / "mods").glob("*.jar"))]
+    archives += [("tacz", path) for path in sorted((server_dir / "tacz").glob("*.zip"))]
+    for directory, jar in archives:
         with zipfile.ZipFile(jar) as archive:
             for name in archive.namelist():
                 match = re.fullmatch(r"data/([a-z0-9_.-]+)/(recipes|loot_tables|advancements|tags/(?:items|blocks|entity_types|fluids|functions|game_events|worldgen/biome))/([a-z0-9_./-]+)\.json", name)
@@ -333,8 +335,11 @@ def build_plan(server_dir: Path, log_path: Path, known_missing: set[str] | None 
                     else:
                         fixed = add_condition(fixed, {"type": "forge:false"})
                 if fixed != data or parse_bytes != before or (jar.name, name) in invalid_tags:
-                    changes.append({"jar": jar.name, "resource": name,
-                                    "before_sha256": digest(before), "data": fixed})
+                    change = {"jar": jar.name, "resource": name,
+                              "before_sha256": digest(before), "data": fixed}
+                    if directory != "mods":
+                        change["directory"] = directory
+                    changes.append(change)
     return {"schema_version": 1, "minecraft_version": "1.20.1", "changes": changes}
 
 
@@ -345,6 +350,18 @@ def checked_jar(server_dir: Path, name: str) -> Path:
     path = root / name
     if path.is_symlink() or path.resolve().parent != root:
         raise ValueError("MODディレクトリ外のパス")
+    return path
+
+
+def checked_archive(server_dir: Path, name: str, directory: str = "mods") -> Path:
+    if directory == "mods":
+        return checked_jar(server_dir, name)
+    if directory != "tacz" or Path(name).name != name or not name.endswith(".zip"):
+        raise ValueError("不正なガンパックのパス")
+    root = (server_dir / "tacz").resolve()
+    path = root / name
+    if path.is_symlink() or path.resolve().parent != root:
+        raise ValueError("ガンパックディレクトリ外のパス")
     return path
 
 
@@ -370,16 +387,16 @@ def apply_plan(server_dir: Path, plan: dict, backup_dir: Path, dry_run: bool = F
                inventory_output: Path | None = None) -> int:
     if plan.get("schema_version") != 1 or plan.get("minecraft_version") != "1.20.1":
         raise ValueError("未対応の修復計画")
-    grouped: dict[str, list[dict]] = {}
+    grouped: dict[tuple[str, str], list[dict]] = {}
     for change in plan["changes"]:
         if not re.fullmatch(r"data/[a-z0-9_./-]+\.json", change["resource"]):
             raise ValueError("データリソース以外の変更は禁止")
-        grouped.setdefault(change["jar"], []).append(change)
+        grouped.setdefault((change.get("directory", "mods"), change["jar"]), []).append(change)
     prepared = []
     signed_resources: dict[str, bytes] = {}
     try:
-        for filename, changes in grouped.items():
-            path = checked_jar(server_dir, filename)
+        for (directory, filename), changes in grouped.items():
+            path = checked_archive(server_dir, filename, directory)
             edits = {}
             with zipfile.ZipFile(path) as source:
                 for change in changes:
@@ -442,6 +459,7 @@ def apply_plan(server_dir: Path, plan: dict, backup_dir: Path, dry_run: bool = F
             if hasattr(os, "chown"):
                 os.chown(temporary, stat.st_uid, stat.st_gid)
             originals.append({"jar": path.name, "backup": backup.name if backup else None,
+                              "directory": "tacz" if path.parent == (server_dir / "tacz").resolve() else "mods",
                               "datapack": path == compatibility_pack(server_dir),
                               "before": original_digest, "after": digest(temporary.read_bytes())})
         with tempfile.NamedTemporaryFile(dir=backup_dir, suffix=".state", delete=False) as state_file:
@@ -473,7 +491,9 @@ def rollback(server_dir: Path, backup_dir: Path) -> None:
         return
     state = json.loads(state_path.read_bytes())
     for entry in state["files"]:
-        path = compatibility_pack(server_dir) if entry.get("datapack") else checked_jar(server_dir, entry["jar"])
+        path = compatibility_pack(server_dir) if entry.get("datapack") else checked_archive(
+            server_dir, entry["jar"], entry.get("directory", "mods")
+        )
         if entry["before"] is None:
             if not path.exists():
                 continue
@@ -513,6 +533,7 @@ def main() -> None:
     parser.add_argument("--inventory-output", type=Path)
     parser.add_argument("--log", type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--server-id", default="forge", choices=("forge", "forge-alt"))
     args = parser.parse_args()
     if args.action == "plan":
         missing = set(json.loads(args.missing_items.read_bytes())) if args.missing_items else set()
@@ -529,7 +550,7 @@ def main() -> None:
         inventory = mod_inventory(args.server_dir)
         if args.manifest:
             manifest = json.loads(args.manifest.read_bytes())
-            expected = next(row["mods"] for row in manifest["mod_loaders"] if row["server_id"] == "forge")
+            expected = next(row["mods"] for row in manifest["mod_loaders"] if row["server_id"] == args.server_id)
             if inventory != expected:
                 raise ValueError("Forge MOD一覧がartifact manifestと一致しない")
         print(json.dumps(inventory))

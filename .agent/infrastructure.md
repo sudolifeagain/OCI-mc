@@ -178,6 +178,8 @@ journalctl --disk-usage
 
 AllTheLeaksが報告する `BlockTestLevel (supplementaries): 1` は、Moonlightの `FakeLevelManager.INSTANCES` が稼働中に保持するテスト用ワールドである。保持数1の警告だけではメモリリークと判定しない。実ヒープの増加、保持数の増加、TPS低下を併せて確認する。
 
+Forge Altは `infra/forge-alt-resource-fixes.json` で別管理する。TaCZガンパック内の未導入 `lrtactical` 参照にはアイテム存在条件を付け、Iron's Spellbooksの本のルートデータは1.20.1のNBT形式へ変換する。ガンパックの画像・モデルとMODのクラスは変更しない。退避先は `/opt/minecraft/.forge-alt-data-backups` である。デプロイ時は両Forge環境のMODハッシュを照合し、稼働対象のデータ読み込みも検査する。
+
 ## Deployment Flow
 1. **GitHub Actions**: Triggered on push to `main` (not `develop`).
 2. **Rsync**: Syncs files to `/opt/minecraft/bot/`.

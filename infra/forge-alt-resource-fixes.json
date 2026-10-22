@@ -1,0 +1,517 @@
+{
+  "schema_version": 1,
+  "minecraft_version": "1.20.1",
+  "changes": [
+    {
+      "jar": "irons_spellbooks-1.20.1-3.15.4.jar",
+      "resource": "data/irons_spellbooks/loot_tables/chests/citadel/citadel_tomes.json",
+      "before_sha256": "abe4ad7bca0b9f748ed540c5c36b1047d7760fb5e65c1e0abf9db20a457680f4",
+      "data": {
+        "pools": [
+          {
+            "rolls": 1,
+            "entries": [
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.construction_ledger\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.soul_research\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.planar_travel\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.legion_war_journal\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.armory_ledger\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.training_manual\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.cinderous_rituals\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.architectural_diagrams\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.fire_notes\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.quarry\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.complaint\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:item",
+                "name": "minecraft:written_book",
+                "functions": [
+                  {
+                    "function": "minecraft:set_name",
+                    "name": {
+                      "translate": "lore.citadel_book.title",
+                      "italic": false
+                    }
+                  },
+                  {
+                    "function": "minecraft:set_nbt",
+                    "tag": "{\"pages\":[\"{\\\"translate\\\": \\\"lore.citadel_book.soul_warning\\\", \\\"color\\\": \\\"dark_gray\\\", \\\"italic\\\": true}\"],\"title\":\"\",\"author\":\"\",\"resolved\":1b}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/melee/191_bayonet.json",
+      "before_sha256": "44d8509e47708ef9e9e130aa1114388d446041cd9c11b11816f9fee1b7436ac2",
+      "data": {
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 23
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:melee",
+          "item": {
+            "item": "lrtactical:melee",
+            "nbt": {
+              "MeleeWeaponId": "ciblr:191_bayonet"
+            }
+          }
+        },
+        "type": "tacz:gun_smith_table_crafting",
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:melee"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/melee/81_bayonet.json",
+      "before_sha256": "cd67ccdaad77dc2083f6f0406d5fb495e0f9c52b9ef402c4ed173024c3adcf7b",
+      "data": {
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 5
+          },
+          {
+            "item": {
+              "tag": "minecraft:logs"
+            },
+            "count": 3
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:melee",
+          "item": {
+            "item": "lrtactical:melee",
+            "nbt": {
+              "MeleeWeaponId": "ciblr:81_bayonet"
+            }
+          }
+        },
+        "type": "tacz:gun_smith_table_crafting",
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:melee"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/melee/95_bayonet.json",
+      "before_sha256": "4ab1740e0b6e194ccb328959d0c1d85f84948ba284ac6ca3241268b9655b027e",
+      "data": {
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 14
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:melee",
+          "item": {
+            "item": "lrtactical:melee",
+            "nbt": {
+              "MeleeWeaponId": "ciblr:95_bayonet"
+            }
+          }
+        },
+        "type": "tacz:gun_smith_table_crafting",
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:melee"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/melee/batons.json",
+      "before_sha256": "5da91c18646c9e133b83e81ad26b59344ac3edd294ae98188e7edd77ab45b944",
+      "data": {
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 2
+          },
+          {
+            "item": {
+              "tag": "minecraft:logs"
+            },
+            "count": 1
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:melee",
+          "item": {
+            "item": "lrtactical:melee",
+            "nbt": {
+              "MeleeWeaponId": "ciblr:batons"
+            }
+          }
+        },
+        "type": "tacz:gun_smith_table_crafting",
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:melee"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/melee/katana.json",
+      "before_sha256": "f4f824d1fbce22d3686d4d7b9fa537021ce03ac5642e9630f801f96508f6b2ac",
+      "data": {
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/gold"
+            },
+            "count": 12
+          },
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 34
+          },
+          {
+            "item": {
+              "item": "minecraft:netherite_ingot"
+            },
+            "count": 2
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:melee",
+          "item": {
+            "item": "lrtactical:melee",
+            "nbt": {
+              "MeleeWeaponId": "ciblr:katana"
+            }
+          }
+        },
+        "type": "tacz:gun_smith_table_crafting",
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:melee"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/throwable/dsy151.json",
+      "before_sha256": "ef06e435401815e7f5e8004cc128b2e4dd313f9f7875eb320e4859cf753943a2",
+      "data": {
+        "type": "tacz:gun_smith_table_crafting",
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 4
+          },
+          {
+            "item": {
+              "tag": "forge:ingots/gold"
+            },
+            "count": 1
+          },
+          {
+            "item": {
+              "tag": "forge:gems/diamond"
+            },
+            "count": 1
+          },
+          {
+            "item": {
+              "tag": "forge:gunpowder"
+            },
+            "count": 6
+          },
+          {
+            "item": {
+              "tag": "forge:gems/quartz"
+            },
+            "count": 1
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:throwable",
+          "item": {
+            "item": "lrtactical:throwable",
+            "nbt": {
+              "ThrowableId": "ciblr:dsy151"
+            },
+            "count": 2
+          }
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:throwable"
+          }
+        ]
+      },
+      "directory": "tacz"
+    },
+    {
+      "jar": "CIBR_GunsPack_v0.3.zip",
+      "resource": "data/ciblr/recipes/throwable/type86.json",
+      "before_sha256": "beae789dde75dae3e22c821230b09584a3b21e174ce859c87485886b66d1aae3",
+      "data": {
+        "type": "tacz:gun_smith_table_crafting",
+        "materials": [
+          {
+            "item": {
+              "tag": "forge:ingots/iron"
+            },
+            "count": 3
+          },
+          {
+            "item": {
+              "tag": "forge:gunpowder"
+            },
+            "count": 6
+          },
+          {
+            "item": {
+              "tag": "forge:gems/quartz"
+            },
+            "count": 1
+          }
+        ],
+        "result": {
+          "type": "custom",
+          "group": "lrtactical:throwable",
+          "item": {
+            "item": "lrtactical:throwable",
+            "nbt": {
+              "ThrowableId": "ciblr:type86"
+            },
+            "count": 2
+          }
+        },
+        "conditions": [
+          {
+            "type": "forge:item_exists",
+            "item": "lrtactical:throwable"
+          }
+        ]
+      },
+      "directory": "tacz"
+    }
+  ]
+}

@@ -8,11 +8,44 @@ import zipfile
 from pathlib import Path
 
 from scripts.repair_forge_data import (
-    apply_plan, build_plan, decode, encode, repair_loot, repair_recipe, repair_tag, rollback,
+    apply_plan, build_plan, checked_archive, decode, encode, repair_loot, repair_recipe, repair_tag, rollback,
 )
 
 
 class ForgeDataRepairTests(unittest.TestCase):
+    def test_tacz_recipe_plan_apply_and_rollback_preserve_pack_contents(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            server = Path(folder)
+            (server / "mods").mkdir()
+            (server / "tacz").mkdir()
+            pack = server / "tacz/guns.zip"
+            resource = "data/test/recipes/bayonet.json"
+            recipe = {"type": "minecraft:crafting_shaped", "result": {"item": "lrtactical:melee"}}
+            with zipfile.ZipFile(pack, "w") as archive:
+                archive.writestr(resource, encode(recipe))
+                archive.writestr("assets/test/model.json", b"unchanged model")
+            original = pack.read_bytes()
+            log = server / "latest.log"
+            log.write_text("[ERROR] Parsing error loading recipe test:bayonet: Unknown item 'lrtactical:melee'\n")
+            plan = build_plan(server, log)
+            self.assertEqual(len(plan["changes"]), 1)
+            self.assertEqual(plan["changes"][0]["directory"], "tacz")
+            backup = server / "backups"
+            self.assertEqual(apply_plan(server, plan, backup), 1)
+            self.assertEqual(apply_plan(server, plan, backup), 0)
+            with zipfile.ZipFile(pack) as archive:
+                fixed = decode(archive.read(resource))
+                self.assertEqual(fixed["result"], recipe["result"])
+                self.assertEqual(fixed["conditions"], [{"type": "forge:item_exists", "item": "lrtactical:melee"}])
+                self.assertEqual(archive.read("assets/test/model.json"), b"unchanged model")
+            rollback(server, backup)
+            self.assertEqual(pack.read_bytes(), original)
+
+    def test_tacz_source_rejects_other_directories_and_path_traversal(self) -> None:
+        for directory, filename in [("../other", "guns.zip"), ("tacz", "../guns.zip"), ("tacz", "guns.jar")]:
+            with self.subTest(directory=directory, filename=filename), self.assertRaises(ValueError):
+                checked_archive(Path("server"), filename, directory)
+
     def test_unnamespaced_loot_item_keeps_registered_fallback(self) -> None:
         data = {"children": [{"type": "item", "name": "other:missing"},
                              {"type": "item", "name": "minecraft:stone"}]}
