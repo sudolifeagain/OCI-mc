@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "minecraft": "1.20.1",
+  "forge": "47.4.28",
+  "install": [
+    {
+      "file": "clockwork-0.5.6.jar",
+      "url": "https://cdn.modrinth.com/data/84USeAvk/versions/fYK8BigB/clockwork-0.5.6.jar",
+      "sha256": "a7a7f946eb9edbe63d281a47b710c8958cd4b6b8dbbb73165fcc73d53fa07093"
+    },
+    {
+      "file": "amendments-1.20-2.2.6.jar",
+      "url": "https://cdn.modrinth.com/data/6iTJugQR/versions/nJORWvdh/amendments-1.20-2.2.6.jar",
+      "sha256": "46c7e1276bc77a0843267a6aeee381af61f16bedc7949447fff49eeb7aeb7917"
+    },
+    {
+      "file": "moonlight-1.20-2.16.37-forge.jar",
+      "url": "https://cdn.modrinth.com/data/twkfQtEc/versions/b1cuadwV/moonlight-1.20-2.16.37-forge.jar",
+      "sha256": "8f0c9c29165911ee399ae9a66ee96c5f1ca9c52557bbfcabae2f44e32f5bb718"
+    },
+    {
+      "file": "alltheleaks-1.1.4+1.20.1-forge.jar",
+      "url": "https://mediafilez.forgecdn.net/files/9188/826/alltheleaks-1.1.4%2B1.20.1-forge.jar",
+      "sha256": "fb72063a7d17df97740d24355444ef2f95eab97728e1256c639bb432c61b7716"
+    }
+  ],
+  "retire": [
+    {
+      "file": "clockwork-0.5.4.5.jar",
+      "sha256": "f661094941d109f121ed1b8174317716cd3ab9565c679a5fe862e4ed2c2c8570"
+    },
+    {
+      "file": "amendments-1.20-2.2.5.jar",
+      "sha256": "2ecb189991320d789cd2c539d770b5b52ad71eff93d186297d10853bcb6ee00a"
+    },
+    {
+      "file": "moonlight-1.20-2.16.27-forge.jar",
+      "sha256": "5c6006a66542706e0dcf841cf411154e963a377ec5d2af4879007e1a3b4ff5c5"
+    },
+    {
+      "file": "alltheleaks-1.1.1+1.20.1-forge.jar",
+      "sha256": "7b8e945da294b745e6aed9f88f28e232a767e032d7c2b8137a8ef36421d9fb33"
+    },
+    {
+      "file": "alltheleaks-0.1.2.1+1.20.1-forge+47.3.10.jar",
+      "sha256": "f6716a780041b86f0d3cdf2cf318d3b646704c0ddb2b754a6d334973ea5920a4"
+    }
+  ]
+}

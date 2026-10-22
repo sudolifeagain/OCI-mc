@@ -28,8 +28,8 @@
         "value": "d615397a6b2f1e99d4b454e2db2b4ca2e94be91d5e0243c8c7e023d965db39e7"
       },
       "mods": {
-        "file_count": 534,
-        "manifest_sha256": "4c3c5ebd41aa1dbd4d66f2b8421250ebea95db47670283dd2fb91081bff51a66",
+        "file_count": 533,
+        "manifest_sha256": "b2aabd74b3df2b12a522aa38786d7df49f6b99d3fdfb3c0187d099a8bd405b47",
         "manifest_format": "sha256sum lines sorted by filename, UTF-8, LF"
       }
     },
