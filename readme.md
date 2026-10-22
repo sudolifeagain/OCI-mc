@@ -246,6 +246,7 @@ CI は Python 3.12 で本番・開発・Ansibleの依存関係の脆弱性監査
       "geyser": {
         "source": "geysermc",
         "project": "geyser",
+        "version": "2.11.3",
         "platform": "spigot",
         "filename": "Geyser-Spigot.jar"
       },

@@ -100,12 +100,14 @@
 			"geyser": {
 				"source": "geysermc",
 				"project": "geyser",
+				"version": "2.11.3",
 				"platform": "spigot",
 				"filename": "Geyser-Spigot.jar"
 			},
 			"floodgate": {
 				"source": "geysermc",
 				"project": "floodgate",
+				"version": "2.2.5",
 				"platform": "spigot",
 				"filename": "floodgate-spigot.jar"
 			},

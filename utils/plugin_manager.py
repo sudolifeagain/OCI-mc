@@ -391,7 +391,7 @@ def update_plugin(plugins_dir: str, plugin_config: dict) -> dict:
             if not project:
                 return {"success": False, "message": "project が設定されていません", "filename": filename}
 
-            info = get_geysermc_latest_info(project, platform)
+            info = get_geysermc_latest_info(project, platform, plugin_config.get("version", "latest"))
             if not info:
                 return {"success": False, "message": "GeyserMC API からダウンロードURLを取得できません", "filename": filename}
 
@@ -484,20 +484,23 @@ def compute_file_sha256(filepath: str) -> Optional[str]:
     return compute_file_hash(filepath, "sha256")
 
 
-def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
+def get_geysermc_latest_info(
+    project: str, platform: str, version: str = "latest"
+) -> Optional[dict]:
     """
     GeyserMC APIから最新ビルド情報を取得
 
     Args:
         project: "geyser" または "floodgate"
         platform: "spigot", "bungeecord", "velocity" など
+        version: 対象ゲームと互換性のあるGeyserMCバージョン
 
     Returns:
         dict with keys: version, build, time, sha256, download_url
         or None if error
     """
     try:
-        url = f"https://download.geysermc.org/v2/projects/{project}/versions/latest/builds/latest"
+        url = f"https://download.geysermc.org/v2/projects/{project}/versions/{quote(version, safe='')}/builds/latest"
         resp = requests.get(url, timeout=30)
         if resp.status_code != 200:
             return None
@@ -509,7 +512,10 @@ def get_geysermc_latest_info(project: str, platform: str) -> Optional[dict]:
         if not platform_info:
             return None
 
-        download_url = f"https://download.geysermc.org/v2/projects/{project}/versions/latest/builds/latest/downloads/{platform}"
+        # メタデータ取得後にlatestが切り替わっても、検証対象と同じビルドを取得する。
+        resolved_version = quote(data["version"], safe="")
+        resolved_build = int(data["build"])
+        download_url = f"https://download.geysermc.org/v2/projects/{project}/versions/{resolved_version}/builds/{resolved_build}/downloads/{platform}"
 
         return {
             "version": data.get("version", ""),
@@ -629,7 +635,7 @@ def check_plugin_update(plugins_dir: str, plugin_name: str, plugin_config: dict)
         project = plugin_config.get("project", "")
         platform = plugin_config.get("platform", "spigot")
 
-        info = get_geysermc_latest_info(project, platform)
+        info = get_geysermc_latest_info(project, platform, plugin_config.get("version", "latest"))
         if info:
             remote_sha256 = info.get("sha256", "")
             latest_build = info.get('build', '?')
