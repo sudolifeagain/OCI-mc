@@ -145,6 +145,17 @@
   changed_when: "'Changed jars: 0' not in minecraft_forge_data_repairs.stdout"
   when: not ansible_check_mode
 
+- name: Apply reviewed Forge Alt data repairs
+  ansible.builtin.command:
+    cmd: >-
+      /usr/bin/python3 {{ minecraft_repo_root }}/scripts/repair_forge_data.py apply
+      --server-dir /opt/minecraft/forge-alt
+      --plan {{ minecraft_repo_root }}/infra/forge-alt-resource-fixes.json
+      --backup-dir /opt/minecraft/.forge-alt-data-backups
+  register: minecraft_forge_alt_data_repairs
+  changed_when: "'Changed jars: 0' not in minecraft_forge_alt_data_repairs.stdout"
+  when: not ansible_check_mode
+
 - name: Read Cold Sweat configuration
   ansible.builtin.stat:
     path: /opt/minecraft/forge/config/coldsweat/world.toml

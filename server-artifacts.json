@@ -45,8 +45,9 @@
         "value": "d615397a6b2f1e99d4b454e2db2b4ca2e94be91d5e0243c8c7e023d965db39e7"
       },
       "mods": {
-        "file_count": 54,
-        "manifest_sha256": "61c332e8e0331c3ec233e05d876e4fed5eb5fcb52ed24e168fbcb71489ec9c81"
+        "file_count": 53,
+        "manifest_sha256": "c800ac7191ff61e739c4597eb6e9af7c7df554f111fe5ae4fbbdfb96b69dfdde",
+        "manifest_format": "sha256sum lines sorted by filename, UTF-8, LF"
       }
     }
   ],

@@ -147,14 +147,26 @@ jobs:
           python3 /opt/minecraft/bot/scripts/repair_forge_data.py inventory \
             --plan /opt/minecraft/bot/infra/forge-resource-fixes.json \
             --manifest /opt/minecraft/bot/server-artifacts.json
+          python3 /opt/minecraft/bot/scripts/repair_forge_data.py inventory \
+            --server-dir /opt/minecraft/forge-alt --server-id forge-alt \
+            --plan /opt/minecraft/bot/infra/forge-alt-resource-fixes.json \
+            --manifest /opt/minecraft/bot/server-artifacts.json
           if /opt/minecraft/bot/venv/bin/python -c \
             'import json,sys; sys.exit("forge" not in json.load(open("/opt/minecraft/.bot-runtime/desired_servers.json"))["servers"])'; then
             python3 /opt/minecraft/bot/scripts/check_forge_runtime.py \
               --log /opt/minecraft/forge/logs/latest.log
           fi
+          if /opt/minecraft/bot/venv/bin/python -c \
+            'import json,sys; sys.exit("forge-alt" not in json.load(open("/opt/minecraft/.bot-runtime/desired_servers.json"))["servers"])'; then
+            python3 /opt/minecraft/bot/scripts/check_forge_runtime.py \
+              --log /opt/minecraft/forge-alt/logs/latest.log
+          fi
           sudo python3 /opt/minecraft/bot/scripts/manage_paper_artifact.py finalize
           sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py finalize \
             --plan /opt/minecraft/bot/infra/forge-resource-fixes.json
+          sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py finalize \
+            --plan /opt/minecraft/bot/infra/forge-alt-resource-fixes.json \
+            --backup-dir /opt/minecraft/.forge-alt-data-backups
           rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
           sudo systemd-analyze verify \
             /etc/systemd/system/discord-bot.service \
@@ -188,6 +200,10 @@ jobs:
             if [ -f /opt/minecraft/bot/scripts/repair_forge_data.py ]; then
               sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py rollback \
                 --plan /opt/minecraft/bot/infra/forge-resource-fixes.json
+              sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py rollback \
+                --server-dir /opt/minecraft/forge-alt \
+                --plan /opt/minecraft/bot/infra/forge-alt-resource-fixes.json \
+                --backup-dir /opt/minecraft/.forge-alt-data-backups
             fi
             sudo systemctl start discord-bot
             if [ -f /opt/minecraft/.bot-runtime/desired_servers.json ]; then
