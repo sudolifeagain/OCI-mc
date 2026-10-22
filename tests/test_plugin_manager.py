@@ -9,6 +9,23 @@ from utils import plugin_manager
 
 class PluginManagerApiTests(unittest.TestCase):
     @patch("utils.plugin_manager.requests.get")
+    def test_geyser_compatible_version_downloads_resolved_build(self, mock_get: Mock) -> None:
+        response = Mock(status_code=200)
+        response.json.return_value = {
+            "version": "2.11.3",
+            "build": 1254,
+            "downloads": {"spigot": {"name": "Geyser-Spigot.jar", "sha256": "abc123"}},
+        }
+        mock_get.return_value = response
+
+        info = plugin_manager.get_geysermc_latest_info("geyser", "spigot", "2.11.3")
+
+        self.assertIsNotNone(info)
+        self.assertIn("/versions/2.11.3/builds/latest", mock_get.call_args.args[0])
+        self.assertTrue(info["download_url"].endswith("/versions/2.11.3/builds/1254/downloads/spigot"))
+        self.assertEqual(info["sha256"], "abc123")
+
+    @patch("utils.plugin_manager.requests.get")
     def test_github_release_tag_and_digest(self, mock_get: Mock) -> None:
         response = Mock(status_code=200)
         response.json.return_value = {
@@ -80,6 +97,34 @@ class PluginManagerApiTests(unittest.TestCase):
 
 
 class PluginManagerUpdateTests(unittest.TestCase):
+    def test_geyser_update_and_check_keep_compatible_version(self) -> None:
+        content = b"compatible geyser jar"
+        info = {
+            "version": "2.11.3", "build": 1254,
+            "sha256": hashlib.sha256(content).hexdigest(),
+            "download_url": "https://example.invalid/geyser.jar",
+        }
+        config = {
+            "source": "geysermc", "project": "geyser", "platform": "spigot",
+            "version": "2.11.3", "filename": "Geyser-Spigot.jar",
+        }
+        with tempfile.TemporaryDirectory() as plugins_dir:
+            def download(url: str, destination: str) -> bool:
+                with open(destination, "wb") as output:
+                    output.write(content)
+                return True
+
+            with (
+                patch("utils.plugin_manager.get_geysermc_latest_info", return_value=info) as latest,
+                patch("utils.plugin_manager.download_file", side_effect=download),
+                patch("utils.plugin_manager.parse_plugin_yml", return_value={"version": "2.11.3"}),
+            ):
+                self.assertTrue(plugin_manager.update_plugin(plugins_dir, config)["success"])
+                latest.assert_called_with("geyser", "spigot", "2.11.3")
+                plugin_manager.check_plugin_update(plugins_dir, "geyser", config)
+                self.assertEqual(latest.call_count, 2)
+                latest.assert_called_with("geyser", "spigot", "2.11.3")
+
     def test_verified_update_replaces_versioned_jar(self) -> None:
         new_content = b"verified plugin content"
         expected_sha1 = hashlib.sha1(new_content).hexdigest()

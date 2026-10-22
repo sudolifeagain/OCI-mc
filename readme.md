@@ -246,6 +246,7 @@ CI は Python 3.12 で本番・開発・Ansibleの依存関係の脆弱性監査
       "geyser": {
         "source": "geysermc",
         "project": "geyser",
+        "version": "2.11.3",
         "platform": "spigot",
         "filename": "Geyser-Spigot.jar"
       },
@@ -253,7 +254,7 @@ CI は Python 3.12 で本番・開発・Ansibleの依存関係の脆弱性監査
         "source": "github",
         "repo": "BlueMap-Minecraft/BlueMap",
         "asset_pattern": "bluemap-*-paper.jar",
-        "release_tag": "v5.22",
+        "release_tag": "v5.29",
         "filename_pattern": "bluemap-*-paper.jar"
       },
       "worldedit": {
@@ -261,7 +262,7 @@ CI は Python 3.12 で本番・開発・Ansibleの依存関係の脆弱性監査
         "project": "worldedit",
         "loader": "paper",
         "game_version": "26.2",
-        "version_number": "7.4.4",
+        "version_number": "7.4.6",
         "filename_pattern": "worldedit-bukkit-*.jar"
       }
     }
