@@ -2,8 +2,8 @@
   "schema_version": 1,
   "minecraft": "1.20.1",
   "forge": "47.4.28",
-  "client_mod_count": 534,
-  "server_mod_count": 534,
+  "client_mod_count": 535,
+  "server_mod_count": 533,
   "published_addon": {
     "file": "tfmg_patch-1.0.2.jar",
     "release": "1.0.2",
@@ -16,14 +16,15 @@
     {
       "file": "mods/BCLib-20.0.6.jar",
       "before_sha256": "3367fdb12faa2fb38c556deaa0df9a695e5c1a2af586e374a388f1e4bb5ec43a",
-      "after_sha256": "555ad0c15e060606e4087caa9103cd5de4c0a164ec8b3d8ba3b9b9e60c4fe60e",
+      "after_sha256": "1b193eb042c79211bf5a357a1505c479a164a0cdf5735fb3ee0e1119a7623c34",
       "changed_entries": [
-        "org/betterx/worlds/together/world/event/WorldBootstrap.class"
+        "org/betterx/worlds/together/world/event/WorldBootstrap.class",
+        "org/betterx/bclib/mixin/client/ItemColorsMixin.class"
       ],
       "added_entries": [
         "org/betterx/bclib/client/oci/RegistryAccessBridge.class"
       ],
-      "mode": "registry"
+      "mode": "registry-and-air-warning"
     },
     {
       "file": "mods/supplementaries-1.20-3.1.42-forge.jar",
@@ -36,6 +37,48 @@
         "net/mehvahdjukaar/supplementaries/client/oci/SackColorResolver.class"
       ],
       "mode": "sacks"
+    },
+    {
+      "file": "mods/iaf_patcher-1.2-all.jar",
+      "mode": "iaf-shadow",
+      "before_sha256": "a396b74bfa5e29bbd842781c4f49275785f5eef08fdb207398208ddd02370eb4",
+      "after_sha256": "a6f78f6f5edbbaf725084e0964dce603d541ee1226b0381f21f601d9df3206ac",
+      "changed_entries": [
+        "com/iafenvoy/iafpatcher/mixin/memoryleak/NormalModelFixMixin.class"
+      ],
+      "added_entries": []
+    },
+    {
+      "file": "mods/Corgilib-Forge-1.20.1-4.0.3.4.jar",
+      "mode": "corgi-http",
+      "before_sha256": "9e638c7e73d997bb4ecba4aa40de90e89dd15fdbc4235fb997eed9ad43c10cd3",
+      "after_sha256": "b905c8ebc902be052ed5a57d35783643b654ecd4fd25023edebd30ae1af122e9",
+      "changed_entries": [
+        "corgitaco/corgilib/client/AnnouncementInfo.class"
+      ],
+      "added_entries": [
+        "corgitaco/corgilib/client/oci/AnnouncementTransport.class"
+      ]
+    },
+    {
+      "file": "mods/embeddium-0.3.31+mc1.20.1.jar",
+      "mode": "diagnostic-embeddium",
+      "before_sha256": "eed3d1325f2acc2fd4e69bb495e5ccb91d962126ac5330f0582ebc2a3daf47fb",
+      "after_sha256": "6aa75b44f8e9f582eb3e858b183b756095fd2d936ff8f737d2648037710c469e",
+      "changed_entries": [
+        "org/embeddedt/embeddium_integrity/MixinTaintDetector.class"
+      ],
+      "added_entries": []
+    },
+    {
+      "file": "mods/moonlight-1.20-2.16.37-forge.jar",
+      "mode": "diagnostic-moonlight",
+      "before_sha256": "8f0c9c29165911ee399ae9a66ee96c5f1ca9c52557bbfcabae2f44e32f5bb718",
+      "after_sha256": "89be5cc93312828bd4f9838c32564737d5ed217b480528cdc38889e1b703e020",
+      "changed_entries": [
+        "net/mehvahdjukaar/moonlight/forge/MoonlightForge.class"
+      ],
+      "added_entries": []
     }
   ],
   "removed_class_patches": [
@@ -43,5 +86,48 @@
     "JEI watchdog: restore published 5-second reporting"
   ],
   "existing_server_data_repairs": "infra/forge-resource-fixes.json",
-  "validation_report": "docs/forge-client-compatibility.md"
+  "validation_report": "docs/forge-startup-cleanup.md",
+  "published_version_updates": [
+    {
+      "mod": "Clockwork",
+      "before": "0.5.4.5",
+      "after": "0.5.6"
+    },
+    {
+      "mod": "AllTheLeaks",
+      "before": "1.1.1 + duplicate 0.1.2.1",
+      "after": "1.1.4"
+    },
+    {
+      "mod": "Amendments",
+      "before": "2.2.5",
+      "after": "2.2.6"
+    },
+    {
+      "mod": "Moonlight",
+      "before": "2.16.27",
+      "after": "2.16.37"
+    }
+  ],
+  "startup_diagnostic_reclassification": [
+    "Embeddium: third-party renderer mixin support notice, preserve complete warning",
+    "Moonlight: Fabric API support notice, preserve complete warning",
+    "BCLib: already-filtered AIR input stack trace, preserve complete warning and stack"
+  ],
+  "resource_pack_plan": "infra/forge-client-resource-fixes.json",
+  "resource_only_jar_changes": [
+    {
+      "file": "mods/BetterNether-20.0.9.jar",
+      "change": "use_resource_pack=true for an upstream placeholder book without pages; no invented content"
+    },
+    {
+      "file": "mods/XeKr's Decoration-1.20.1-Forge-0.9.6.jar",
+      "change": "remove six unregistered wardrobe YAML definitions referring to a template absent from the published mod"
+    }
+  ],
+  "trust_manager": {
+    "method": "Keep published classes; expose exact published ApexCore/Commonality versions and restore SHA-verified Internet origin metadata on Windows",
+    "additional_client_jars": 2,
+    "installer": "Prepare-Client.ps1"
+  }
 }
