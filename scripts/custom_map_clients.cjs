@@ -17,6 +17,10 @@ for (let i = 1; i <= 4; i++) {
   }
   clients.push(client);
   client.on('login', () => joined.add(name));
+  // 描画を行わない合成クライアントはパックを明示的に辞退する。
+  // サーバー強制パックは検証用複製でだけ解除している。
+  client.on('add_resource_pack', data => client.write('resource_pack_receive', {uuid: data.uuid, result: 1}));
+  client.on('resource_pack_send', () => client.write('resource_pack_receive', {result: 1}));
   client.on('packet', (data, meta) => {
     if (meta.name === 'position' && data.teleportId !== undefined) {
       client.write('teleport_confirm', {teleportId: data.teleportId});

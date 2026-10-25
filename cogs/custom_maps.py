@@ -165,6 +165,13 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
                 raise ValueError("共有先が失われた。運用管理者が /escape recover で確認する必要がある") from None
         if not isinstance(interaction.user, discord.Member) or not channel.permissions_for(interaction.user).view_channel:
             raise ValueError("このプレイの共有先を閲覧できない")
+        checked = getattr(interaction, "extras", {}).setdefault("custom_map_threads", set())
+        if isinstance(channel, discord.Thread) and channel.is_private() and channel.id not in checked and not channel.permissions_for(interaction.user).manage_threads:
+            try:
+                await channel.fetch_member(interaction.user.id)
+            except (discord.NotFound, discord.Forbidden):
+                raise ValueError("この非公開スレッドの参加者ではない") from None
+            checked.add(channel.id)
         if control and not (check_role(interaction, "escape_manage") or (str(interaction.user.id) == record["owner"] and check_role(interaction, "escape_play"))):
             raise ValueError("代表者の操作権限が必要である")
 
@@ -275,9 +282,11 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.show(interaction, screen, update=update)
 
     async def map_detail(self, interaction: discord.Interaction, ident: str, filters: dict | None = None, page: int = 0) -> None:
-        item = self.service.catalog.get(ident)
+        item = await self.service.map_info(ident)
         screen = Screen(self, owner=interaction.user.id)
         screen.text(f"# {safe(item['title'])}\nカスタムマップ / Java版 {safe(item['mc_version'])}\n{safe(summary(item))}\n[作者の配布ページ]({item['source_url']})\n難易度・時間は目安である。未評価の項目は推測で埋めない。")
+        if item.get("difficulty_raw"):
+            screen.text("作者の難易度表記: " + safe(item["difficulty_raw"]) + "\n" + safe(item.get("difficulty_note", "")))
         async def prepare(i: discord.Interaction) -> None:
             await self.room_form(i, item)
         async def setup(i: discord.Interaction) -> None:
@@ -320,6 +329,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             pack = item["resource_pack"]
             links.append(discord.ui.Button(label="今回のパック", url=pack["url"]))
             screen.text(f"指定パック: {safe(pack.get('filename', '作者の同梱パック'))}\nZIPのまま適用するか等、作者の説明を確認する。ファイルを再配布せず配布元へ案内する。")
+            if pack.get("mode") == "server":
+                screen.text("この作品は接続時にパックが配信される。今回の接続先を追加するときに「サーバーリソースパック」を有効にし、接続時の適用を許可する。準備の確認は、この手順を理解したことの申告である。")
         screen.row(*links)
         async def readiness(i: discord.Interaction) -> None:
             await self.preparation_form(i, item)
@@ -342,7 +353,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         form.field("os", "利用するPC", discord.ui.RadioGroup(options=[discord.RadioGroupOption(label=v, value=v) for v in ("Windows", "macOS", "Linux")]))
         checks = [discord.CheckboxGroupOption(label=f"Java版 {item['mc_version']}で起動できた", value="version")]
         if item.get("resource_pack"):
-            checks.append(discord.CheckboxGroupOption(label="今回の指定パックを適用した", value="pack"))
+            checks.append(discord.CheckboxGroupOption(label="接続時のパック適用手順を確認した" if item["resource_pack"].get("mode") == "server" else "今回の指定パックを適用した", value="pack"))
         form.field("checks", "確認できた項目（自己申告）", discord.ui.CheckboxGroup(required=False, min_values=0, options=checks))
         await interaction.response.send_modal(form)
 
@@ -546,6 +557,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.history_view(interaction)
 
     async def history_view(self, interaction: discord.Interaction, *, paused: bool = False, page: int = 0) -> None:
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True, thinking=True)
         sessions = await self.service.rows("session", interaction.guild_id)
         visible = []
         for item in sessions:
@@ -603,7 +616,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         original = await self.service.get("session", record["session_id"])
         await self.permitted(interaction, original, control=True)
         restored = await self.service.restore_backup(backup_id, interaction.user.id)
-        await self.bind_card("session", restored["id"], self.bot.get_channel(int(restored["channel"])))
+        channel = self.bot.get_channel(int(restored["channel"])) or await self.bot.fetch_channel(int(restored["channel"]))
+        await self.bind_card("session", restored["id"], channel)
         await self.show(interaction, await self.object_view(interaction, "session", restored["id"]))
 
     @app_commands.command(name="undo", description="クリア申告・保持中の消去を取り消して中断状態へ戻す")
@@ -653,7 +667,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
 
     @app_commands.command(name="create", description="カスタムマップの参加準備ルームを作る")
     async def create(self, interaction: discord.Interaction, map_id: str) -> None:
-        await self.room_form(interaction, self.service.catalog.get(map_id))
+        await self.room_form(interaction, await self.service.map_info(map_id))
 
     @create.autocomplete("map_id")
     async def map_autocomplete(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -673,7 +687,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
 
     @app_commands.command(name="setup", description="今回の版に対応した参加準備を見る")
     async def setup_command(self, interaction: discord.Interaction, map_id: str) -> None:
-        await self.setup_view(interaction, self.service.catalog.get(map_id))
+        await self.setup_view(interaction, await self.service.map_info(map_id))
 
     @app_commands.command(name="panel", description="カスタムマップの常設入口をこのチャンネルに設置する")
     async def panel(self, interaction: discord.Interaction) -> None:
@@ -710,7 +724,15 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             session = await self.service.put("session", session)
             await self.bind_card("session", session_id, channel)
         if session["state"] == "FAILED" and session.get("slot") and not self.bot.server_manager.is_running(session["slot"]):
-            await asyncio.to_thread(self.service._detach, session)
+            source = Path(self.bot.server_manager.get_server(session["slot"]).cwd)
+            saved = self.service._session_path(session_id)
+            if (saved / "world/level.dat").is_file() and not (source.exists() and any(source.iterdir())):
+                source.mkdir(parents=True, exist_ok=True)
+            else:
+                marker = source / "launch.json"
+                if not (source / "world/level.dat").is_file() or not marker.is_file() or json.loads(marker.read_text())["session_id"] != session_id:
+                    raise ValueError("対象の保存データを安全に特定できない。起動枠の内容を保持して管理者による確認を待つ")
+                await asyncio.to_thread(self.service._detach, session)
             self.bot.server_manager._set_desired(session["slot"], False)
             session.update(slot=None, state="PAUSED", error="異常終了後の保存データ。再開前に進行を確認する必要がある")
             await self.service.put("session", session)

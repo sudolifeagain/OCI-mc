@@ -33,7 +33,7 @@ class VerificationService(CustomMapService):
         props = Path(self.manager.get_server(session["slot"]).cwd) / "server.properties"
         # この変更は検証用複製だけへ適用する。通常のアタッチは常にonline-mode=trueである。
         text = props.read_text()
-        text = text.replace("server-ip=\n", "server-ip=127.0.0.1\n").replace("online-mode=true", "online-mode=false").replace("white-list=true", "white-list=false").replace("enforce-whitelist=true", "enforce-whitelist=false")
+        text = text.replace("server-ip=\n", "server-ip=127.0.0.1\n").replace("online-mode=true", "online-mode=false").replace("white-list=true", "white-list=false").replace("enforce-whitelist=true", "enforce-whitelist=false").replace("require-resource-pack=true", "require-resource-pack=false")
         props.write_text(text)
         self._permissions(session["slot"])
 
@@ -84,6 +84,8 @@ async def verify(args) -> None:
     runtime = root / "qa" / ("run-" + str(time.time_ns()))
     manager = MultiServerManager(config["servers"], str(runtime))
     service = VerificationService(config["custom_maps"], manager, runtime)
+    if any(Path(manager.get_server(slot).cwd).exists() and any(Path(manager.get_server(slot).cwd).iterdir()) for slot in service.slots):
+        raise ValueError("起動枠に保存データがある。通常のプレイを中断して枠を空ける必要がある")
     for n in range(1, 5):
         digest = bytearray(hashlib.md5(f"OfflinePlayer:OCI_QA{n}".encode()).digest())
         digest[6] = digest[6] & 0x0F | 0x30
@@ -98,6 +100,18 @@ async def verify(args) -> None:
         return result
     outcomes = []
     selected = [service.catalog.get(args.map)] if args.map else list(service.catalog.items.values())
+    if args.only_unverified:
+        selected = [item for item in selected if not json.loads((root / "templates" / item["id"] / item["revision"] / "manifest.json").read_text()).get("smoke_verified")]
+    current_task = asyncio.current_task()
+    async def watch_bot() -> None:
+        while True:
+            await asyncio.sleep(2)
+            result = await asyncio.to_thread(subprocess.run, ["systemctl", "is-active", "--quiet", "discord-bot"], check=False)
+            if result.returncode == 0:
+                print("Botの起動を検出したため検証を中断する", flush=True)
+                current_task.cancel()
+                return
+    watcher = asyncio.create_task(watch_bot())
     try:
         if args.parallel:
             sessions = []
@@ -163,6 +177,7 @@ async def verify(args) -> None:
         for offset in range(0, len(selected), 2):
             await asyncio.gather(*(verify_one(item) for item in selected[offset:offset + 2]))
     finally:
+        watcher.cancel()
         for slot in service.slots:
             if manager.is_running(slot):
                 await manager.stop_server(slot)
@@ -175,6 +190,7 @@ def main() -> None:
     parser.add_argument("--node", required=True)
     parser.add_argument("--map")
     parser.add_argument("--parallel", action="store_true")
+    parser.add_argument("--only-unverified", action="store_true")
     args = parser.parse_args()
     load_dotenv("/opt/minecraft/bot/.env")
     logging.basicConfig(level=logging.WARNING)

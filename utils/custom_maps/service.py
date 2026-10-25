@@ -56,6 +56,19 @@ class CustomMapService:
                 continue
         return result
 
+    async def map_info(self, ident: str) -> dict:
+        item = dict(self.catalog.get(ident))
+        def pinned() -> dict:
+            path = self.root / "templates" / item["id"] / item["revision"] / "manifest.json"
+            try:
+                manifest = json.loads(path.read_text(encoding="utf-8"))
+                if manifest.get("smoke_verified") and manifest["mc_version"] == item["mc_version"]:
+                    return manifest["catalog"]
+            except (OSError, ValueError, KeyError):
+                pass
+            return item
+        return await asyncio.to_thread(pinned)
+
     async def create_room(self, guild: int, channel: int, owner: int, map_id: str, name: str, players: int, session: dict | None = None) -> dict:
         item = session["map"] if session else dict(self.catalog.get(map_id))
         if not session and (not item["published"] or map_id not in await asyncio.to_thread(self.available)):
@@ -172,7 +185,8 @@ class CustomMapService:
     async def _free_slot(self) -> str:
         occupied = {s.get("slot") for s in await self.rows("session") if s.get("slot")}
         for slot in self.slots:
-            if slot not in occupied and not self.manager.is_running(slot):
+            path = Path(self.manager.get_server(slot).cwd)
+            if slot not in occupied and not self.manager.is_running(slot) and not (path.exists() and any(path.iterdir())):
                 return slot
         raise ValueError("カスタムマップ枠が使用中である。参加準備は継続できる")
 
@@ -219,8 +233,17 @@ class CustomMapService:
         props.setdefault("view-distance", "10")
         props.setdefault("simulation-distance", "10")
         props.update(item.get("server_properties", {}))
-        props.update({"server-port": str(slot.port), "server-ip": "", "level-name": "world", "online-mode": "true", "white-list": "true", "enforce-whitelist": "true", "max-players": str(item["max_players"]), "enable-command-block": "true", "enable-rcon": "true", "rcon.port": str(slot.config["rcon_port"]), "rcon.password": client.password, "broadcast-rcon-to-ops": "false", "motd": "カスタムマップ | " + item["title"], "require-resource-pack": "false"})
-        file.write_text("\n".join(f"{key}={value}" for key, value in props.items()) + "\n", encoding="utf-8")
+        props.update({"server-port": str(slot.port), "server-ip": "", "level-name": "world", "online-mode": "true", "white-list": "true", "enforce-whitelist": "true", "max-players": str(item["max_players"]), "enable-command-block": "true", "enable-rcon": "true", "rcon.port": str(slot.config["rcon_port"]), "rcon.password": client.password, "broadcast-rcon-to-ops": "false", "motd": "カスタムマップ | " + item["title"], "require-resource-pack": "true" if props.get("resource-pack") else "false"})
+        def property_value(value: str) -> str:
+            result = []
+            for char in str(value):
+                if ord(char) < 128:
+                    result.append(char)
+                else:
+                    data = char.encode("utf-16-be")
+                    result.extend(f"\\u{int.from_bytes(data[n:n + 2], 'big'):04x}" for n in range(0, len(data), 2))
+            return "".join(result)
+        file.write_text("\n".join(f"{key}={property_value(value)}" for key, value in props.items()) + "\n", encoding="utf-8")
         people = [session["participants"][u] for u in session["current_members"]]
         entries = [{"uuid": p["uuid"], "name": p["name"]} for p in people]
         (destination / "whitelist.json").write_text(json.dumps(entries), encoding="utf-8")
@@ -280,6 +303,7 @@ class CustomMapService:
 
     def _detach(self, session: dict) -> None:
         source = Path(self.manager.get_server(session["slot"]).cwd)
+        self._permissions(session["slot"])
         target = self._session_path(session["id"])
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
@@ -490,13 +514,19 @@ class CustomMapService:
                     with archive.open("rb") as stream:
                         return hashlib.file_digest(stream, "sha256").hexdigest()
                 digest = await asyncio.to_thread(complete)
-                record = await asyncio.to_thread(self.store.create, "backup", guild=session["guild"], channel=session["channel"], owner=session["owner"], session_id=ident, map_id=session["map_id"], revision=session["map"]["revision"], path=str(archive), sha256=digest, filename=f"backup_custom-session-{ident}_{stamp}.zip")
+                record = await asyncio.to_thread(self.store.create, "backup", guild=session["guild"], channel=session["channel"], owner=session["owner"], session_id=ident, map_id=session["map_id"], revision=session["map"]["revision"], path=str(archive), sha256=digest, saved_at=session.get("last_saved"), filename=f"backup_custom-session-{ident}_{stamp}.zip")
                 if upload:
                     from utils.notion_api import upload_to_notion, register_to_database
                     file_id = await asyncio.to_thread(upload_to_notion, str(archive), record["filename"])
                     await asyncio.to_thread(register_to_database, file_id, record["filename"], archive.stat().st_size / 1048576)
                     record["uploaded"] = True
                     record = await self.put("backup", record)
+                if record.get("uploaded"):
+                    older = [r for r in await self.rows("backup", session["guild"]) if r["session_id"] == ident and r.get("uploaded")]
+                    for old in older[3:]:
+                        old_path = Path(old["path"])
+                        if old_path.resolve().is_relative_to(directory.resolve()) and not old_path.is_symlink():
+                            await asyncio.to_thread(old_path.unlink, missing_ok=True)
                 await asyncio.to_thread(self.store.snapshot, self.root / "backups" / "state.sqlite3")
                 await asyncio.to_thread(self.store.event, "backup", ident, actor, backup_id=record["id"])
                 return record
@@ -513,6 +543,9 @@ class CustomMapService:
         for session in await self.rows("session"):
             if session["state"] in ("RUNNING", "PAUSED", "COMPLETED"):
                 try:
+                    previous = [r for r in await self.rows("backup", session["guild"]) if r["session_id"] == session["id"] and r.get("uploaded")]
+                    if session["state"] != "RUNNING" and previous and previous[0].get("saved_at") == session.get("last_saved"):
+                        continue
                     await self.backup(session["id"], "scheduled")
                 except Exception:
                     import logging
@@ -521,12 +554,13 @@ class CustomMapService:
     async def restore_backup(self, backup_id: str, actor: int | str) -> dict:
         async with self.lock:
             record = await self.get("backup", backup_id)
+            original = await self.get("session", record["session_id"])
             archive = Path(record["path"])
             if not archive.resolve().is_relative_to((self.root / "backups").resolve()):
                 raise ValueError("バックアップの保存先が不正である")
             if not archive.exists():
                 from utils.notion_api import get_backups_list, download_file
-                remote = next((x for x in await asyncio.to_thread(get_backups_list, 100) if x.get("filename") == record["filename"]), None)
+                remote = next((x for x in await asyncio.to_thread(get_backups_list, 1, record["filename"]) if x.get("filename") == record["filename"]), None)
                 if not remote or not remote.get("url"):
                     raise ValueError("復元用のローカル・遠隔バックアップが見つからない")
                 archive.parent.mkdir(parents=True, exist_ok=True)
@@ -549,6 +583,7 @@ class CustomMapService:
                 if data["id"] != record["session_id"] or data["map_id"] != record["map_id"] or data["map"]["revision"] != record["revision"] or not (stage / "world" / "level.dat").is_file():
                     raise ValueError("セッションID・原本版・ワールドがバックアップ記録と一致しない")
                 data = {**data, "name": data["name"][:52] + "（復元）", "state": "PAUSED", "slot": None, "result": "unknown", "actual_players": {}, "active_seconds": 0, "restored_from": data["id"], "last_saved": time.time(), "control_generation": 1}
+                data.update({key: original[key] for key in ("guild", "channel", "owner")})
                 data.pop("id")
                 restored = await asyncio.to_thread(self.store.create, "session", **data)
                 destination = self._session_path(restored["id"])

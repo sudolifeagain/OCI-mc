@@ -131,6 +131,10 @@ def import_archive(root: Path, item: dict, archive: Path, *, world_path: str | N
         if props:
             shutil.copyfile(props, final / "author.properties")
         item = dict(item)
+        if props:
+            for line in props.read_text(encoding="utf-8", errors="replace").splitlines():
+                if line.startswith("resource-pack=") and line.partition("=")[2].strip():
+                    item["resource_pack"] = {**(item.get("resource_pack") or {}), "mode": "server", "url": line.partition("=")[2].strip().replace("\\:", ":"), "revision": revision}
         from utils.custom_maps.nbt import world_metadata
         metadata = world_metadata(world / "level.dat")
         if metadata["version"] and metadata["version"] != item["mc_version"]:
@@ -163,7 +167,32 @@ def import_archive(root: Path, item: dict, archive: Path, *, world_path: str | N
     return manifest
 
 
+LEGACY_LOGGING = {
+    "log4j2_112-116.xml": ("02937d122c86ce73319ef9975b58896fc1b491d1", "29534615b561487bccd3f2ec859b172bc642096cef4f8606754ead7eca5050dd"),
+    "log4j2_17-111.xml": ("4bb89a97a66f350bc9f73b3ca8509632682aea2e", "c04eb15a3b6b0cc5642a439793c295172491a86da34c176403752fac61bafd72"),
+}
+
+
+def ensure_legacy_logging(root: Path, version: str) -> None:
+    numbers = tuple(int(v) for v in version.split("."))
+    if numbers[0] != 1 or numbers[1] > 16:
+        return
+    folder = root / "artifacts" / "logging"
+    folder.mkdir(parents=True, exist_ok=True)
+    folder.chmod(0o755)
+    name = "log4j2_112-116.xml" if numbers[1] >= 12 else "log4j2_17-111.xml"
+    sha1, sha256 = LEGACY_LOGGING[name]
+    path = folder / name
+    if not path.exists():
+        download(f"https://launcher.mojang.com/v1/objects/{sha1}/{name}", path, sha256=sha256)
+    with path.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != sha256:
+            raise ValueError("旧版用の公式ログ設定が一致しない")
+    path.chmod(0o644)
+
+
 def ensure_vanilla(root: Path, version: str) -> dict:
+    ensure_legacy_logging(root, version)
     target = root / "artifacts" / version
     target.mkdir(parents=True, exist_ok=True)
     os.chmod(root / "artifacts", 0o755)

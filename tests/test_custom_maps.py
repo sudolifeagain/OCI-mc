@@ -240,6 +240,16 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(restored["state"], "PAUSED")
         self.assertTrue((self.service._session_path(restored["id"]) / "world/level.dat").is_file())
 
+    async def test_backup_restore_inherits_recovered_channel_and_owner(self) -> None:
+        room = await self.room()
+        session = await self.service.start(room["id"], 1, room["generation"])
+        paused = await self.service.pause(session["id"], 1)
+        backup = await self.service.backup(session["id"], 1, upload=False)
+        paused.update(channel="101", owner="2")
+        await self.service.put("session", paused)
+        restored = await self.service.restore_backup(backup["id"], 2)
+        self.assertEqual((restored["channel"], restored["owner"]), ("101", "2"))
+
     async def test_new_start_rechecks_current_publication(self) -> None:
         room = await self.room()
         self.service.catalog.get("one")["published"] = False
@@ -257,6 +267,16 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await self.service.pause(session["id"], 1, finish=True, expected=old)
         self.assertEqual((await self.service.get("session", resumed["id"]))["state"], "RUNNING")
+
+    async def test_unclaimed_slot_data_is_never_adopted_as_a_new_session(self) -> None:
+        for slot in self.service.slots:
+            path = Path(self.manager.get_server(slot).cwd)
+            path.mkdir(parents=True)
+            (path / "unknown-progress").write_bytes(b"keep")
+        room = await self.room()
+        with self.assertRaises(ValueError):
+            await self.service.start(room["id"], 1, room["generation"])
+        self.manager.start_server.assert_not_awaited()
 
     async def test_trash_undo_preserves_world_and_finish_undo_restores_paused(self) -> None:
         room = await self.room()
