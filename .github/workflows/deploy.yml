@@ -167,6 +167,7 @@ jobs:
           sudo python3 /opt/minecraft/bot/scripts/repair_forge_data.py finalize \
             --plan /opt/minecraft/bot/infra/forge-alt-resource-fixes.json \
             --backup-dir /opt/minecraft/.forge-alt-data-backups
+          sudo python3 /opt/minecraft/bot/scripts/update_forge_mods.py finalize
           rm -f /opt/minecraft/.bot-runtime/deploy_restore_required
           sudo systemd-analyze verify \
             /etc/systemd/system/discord-bot.service \
@@ -204,6 +205,9 @@ jobs:
                 --server-dir /opt/minecraft/forge-alt \
                 --plan /opt/minecraft/bot/infra/forge-alt-resource-fixes.json \
                 --backup-dir /opt/minecraft/.forge-alt-data-backups
+            fi
+            if [ -f /opt/minecraft/bot/scripts/update_forge_mods.py ]; then
+              sudo python3 /opt/minecraft/bot/scripts/update_forge_mods.py rollback
             fi
             sudo systemctl start discord-bot
             if [ -f /opt/minecraft/.bot-runtime/desired_servers.json ]; then

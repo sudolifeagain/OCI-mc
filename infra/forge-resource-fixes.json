@@ -32913,6 +32913,18 @@
           "experience": 5
         }
       }
+    },
+    {
+      "jar": "BetterNether-20.0.9.jar",
+      "resource": "data/betternether/patchouli_books/betternether_book/book.json",
+      "before_sha256": "2934654d24ffdb892f318aa314dd02da47aa1b8144fc7fd18e814c292ce1a4b0",
+      "data": {
+        "name": "BOOK NAME",
+        "landing_text": "LANDING TEXT",
+        "version": 1,
+        "creative_tab": "betternether",
+        "use_resource_pack": true
+      }
     }
   ]
 }
