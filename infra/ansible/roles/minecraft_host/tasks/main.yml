@@ -289,6 +289,80 @@
     timeout: 60
   when: not ansible_check_mode
 
+- name: Check whether the reviewed Clockwork update is installed
+  ansible.builtin.stat:
+    path: /opt/minecraft/forge/mods/clockwork-0.5.6.jar
+  register: minecraft_clockwork_update
+
+- name: Create private backup directory for the startup compatibility update
+  ansible.builtin.file:
+    path: /opt/minecraft/.forge-client-upgrade-backups
+    owner: root
+    group: root
+    mode: "0700"
+    state: directory
+
+- name: Select a fresh pre-update archive
+  ansible.builtin.set_fact:
+    minecraft_startup_backup: "/opt/minecraft/.forge-client-upgrade-backups/pre-startup-cleanup-{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+
+- name: Preserve the current world and MOD configuration before the startup update
+  ansible.builtin.command:
+    argv:
+      - tar
+      - -czf
+      - "{{ minecraft_startup_backup }}.partial"
+      - -C
+      - /opt/minecraft/forge
+      - world
+      - mods
+      - config
+      - defaultconfigs
+      - server.properties
+      - user_jvm_args.txt
+  when:
+    - not ansible_check_mode
+    - not minecraft_clockwork_update.stat.exists
+  changed_when: true
+
+- name: Validate the new Forge archive before changing MODs
+  ansible.builtin.command:
+    argv: [gzip, -t, "{{ minecraft_startup_backup }}.partial"]
+  when:
+    - not ansible_check_mode
+    - not minecraft_clockwork_update.stat.exists
+  changed_when: false
+
+- name: Finalize the new Forge archive
+  ansible.builtin.command:
+    argv: [mv, --, "{{ minecraft_startup_backup }}.partial", "{{ minecraft_startup_backup }}"]
+  when:
+    - not ansible_check_mode
+    - not minecraft_clockwork_update.stat.exists
+  changed_when: true
+
+- name: Protect the new Forge archive
+  ansible.builtin.file:
+    path: "{{ minecraft_startup_backup }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - not ansible_check_mode
+    - not minecraft_clockwork_update.stat.exists
+
+- name: Install hash-pinned published startup compatibility updates
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/python3
+      - "{{ minecraft_repo_root }}/scripts/update_forge_mods.py"
+      - install
+      - --plan
+      - "{{ minecraft_repo_root }}/infra/forge-startup-updates.json"
+  register: minecraft_forge_mod_updates
+  changed_when: "'Changed mods: 0' not in minecraft_forge_mod_updates.stdout"
+  when: not ansible_check_mode
+
 - name: Apply reviewed Forge data repairs
   ansible.builtin.command:
     cmd: >-

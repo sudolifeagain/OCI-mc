@@ -1,0 +1,355 @@
+[
+  {
+    "action": "filter_resource",
+    "entry": "assets/vs_clockwork/models/block/reactionwheel/old/alsoold/wheeltop.json",
+    "reason": "Unreferenced old or test export; active production model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/vs_clockwork/models/block/reactionwheel/old/alsoold/wheelbottom.json",
+    "reason": "Unreferenced old or test export; active production model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/inkandquill.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/megalodontooth.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/goldcoin4.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/goldcoin6.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/goldcoin8.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dustydecorations/models/custom/goldcoin10.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/hollow_knight_decor/textures/block/ornatewindowtop.png",
+    "reason": "Blockbench JSON mistakenly stored as a PNG; actual block textures are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/hollow_knight_decor/models/displaysettings/ornatewindow.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "86aabccecb3d695f1777d2dc6a0dde3b56aa188a3d2c2b13700c8cd5cd68fa45"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/hollow_knight_decor/textures/block/bigornateseal.png",
+    "reason": "Blockbench JSON mistakenly stored as a PNG; actual block textures are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/hollow_knight_decor/textures/block/eeeeeeeeeeeeeeeeeeeee.png",
+    "reason": "Blockbench JSON mistakenly stored as a PNG; actual block textures are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/hollow_knight_decor/textures/block/buglanternpostlantern1normal.png",
+    "reason": "Blockbench JSON mistakenly stored as a PNG; actual block textures are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/mushroomquest/models/custom/spores.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mushroomquest/models/custom/doublefern.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "d10daf6c0ff776578233e382401da220bb789124f1b6d1fc1e75014753198be3"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/mushroomquest/models/custom/mushblooms.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/mushroomquest/models/custom/tallmyceliumkoru.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/mushroomquest/models/custom/mushbloomstall.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mushroomquest/models/custom/bouncystool.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "b01bea32388cb121b6d41679c67b60d4d168da1218d02018557fa7727c18eb24"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/serene_shrubbery/models/custom/foxgloveplant.json",
+    "reason": "Unreferenced Blockbench source export; registered model paths are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/serene_shrubbery/models/custom/foxglove.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "75ac8219a9ed3802bbde522d957f5aeb87574b02c355edbc2ecf5b67662b941a"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/slashblade/models/item/slashblade_white.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "09d6c7880563a3a96679c5d3f433b8bea0f09fa7a90cfe23c4c26dcd0e641eae"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/slashblade/models/item/slashblade.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "09d6c7880563a3a96679c5d3f433b8bea0f09fa7a90cfe23c4c26dcd0e641eae"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/slashblade/models/item/slashblade_silverbamboo.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "09d6c7880563a3a96679c5d3f433b8bea0f09fa7a90cfe23c4c26dcd0e641eae"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/slashblade/models/item/slashblade_wood.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "09d6c7880563a3a96679c5d3f433b8bea0f09fa7a90cfe23c4c26dcd0e641eae"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/slashblade/models/item/slashblade_bamboo.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "09d6c7880563a3a96679c5d3f433b8bea0f09fa7a90cfe23c4c26dcd0e641eae"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/terramity/patchouli_books/terramity_guidebook/es_419/entries/overview/credits.json",
+    "reason": "Repair translated credits JSON while preserving all text and links",
+    "source": null,
+    "sha256": "029f75ba000e883b891d99eaedc64f89855f42adb8c7ee1275a97477a9a2e8b9"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/terramity/models/item/nyxium_greatsword_oversized.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "edb2536e7a728185a62bd98f196416c4f4e46d260063571ce006a2fbfa97e2ce"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/terramity/patchouli_books/terramity_guidebook/ru_ru/entries/overview/credits.json",
+    "reason": "Repair translated credits JSON while preserving all text and links",
+    "source": null,
+    "sha256": "80bb4cd465795d7639db3cf9d11257c58898d3b8fe47ea394f5e563f472e1bd2"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/block/formwork_block/block_base.json",
+    "reason": "Empty development export; no live exact model reference"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/tfmg/models/block/sulfuric_acid.json",
+    "reason": "Restore the particle model for the existing custom-rendered fluid",
+    "source": null,
+    "sha256": "5f7d959fd1d72aed8b40c2c55d6f859ee020835e1068af3b4c7e4c1cc6eec1b7"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/block/gas_lamp/test.json",
+    "reason": "Unreferenced old or test export; active production model paths are retained"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/large_steel_cogwheel_shaftless.json",
+    "reason": "Empty development export; no live exact model reference"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/block/fireproof_brick_reinforcement.json",
+    "reason": "Empty development export; no live exact model reference"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/block/welding_machine/item.json",
+    "reason": "Empty development export; no live exact model reference"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/tfmg/models/block/encased_shaft/item.json",
+    "reason": "Restore the Create encased-shaft item transforms and geometry",
+    "source": null,
+    "sha256": "d3eb19621cd85d5381a492a0c68192351d6d9c9d83e9f1eae5f19ca553a73692"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/tfmg/models/block/encased_shaft/block.json",
+    "reason": "Restore the Create encased-shaft geometry inherited by TFMG casing variants",
+    "source": null,
+    "sha256": "18d4a540fe1da0a1162ef49843dbd74401d500bb458ff20d67934c73a5c60456"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/tfmg/models/block/engine_block.json",
+    "reason": "Empty development export; no live exact model reference"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/crusty_chunks/models/displaysettings/flarepistol.item.json",
+    "reason": "Unreferenced old or test export; active production model paths are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/valkyrien_warium/models/displaysettings/propeller.json",
+    "reason": "Repair model syntax, resource names or numeric transform/predicate fields; retain geometry",
+    "source": null,
+    "sha256": "d4c3be4f008d07cbbb647394e5460a784399d9da1dc7ad872f8a1b097ee11990"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/efiscompat/animmodels/animations/biped/living/casting_two_hand_ascension.json",
+    "reason": "Unregistered animation export has no constructor and is not referenced by released animation registration"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/efiscompat/animmodels/animations/biped/living/chanting_gojo.json",
+    "reason": "Unregistered animation export has no constructor and is not referenced by released animation registration"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/efiscompat/animmodels/animations/biped/living/chanting_gojo_pose.json",
+    "reason": "Unregistered animation export has no constructor and is not referenced by released animation registration"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/efiscompat/animmodels/animations/biped/living/chanting_one_hand_staff_top_left.json",
+    "reason": "Unregistered animation export has no constructor and is not referenced by released animation registration"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/efiscompat/animmodels/animations/biped/living/chanting_two_hand_ascension.json",
+    "reason": "Unregistered animation export has no constructor and is not referenced by released animation registration"
+  },
+  {
+    "action": "filter_resource",
+    "entry": "assets/dungeons_and_combat/attack_animations/mm_hammer.json",
+    "reason": "Misplaced item-model JSON; the actual item model and registered combat animations are retained"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/minecraft/models/item/axolotl_bucket.json",
+    "reason": "Preserve the valid published Quark bucket model and all four color overrides",
+    "source": null,
+    "sha256": "88e138f3a393c99d48bbef9bb2afde285209e5c572c556bddae2cb20b2b64fe4"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mynethersdelight/textures/block/oci_magma_cake_top.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "fe00488015cb720ec1f3ddd0c72140867a1caa97018b76a8dcf988b97cb71dda"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mynethersdelight/textures/block/oci_magma_cake_bottom.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "fe00488015cb720ec1f3ddd0c72140867a1caa97018b76a8dcf988b97cb71dda"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mynethersdelight/textures/block/oci_magma_cake_side.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "677b8c588e1474f6ce5db552c5369d4893cbecc4bb6e666c4f1c6953131cbeea"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mynethersdelight/textures/block/oci_magma_cake_inner.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "5098d90264a135420ba5309c89891f6d206e007a3b3302e744fb2f1e3cfab8ab"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/mynethersdelight/models/block/magma_cake.json",
+    "reason": "Add conventional texture channel aliases while preserving all original face references and geometry",
+    "source": null,
+    "sha256": "c04c0a13d3941319012a3342a323896e1a8155aaa6c5dadd0e6d8b5255b8e069"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/dungeonsdelight/textures/block/oci_monster_cake_top.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "66f11ecd4f53b51938872a12160ca33710aa9a64358c75bcf6fad4a2ecf2f670"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/dungeonsdelight/textures/block/oci_monster_cake_bottom.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "31a8b23031c6ea42e6bdffa877e70d9eba9156c41350761a53f703f0f86f2c4d"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/dungeonsdelight/textures/block/oci_monster_cake_side.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "366e92356af76206ce6d5c5b048210d8e31908da833d978f24bc67b97793960d"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/dungeonsdelight/textures/block/oci_monster_cake_inner.png",
+    "reason": "Extract the existing cake face pixels for Amendments texture-channel compatibility",
+    "source": null,
+    "sha256": "dd383754ff407612b20348850769bb89130ff24c35e771f0b183b6dfaffb73ac"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/dungeonsdelight/models/block/monster_cake.json",
+    "reason": "Add conventional texture channel aliases while preserving all original face references and geometry",
+    "source": null,
+    "sha256": "8369853372faf5552582d9a39d127c35d23614edf97118d87fb8b954a5e5e0ca"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/vs_clockwork/textures/item/oci_disc_wanderlust_palette.png",
+    "reason": "Static first-frame palette for the placed disc; original inventory animation remains unchanged",
+    "source": null,
+    "sha256": "e71a13e3f979a29281cec90b41bc44640b0b7ff1ab52d1f020cc5cd7f1942c78"
+  },
+  {
+    "action": "replace",
+    "entry": "assets/vs_clockwork/models/item/music_disc_wanderlust.json",
+    "reason": "Separate palette extraction from the unchanged animated item model",
+    "source": null,
+    "sha256": "e65387cc50f4ec7dbd39f9fe352fc95dae045c149720edeb1507180aed58b290"
+  }
+]
