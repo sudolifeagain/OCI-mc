@@ -104,10 +104,10 @@ class StatusDisplay(commands.Cog):
             logging.warning(f"Status update failed (will retry next loop): {e}")
 
     async def find_or_send_message(self, channel, embed):
-        """チャンネル内の最新の自分のメッセージを探すか、新規送信する"""
+        """通常ステータスのメッセージだけを再利用する。"""
         try:
             async for msg in channel.history(limit=20):
-                if msg.author == self.bot.user:
+                if msg.author == self.bot.user and not msg.flags.is_components_v2 and msg.embeds and msg.embeds[0].title == embed.title:
                     await msg.edit(embed=embed)
                     return msg
         except Exception as e:
