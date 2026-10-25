@@ -107,7 +107,12 @@ class StatusDisplay(commands.Cog):
         """通常ステータスのメッセージだけを再利用する。"""
         try:
             async for msg in channel.history(limit=20):
-                if msg.author == self.bot.user and not msg.flags.is_components_v2 and msg.embeds and msg.embeds[0].title == embed.title:
+                if (
+                    msg.author == self.bot.user
+                    and not msg.flags.components_v2
+                    and msg.embeds
+                    and msg.embeds[0].title == embed.title
+                ):
                     await msg.edit(embed=embed)
                     return msg
         except Exception as e:
