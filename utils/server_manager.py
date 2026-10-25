@@ -58,6 +58,8 @@ class ServerInstance:
 
     def _get_allocated_memory_mb(self) -> int | None:
         """サーバーに割り当てられた最大メモリ(MB)を取得する"""
+        if self.config.get("workload_type") == "custom_map":
+            return self._parse_memory_value(self.memory)
         if self.use_script:
             # スクリプト起動: user_jvm_args.txt から -Xmx を読み取る
             jvm_args_path = os.path.join(self.cwd, 'user_jvm_args.txt')

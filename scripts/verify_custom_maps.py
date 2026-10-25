@@ -8,6 +8,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -74,6 +75,12 @@ async def verify(args) -> None:
     for entry in config["servers"].values():
         entry["auto_start"] = False
     root = Path(config["custom_maps"]["root"])
+    launcher = root / "qa-launch.py"
+    shutil.copyfile(Path(__file__).with_name("launch_custom_map.py"), launcher)
+    launcher.chmod(0o755)
+    for entry in config["servers"].values():
+        if entry.get("workload_type") == "custom_map":
+            entry["use_script"] = str(launcher)
     runtime = root / "qa" / ("run-" + str(time.time_ns()))
     manager = MultiServerManager(config["servers"], str(runtime))
     service = VerificationService(config["custom_maps"], manager, runtime)
@@ -167,7 +174,7 @@ def main() -> None:
     parser.add_argument("--map")
     parser.add_argument("--parallel", action="store_true")
     args = parser.parse_args()
-    load_dotenv()
+    load_dotenv("/opt/minecraft/bot/.env")
     logging.basicConfig(level=logging.WARNING)
     asyncio.run(verify(args))
 
