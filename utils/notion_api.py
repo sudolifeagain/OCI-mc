@@ -155,7 +155,7 @@ def upload_to_notion(file_path, upload_filename=None):
                 requests.post, upload_url,
                 timeout=UPLOAD_TIMEOUT,
                 headers=upload_headers,
-                files={'file': (filename, file_data)}
+                files={'file': (filename, file_data, 'application/zip')}
             )
             if resp.status_code not in (200, 201):
                 raise Exception(f"Failed to upload file: {resp.text}")
@@ -172,7 +172,7 @@ def upload_to_notion(file_path, upload_filename=None):
                     requests.post, upload_url,
                     timeout=UPLOAD_TIMEOUT,
                     headers=upload_headers,
-                    files={'file': (filename, chunk)},
+                    files={'file': (filename, chunk, 'application/zip')},
                     data={'part_number': str(part_num)}
                 )
                 if resp.status_code not in (200, 201):
