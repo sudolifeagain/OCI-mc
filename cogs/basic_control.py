@@ -20,6 +20,8 @@ def get_server_choices():
     """Discord用のサーバー選択肢を生成する"""
     choices = []
     for server_id, config in SERVERS_CONFIG.items():
+        if config.get("workload_type") == "custom_map":
+            continue
         choices.append(app_commands.Choice(name=config.get('name', server_id), value=server_id))
     return choices
 
@@ -113,7 +115,8 @@ class BasicControl(commands.Cog):
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
         if not self.server_manager.is_running(server):
-            return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+            self.server_manager._set_desired(server, False)
+            return await interaction.response.send_message(f"{server_instance.name} は停止中である。復帰予約を解除した。", ephemeral=True)
 
         # defer() (type 5) は Discord API 仕様により SUPPRESS_NOTIFICATIONS を無視するため、
         # silent ACK には send_message (type 4) を使う。/cmd /status の silent ACK も同じ理由。
@@ -326,6 +329,8 @@ class BasicControl(commands.Cog):
             )
 
             for server_id in SERVER_IDS:
+                if SERVERS_CONFIG[server_id].get("workload_type") == "custom_map":
+                    continue
                 server_instance = self.server_manager.get_server(server_id)
                 if not server_instance:
                     continue

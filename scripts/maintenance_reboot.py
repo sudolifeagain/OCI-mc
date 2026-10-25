@@ -19,6 +19,7 @@ from importlib import import_module
 from pathlib import Path
 
 from dotenv import load_dotenv
+from collections import Counter
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 if str(REPOSITORY_ROOT) not in sys.path:
@@ -109,10 +110,23 @@ def ensure_backups(
     running_servers: set[str],
     fingerprint_path: Path,
     max_age_seconds: int,
+    runtime_dir: Path | None = None,
 ) -> None:
     servers = config.get("servers", {})
     for server_id in sorted(running_servers):
         server = servers.get(server_id, {})
+        if server.get("workload_type") == "custom_map":
+            from utils.custom_maps.store import Store
+            runtime = runtime_dir or Path(os.getenv("SERVER_RUNTIME_DIR", "/opt/minecraft/.bot-runtime"))
+            if not (runtime / "custom-maps.sqlite3").is_file():
+                raise RuntimeError(f"{server_id}: セッション台帳がない")
+            marker = load_json(Path(server["cwd"]) / "launch.json")
+            store = Store(runtime / "custom-maps.sqlite3")
+            session = store.get("session", marker.get("session_id", ""))
+            backups = store.list("backup")
+            if not session or session.get("slot") != server_id or not any(r.get("uploaded") and r["session_id"] == session["id"] and r["map_id"] == session["map_id"] and r["revision"] == session["map"]["revision"] and time.time() - r["created"] <= max_age_seconds for r in backups):
+                raise RuntimeError(f"{server_id}: このセッションの直近バックアップがない")
+            continue
         if not backup_is_acceptable(
             fingerprint_path,
             server_id,
@@ -123,6 +137,28 @@ def ensure_backups(
             raise RuntimeError(f"{server_id}: 直近または現行データと一致するバックアップがない")
 
 
+async def running_servers(servers: dict) -> set[str]:
+    counts = Counter(int(server["port"]) for server in servers.values())
+    running = set()
+    for port in counts:
+        if not await asyncio.to_thread(port_is_open, port):
+            continue
+        candidates = [(sid, cfg) for sid, cfg in servers.items() if int(cfg["port"]) == port]
+        if len(candidates) == 1:
+            running.add(candidates[0][0])
+            continue
+        identified = []
+        for sid, cfg in candidates:
+            client = get_rcon_client(cfg)
+            ok, reply = await client.execute("list") if client else (False, "")
+            if ok and parse_player_count(reply) is not None:
+                identified.append(sid)
+        if len(identified) != 1:
+            raise RuntimeError(f"共有ゲームポート {port} の稼働サーバーを特定できない")
+        running.add(identified[0])
+    return running
+
+
 async def prepare_reboot(args: argparse.Namespace) -> int:
     args.ready.unlink(missing_ok=True)
     if not args.force and not args.reboot_required.exists():
@@ -131,17 +167,7 @@ async def prepare_reboot(args: argparse.Namespace) -> int:
 
     config = load_json(args.config)
     servers = config.get("servers", {})
-    running_checks = await asyncio.gather(
-        *(
-            asyncio.to_thread(port_is_open, int(server["port"]))
-            for server in servers.values()
-        )
-    )
-    running = {
-        server_id
-        for server_id, is_running in zip(servers, running_checks, strict=True)
-        if is_running
-    }
+    running = await running_servers(servers)
     existing_desired = set(load_json(args.state).get("servers", [])) & set(servers)
     write_state(args.state, existing_desired | running)
 
@@ -159,7 +185,7 @@ async def prepare_reboot(args: argparse.Namespace) -> int:
         logging.info("オンラインプレイヤーがいるため延期: %s", summary)
         return 0
 
-    ensure_backups(config, running, args.fingerprints, args.backup_max_age)
+    ensure_backups(config, running, args.fingerprints, args.backup_max_age, args.state.parent)
     if args.dry_run:
         logging.info("再起動前検査に成功: %s", ", ".join(sorted(running)) or "稼働サーバーなし")
         return 0

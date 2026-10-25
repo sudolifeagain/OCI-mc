@@ -221,7 +221,7 @@ def register_to_database(file_upload_id, filename, size_mb):
         raise Exception(f"Failed to register to Notion DB: {res.text}")
     return True
 
-def get_backups_list(limit=10):
+def get_backups_list(limit=10, filename=None):
     """Notion DBから最新のバックアップリストを取得"""
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
@@ -237,6 +237,8 @@ def get_backups_list(limit=10):
         ],
         "page_size": limit
     }
+    if filename is not None:
+        payload["filter"] = {"property": "Backup Name", "title": {"equals": filename}}
 
     ds_id = get_data_source_id()
     res = _request_with_retry(

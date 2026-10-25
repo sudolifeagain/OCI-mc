@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+"""カスタムマップ固定2枠だけの所有権を割り当てる。"""
+import grp
+import os
+from pathlib import Path
+import pwd
+import sys
+
+slot = sys.argv[1] if len(sys.argv) == 2 else ""
+if slot not in {"custom-1", "custom-2"}:
+    raise SystemExit("invalid slot")
+root = Path("/opt/minecraft/custom-maps/slots")
+target = root / slot
+if target.is_symlink() or target.resolve() != target or not target.is_dir():
+    raise SystemExit("invalid target")
+uid = pwd.getpwnam("mc-" + slot).pw_uid
+gid = grp.getgrnam("mc-" + slot).gr_gid
+for current, directories, files in os.walk(target, followlinks=False):
+    for name in [".", *directories, *files]:
+        path = Path(current) / name
+        if path.is_symlink() or not path.resolve().is_relative_to(target):
+            raise SystemExit("symlinks are not allowed")
+        os.chown(path, uid, gid, follow_symlinks=False)
+        os.chmod(path, 0o2770 if path.is_dir() else 0o660)

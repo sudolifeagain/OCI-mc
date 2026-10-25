@@ -89,7 +89,8 @@ class MyBot(commands.Bot):
             'cogs.permission_system',
             'cogs.system_monitor',
             'cogs.claude_manager',
-            'cogs.reaction_roles'
+            'cogs.reaction_roles',
+            'cogs.custom_maps',
         ]
 
         for extension in initial_extensions:
@@ -131,6 +132,11 @@ class MyBot(commands.Bot):
 
     async def _start_and_log(self, server_id: str):
         """サーバーを起動してログ出力"""
+        if SERVERS_CONFIG.get(server_id, {}).get("workload_type") == "custom_map":
+            service = getattr(self, "custom_maps", None)
+            success = bool(service and await service.restore_slot(server_id))
+            logging.info("カスタムマップの復旧 %s: %s", server_id, success)
+            return
         success = await self.server_manager.start_server(server_id)
         if success:
             logging.info(f"Server '{server_id}' auto-started successfully")

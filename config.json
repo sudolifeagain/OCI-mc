@@ -39,6 +39,38 @@
 			"log_forwarding": false,
 			"rcon_port": 25577,
 			"rcon_password_env": "FORGE_ALT_RCON_PASSWORD"
+		},
+		"custom-1": {
+			"name": "カスタムマップ枠1",
+			"workload_type": "custom_map",
+			"use_script": "/opt/minecraft/bot/scripts/launch_custom_map.py",
+			"cwd": "/opt/minecraft/custom-maps/slots/custom-1",
+			"memory": "2G",
+			"min_memory": "512M",
+			"reservation_mb": 3072,
+			"port": 25566,
+			"auto_start": false,
+			"run_as_user": "mc-custom-1",
+			"startup_timeout": 300,
+			"log_forwarding": false,
+			"rcon_port": 25578,
+			"rcon_password_env": "CUSTOM_MAP_1_RCON_PASSWORD"
+		},
+		"custom-2": {
+			"name": "カスタムマップ枠2",
+			"workload_type": "custom_map",
+			"use_script": "/opt/minecraft/bot/scripts/launch_custom_map.py",
+			"cwd": "/opt/minecraft/custom-maps/slots/custom-2",
+			"memory": "2G",
+			"min_memory": "512M",
+			"reservation_mb": 3072,
+			"port": 25567,
+			"auto_start": false,
+			"run_as_user": "mc-custom-2",
+			"startup_timeout": 300,
+			"log_forwarding": false,
+			"rcon_port": 25579,
+			"rcon_password_env": "CUSTOM_MAP_2_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
@@ -75,6 +107,15 @@
 		],
 		"reaction_role_setup": [
 			"admin"
+		],
+		"escape_play": [
+			"admin",
+			"mod",
+			"user"
+		],
+		"escape_manage": [
+			"admin",
+			"mod"
 		]
 	},
 	"backup": {
@@ -133,5 +174,14 @@
 				"filename_pattern": "ExpBottleBoost-*.jar"
 			}
 		}
+	},
+	"custom_maps": {
+		"enabled": true,
+		"root": "/opt/minecraft/custom-maps",
+		"catalog": "custom-maps.json",
+		"slots": [
+			"custom-1",
+			"custom-2"
+		]
 	}
 }
