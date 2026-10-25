@@ -13,6 +13,10 @@ minecraft_server_accounts:
     home: /opt/minecraft/forge
   - name: mc-forge-alt
     home: /opt/minecraft/forge-alt
+  - name: mc-custom-1
+    home: /opt/minecraft/custom-maps/slots/custom-1
+  - name: mc-custom-2
+    home: /opt/minecraft/custom-maps/slots/custom-2
 minecraft_systemd_units:
   - discord-bot.service
   - minecraft-maintenance-reboot.service
