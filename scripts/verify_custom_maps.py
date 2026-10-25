@@ -110,7 +110,7 @@ async def verify(args) -> None:
                 session = await service.pause(session["id"], "qa")
                 await service.delete(session["id"], "qa", expected=session["control_generation"], purge=True)
             print("Two custom maps / eight synthetic clients: passed", flush=True)
-        for item in selected:
+        async def verify_one(item):
             started = time.time()
             evidence = {"map_id": item["id"], "mc_version": item["mc_version"], "host_arch": "aarch64", "checked_at": started, "synthetic_clients": True, "puzzle_completion_verified": False}
             ident = None
@@ -144,7 +144,7 @@ async def verify(args) -> None:
                     if current["state"] == "RUNNING":
                         await service.pause(ident, "qa")
                 for current in await service.rows("session"):
-                    if current.get("slot"):
+                    if current.get("slot") and current["map_id"] == item["id"]:
                         slot = current["slot"]
                         if manager.is_running(slot):
                             await manager.stop_server(slot)
@@ -160,6 +160,8 @@ async def verify(args) -> None:
             outcomes.append(evidence)
             (runtime / "results.json").write_text(json.dumps(outcomes, ensure_ascii=False, indent=2))
             print(json.dumps({k: evidence[k] for k in ("map_id", "passed", "elapsed_seconds", "error") if k in evidence}, ensure_ascii=False), flush=True)
+        for offset in range(0, len(selected), 2):
+            await asyncio.gather(*(verify_one(item) for item in selected[offset:offset + 2]))
     finally:
         for slot in service.slots:
             if manager.is_running(slot):

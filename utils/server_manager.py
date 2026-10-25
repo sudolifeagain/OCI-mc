@@ -236,7 +236,7 @@ class ServerInstance:
 
             if rcon_client:
                 success, response = await rcon_client.execute("list")
-                if success:
+                if success and re.search(r"There are \d+.*players online", response):
                     return True
                 last_message = response
             else:

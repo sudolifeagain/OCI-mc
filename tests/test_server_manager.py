@@ -125,13 +125,21 @@ class ServerManagerLifecycleTests(unittest.IsolatedAsyncioTestCase):
         process = SimpleNamespace(returncode=None)
         server.process = process
         server._generation = 1
-        client = SimpleNamespace(execute=AsyncMock(return_value=(True, "There are 0")))
+        client = SimpleNamespace(execute=AsyncMock(return_value=(True, "There are 0 of a max of 4 players online:")))
 
         with patch("utils.server_manager.get_rcon_client", return_value=client):
             ready = await server._wait_until_ready(process, 1)
 
         self.assertTrue(ready)
         client.execute.assert_awaited_once_with("list")
+
+    async def test_empty_rcon_response_is_not_readiness(self) -> None:
+        server = ServerInstance("custom-1", {"cwd": "/tmp/custom-1", "startup_timeout": 1})
+        process = SimpleNamespace(returncode=None)
+        server.process, server._generation = process, 1
+        client = SimpleNamespace(execute=AsyncMock(return_value=(True, "")))
+        with patch("utils.server_manager.get_rcon_client", return_value=client), patch("utils.server_manager.time.monotonic", side_effect=[0, 0, 2]), patch("utils.server_manager.asyncio.sleep", new=AsyncMock()):
+            self.assertFalse(await server._wait_until_ready(process, 1))
 
     async def test_concurrent_start_only_spawns_once(self) -> None:
         with tempfile.TemporaryDirectory() as runtime_dir:
