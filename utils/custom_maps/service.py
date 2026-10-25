@@ -18,6 +18,7 @@ from utils.backup_archive import create_server_archive
 from utils.custom_maps.catalog import Catalog, valid_id
 from utils.custom_maps.store import Store
 from utils.rcon import get_rcon_client
+from utils.server_manager import save_failed_log_line
 
 
 class CustomMapService:
@@ -233,6 +234,9 @@ class CustomMapService:
         props.setdefault("view-distance", "10")
         props.setdefault("simulation-distance", "10")
         props.update(item.get("server_properties", {}))
+        version_numbers = tuple(int(v) for v in item["mc_version"].split("."))
+        if version_numbers[0] == 1 and version_numbers[1] <= 12:
+            props["gamemode"] = {"survival": "0", "creative": "1", "adventure": "2", "spectator": "3"}.get(str(props["gamemode"]), str(props["gamemode"]))
         props.update({"server-port": str(slot.port), "server-ip": "", "level-name": "world", "online-mode": "true", "white-list": "true", "enforce-whitelist": "true", "max-players": str(item["max_players"]), "enable-command-block": "true", "enable-rcon": "true", "rcon.port": str(slot.config["rcon_port"]), "rcon.password": client.password, "broadcast-rcon-to-ops": "false", "motd": "カスタムマップ | " + item["title"], "require-resource-pack": "true" if props.get("resource-pack") else "false"})
         def property_value(value: str) -> str:
             result = []
@@ -272,17 +276,8 @@ class CustomMapService:
                 session = await self.put("session", session)
                 slot = session["slot"]
                 server = self.manager.get_server(slot)
-                client = get_rcon_client(server.config)
-                if client:
-                    saved, response = await client.execute("save-all flush")
-                    if saved and re.search(r"Unknown|Incorrect|Usage:", response, re.I):
-                        saved, response = await client.execute("save-all")
-                    if not saved:
-                        session["state"] = "RUNNING"
-                        await self.put("session", session)
-                        raise RuntimeError("保存要求に応答がないため中断を取り消した")
                 if not await self.manager.stop_server(slot):
-                    session["state"] = "FAILED"
+                    session["state"] = "RUNNING" if self.manager.is_running(slot) else "FAILED"
                     await self.put("session", session)
                     raise RuntimeError(server.last_error)
                 if not server.last_stop_graceful:
@@ -396,6 +391,17 @@ class CustomMapService:
         """停止中に途切れた処理を、データを捨てずに可視化する。"""
         async with self.lock:
             for session in await self.rows("session"):
+                if session["state"] == "RUNNING" and session.get("slot"):
+                    log = Path(self.manager.get_server(session["slot"]).cwd) / "logs/latest.log"
+                    def failed_save() -> bool:
+                        if not log.exists():
+                            return False
+                        with log.open("rb") as stream:
+                            stream.seek(max(0, log.stat().st_size - 2 * 1024 ** 2))
+                            return any(save_failed_log_line(line) for line in stream.read().decode("utf-8", errors="replace").splitlines())
+                    if session.get("save_error_seen") or await asyncio.to_thread(failed_save):
+                        session.update(state="FAILED", error="前回の保存エラーを検出した。自動復帰を止め、保存データを保持して確認を待つ")
+                        await self.put("session", session)
                 if session["state"] == "DELETING":
                     source, trash = self._session_path(session["id"]), self.root / "trash" / valid_id(session["id"])
                     if trash.is_dir() and not source.exists():
@@ -430,6 +436,7 @@ class CustomMapService:
             server = self.manager.get_server(session["slot"])
             if server._maintenance:
                 continue
+            session["save_error_seen"] = bool(getattr(server, "_save_error_seen", False)) or session.get("save_error_seen", False)
             if not server.is_running():
                 session["state"] = "FAILED"
                 session["error"] = "サーバープロセスの異常終了を検出した"
@@ -584,7 +591,8 @@ class CustomMapService:
                     raise ValueError("セッションID・原本版・ワールドがバックアップ記録と一致しない")
                 data = {**data, "name": data["name"][:52] + "（復元）", "state": "PAUSED", "slot": None, "result": "unknown", "actual_players": {}, "active_seconds": 0, "restored_from": data["id"], "last_saved": time.time(), "control_generation": 1}
                 data.update({key: original[key] for key in ("guild", "channel", "owner")})
-                data.pop("id")
+                for key in ("id", "created", "updated", "generation"):
+                    data.pop(key, None)
                 restored = await asyncio.to_thread(self.store.create, "session", **data)
                 destination = self._session_path(restored["id"])
                 destination.parent.mkdir(parents=True, exist_ok=True)

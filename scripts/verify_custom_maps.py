@@ -20,6 +20,7 @@ import psutil
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.custom_maps.service import CustomMapService  # noqa: E402
+from utils.custom_maps.nbt import read_nbt  # noqa: E402
 from utils.rcon import get_rcon_client  # noqa: E402
 from utils.server_manager import MultiServerManager  # noqa: E402
 
@@ -42,17 +43,18 @@ async def clients(node: str, server, *, first: bool) -> dict:
     version = json.loads((Path(server.cwd) / "launch.json").read_text())["version"]
     process = await asyncio.create_subprocess_exec(node, str(Path(__file__).with_name("custom_map_clients.cjs")), version, str(server.port), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     client = get_rcon_client(server.config)
-    await asyncio.sleep(10)
+    online = False
+    for _ in range(12):
+        await asyncio.sleep(2)
+        success, response = await client.execute("list")
+        if success and all(f"OCI_QA{n}" in response for n in range(1, 5)):
+            online = True
+            break
     stats = server.get_stats()
-    success, response = await client.execute("list")
-    online = success and all(f"OCI_QA{n}" in response for n in range(1, 5))
     if first:
-        await client.execute("scoreboard objectives add oci_qa dummy")
-        await client.execute("scoreboard players set OCI_QA1 oci_qa 117")
-    else:
-        success, response = await client.execute("scoreboard players list OCI_QA1")
-        if not success or "117" not in response:
-            raise RuntimeError("保存したスコアを再開後に確認できない: " + response)
+        if not await server.write_stdin("scoreboard objectives add oci_qa dummy") or not await server.write_stdin("scoreboard players set OCI_QA1 oci_qa 117"):
+            raise RuntimeError("検証スコアをサーバーのメインスレッドへ送信できない")
+        await asyncio.sleep(1)
     stdout, stderr = await asyncio.wait_for(process.communicate(), 45)
     try:
         result = json.loads(stdout.decode().splitlines()[-1])
@@ -64,6 +66,13 @@ async def clients(node: str, server, *, first: bool) -> dict:
     if process.returncode != 0 or not online:
         raise RuntimeError("4人同時接続を確認できない: " + json.dumps(result, ensure_ascii=False))
     return result
+
+
+def assert_saved_score(server_directory: Path) -> None:
+    nbt = read_nbt(server_directory / "world/data/scoreboard.dat")
+    data = nbt.get("data", nbt.get("Data", {}))
+    if not any(value.get("Name") == "OCI_QA1" and value.get("Objective") == "oci_qa" and value.get("Score") == 117 for value in data.get("PlayerScores", [])):
+        raise RuntimeError("保存ファイル内の検証スコア117が一致しない")
 
 
 async def verify(args) -> None:
@@ -82,6 +91,21 @@ async def verify(args) -> None:
         if entry.get("workload_type") == "custom_map":
             entry["use_script"] = str(launcher)
     runtime = root / "qa" / ("run-" + str(time.time_ns()))
+    if args.trace_rcon:
+        import utils.server_manager as module
+        original_factory = module.get_rcon_client
+        def traced_factory(config):
+            client = original_factory(config)
+            if client:
+                original_execute = client.execute
+                async def execute(command):
+                    result = await original_execute(command)
+                    with (runtime / "rcon-trace.jsonl").open("a") as stream:
+                        stream.write(json.dumps({"port": config["rcon_port"], "command": command, "result": result}, ensure_ascii=False) + "\n")
+                    return result
+                client.execute = execute
+            return client
+        module.get_rcon_client = traced_factory
     manager = MultiServerManager(config["servers"], str(runtime))
     service = VerificationService(config["custom_maps"], manager, runtime)
     if any(Path(manager.get_server(slot).cwd).exists() and any(Path(manager.get_server(slot).cwd).iterdir()) for slot in service.slots):
@@ -139,10 +163,12 @@ async def verify(args) -> None:
                 evidence["first_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=True)
                 await service.poll()
                 session = await service.pause(ident, "qa")
+                assert_saved_score(service._session_path(ident))
                 prepared = await room(item, session)
                 session = await service.start(prepared["id"], "qa", prepared["generation"])
                 evidence["resumed_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=False)
                 session = await service.pause(ident, "qa", finish=True)
+                assert_saved_score(service._session_path(ident))
                 evidence.update(save_resume=True, multiple_players=True, original_unchanged=hashlib.sha256(original.read_bytes()).hexdigest() == digest)
                 if not evidence["original_unchanged"]:
                     raise RuntimeError("原本が変更された")
@@ -156,12 +182,15 @@ async def verify(args) -> None:
                 if ident:
                     current = await service.get("session", ident)
                     if current["state"] == "RUNNING":
-                        await service.pause(ident, "qa")
+                        try:
+                            await service.pause(ident, "qa")
+                        except (ValueError, RuntimeError):
+                            pass
                 for current in await service.rows("session"):
                     if current.get("slot") and current["map_id"] == item["id"]:
                         slot = current["slot"]
                         if manager.is_running(slot):
-                            await manager.stop_server(slot)
+                            await manager.stop_server(slot, force=True)
                         source = Path(manager.get_server(slot).cwd)
                         destination = runtime / "failed" / current["id"]
                         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -176,11 +205,14 @@ async def verify(args) -> None:
             print(json.dumps({k: evidence[k] for k in ("map_id", "passed", "elapsed_seconds", "error") if k in evidence}, ensure_ascii=False), flush=True)
         for offset in range(0, len(selected), 2):
             await asyncio.gather(*(verify_one(item) for item in selected[offset:offset + 2]))
+        if args.integration:
+            from scripts.verify_custom_coexistence import run
+            await run(service, manager, room, args, runtime)
     finally:
         watcher.cancel()
         for slot in service.slots:
             if manager.is_running(slot):
-                await manager.stop_server(slot)
+                await manager.stop_server(slot, force=True)
     print("Evidence: " + str(runtime / "results.json"), flush=True)
 
 
@@ -191,6 +223,8 @@ def main() -> None:
     parser.add_argument("--map")
     parser.add_argument("--parallel", action="store_true")
     parser.add_argument("--only-unverified", action="store_true")
+    parser.add_argument("--integration", action="store_true")
+    parser.add_argument("--trace-rcon", action="store_true")
     args = parser.parse_args()
     load_dotenv("/opt/minecraft/bot/.env")
     logging.basicConfig(level=logging.WARNING)

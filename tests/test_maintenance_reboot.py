@@ -9,13 +9,27 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from scripts.graceful_shutdown import stop_server
-from scripts.maintenance_reboot import parse_player_count, prepare_reboot
+from scripts.maintenance_reboot import parse_player_count, prepare_reboot, running_servers
 from utils.backup_fingerprint import (
     backup_is_acceptable,
     compute_fingerprint,
     load_fingerprints,
     update_fingerprint,
 )
+
+
+class SharedPortTests(unittest.IsolatedAsyncioTestCase):
+    async def test_shared_game_port_uses_the_distinct_rcon_endpoint(self) -> None:
+        servers = {"forge": {"port": 25566, "rcon_port": 25576}, "custom-1": {"port": 25566, "rcon_port": 25578}}
+        clients = {25576: SimpleNamespace(execute=AsyncMock(return_value=(True, "There are 0 players online:"))), 25578: SimpleNamespace(execute=AsyncMock(return_value=(False, "offline")))}
+        with patch("scripts.maintenance_reboot.port_is_open", return_value=True), patch("scripts.maintenance_reboot.get_rcon_client", side_effect=lambda cfg: clients[cfg["rcon_port"]]):
+            self.assertEqual(await running_servers(servers), {"forge"})
+
+    async def test_unidentified_shared_port_defers_reboot(self) -> None:
+        servers = {"forge": {"port": 25566}, "custom-1": {"port": 25566}}
+        with patch("scripts.maintenance_reboot.port_is_open", return_value=True), patch("scripts.maintenance_reboot.get_rcon_client", return_value=None):
+            with self.assertRaises(RuntimeError):
+                await running_servers(servers)
 
 
 class BackupFingerprintTests(unittest.TestCase):

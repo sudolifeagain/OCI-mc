@@ -115,7 +115,8 @@ class BasicControl(commands.Cog):
             return await interaction.response.send_message(f"サーバー '{server}' が見つかりません。", ephemeral=True)
 
         if not self.server_manager.is_running(server):
-            return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
+            self.server_manager._set_desired(server, False)
+            return await interaction.response.send_message(f"{server_instance.name} は停止中である。復帰予約を解除した。", ephemeral=True)
 
         # defer() (type 5) は Discord API 仕様により SUPPRESS_NOTIFICATIONS を無視するため、
         # silent ACK には send_message (type 4) を使う。/cmd /status の silent ACK も同じ理由。

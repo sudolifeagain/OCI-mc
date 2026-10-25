@@ -187,7 +187,7 @@
   ansible.builtin.iptables:
     chain: INPUT
     protocol: tcp
-    destination_ports: ["25568", "25569"]
+    destination_ports: ["25566", "25567"]
     jump: ACCEPT
     action: insert
     rule_num: 3

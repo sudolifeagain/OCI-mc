@@ -14,6 +14,12 @@ from utils.rcon import RconClient, get_rcon_client
 MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動拒否
 
 
+def save_failed_log_line(text: str) -> bool:
+    text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+    prefix = text.partition("]:")[0] + "]"
+    return bool(re.search(r"\b(?:ERROR|WARN)\]", prefix) and re.search(r"Failed to save (?:chunk|level|player)|Error saving (?:chunk|level|player)|Could(?:n't| not) save (?:chunk|level|player)", text, re.I))
+
+
 class ServerInstance:
     """個別のMinecraftサーバーインスタンスを管理するクラス"""
 
@@ -42,6 +48,7 @@ class ServerInstance:
         self._stdout_task: asyncio.Task | None = None
         self.last_error = ""
         self.last_stop_graceful = False
+        self._save_error_seen = False
         # Regex patterns for join/leave
         self.join_pattern = re.compile(r': (.+) joined the game')
         self.leave_pattern = re.compile(r': (.+) left the game')
@@ -293,6 +300,7 @@ class ServerInstance:
             return False
 
         self.process = process
+        self._save_error_seen = False
         self._generation += 1
         generation = self._generation
 
@@ -352,7 +360,14 @@ class ServerInstance:
                         exit_code = await asyncio.wait_for(self.process.wait(), timeout=10)
                     except asyncio.TimeoutError:
                         exit_code = None
-                self.last_stop_graceful = exit_code == 0
+                if self._stdout_task and not self._stdout_task.done():
+                    try:
+                        await asyncio.wait_for(asyncio.shield(self._stdout_task), timeout=2)
+                    except asyncio.TimeoutError:
+                        exit_code = None
+                if self._stdout_task and self._stdout_task.done() and (self._stdout_task.cancelled() or self._stdout_task.exception() is not None):
+                    exit_code = None
+                self.last_stop_graceful = exit_code == 0 and not self._save_error_seen
                 logging.info(f"Server '{self.server_id}' stopped gracefully")
                 return True
 
@@ -441,6 +456,8 @@ class ServerInstance:
                 if not line:
                     break
                 text = line.decode('utf-8', errors='ignore')
+                if save_failed_log_line(text):
+                    self._save_error_seen = True
 
                 # プレイヤー参加/退出の検知
                 if "joined the game" in text:
@@ -455,12 +472,17 @@ class ServerInstance:
                         self.online_players.pop(player_name, None)
 
                 self._enqueue_log(text)
+        except Exception:
+            self._save_error_seen = True
+            logging.exception("Server '%s' stdout reader failed", self.server_id)
+            raise
         finally:
             # 古いstdoutタスクが新しいプロセス状態を消さないよう世代を照合する。
             if (
                 not self._stopping
                 and self._generation == generation
                 and self.process is process
+                and process.returncode is not None
             ):
                 logging.info(f"Server '{self.server_id}' process ended unexpectedly")
                 self._cleanup_server_state(process)
@@ -680,10 +702,10 @@ class MultiServerManager:
         return get_rcon_client(config)
 
     @staticmethod
-    def _parse_player_count(list_response: str) -> int:
+    def _parse_player_count(list_response: str) -> int | None:
         """RCON list レスポンスからプレイヤー数を抽出"""
         match = re.search(r'There are (\d+)', list_response)
-        return int(match.group(1)) if match else 0
+        return int(match.group(1)) if match else None
 
     async def _prepare_graceful_stop(
         self,
@@ -706,7 +728,7 @@ class MultiServerManager:
 
         try:
             success, response = await asyncio.wait_for(
-                rcon_client.execute("list"), timeout=5.0
+                rcon_client.execute("list"), timeout=15.0
             )
         except Exception as e:
             logging.warning(f"Server '{server_id}': RCON check failed: {e}")
@@ -723,6 +745,11 @@ class MultiServerManager:
             return True
 
         player_count = self._parse_player_count(response)
+        if player_count is None:
+            if not force:
+                server.last_error = "接続者数を読み取れないため停止を中止した"
+                return False
+            return True
         if player_count <= 0:
             logging.info(f"Server '{server_id}': no players online, stopping immediately")
             return True

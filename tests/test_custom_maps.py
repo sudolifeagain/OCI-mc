@@ -12,6 +12,8 @@ import zipfile
 from utils.custom_maps.artifacts import safe_extract
 from utils.custom_maps.catalog import Catalog
 from utils.custom_maps.service import CustomMapService
+from scripts.launch_custom_map import LOGGING_CHECKSUMS, logging_arguments
+from utils.custom_maps.artifacts import LEGACY_LOGGING
 from utils.custom_maps.store import Store
 from utils.server_manager import MultiServerManager
 
@@ -127,6 +129,18 @@ class PolicyTests(unittest.TestCase):
             self.assertFalse(self.manager(root).check_memory_for_start("custom-1")[0])
 
 
+class LegacyLaunchTests(unittest.TestCase):
+    def test_logging_workaround_checksums_match_the_installer(self) -> None:
+        self.assertEqual(LOGGING_CHECKSUMS, {name: values[1] for name, values in LEGACY_LOGGING.items()})
+
+    def test_legacy_launch_refuses_missing_security_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(FileNotFoundError):
+                logging_arguments(Path(root), "1.12.2")
+            self.assertEqual(logging_arguments(Path(root), "1.17.1"), ["-Dlog4j2.formatMsgNoLookups=true"])
+            self.assertEqual(logging_arguments(Path(root), "1.21.4"), [])
+
+
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
@@ -193,6 +207,17 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         room2 = await self.room(paused)
         with self.assertRaisesRegex(ValueError, "原本による初期化は行わず"):
             await self.service.start(room2["id"], 1, room2["generation"])
+
+    async def test_failed_save_cannot_be_reported_as_completed(self) -> None:
+        room = await self.room()
+        session = await self.service.start(room["id"], 1, room["generation"])
+        self.manager.get_server(session["slot"]).last_stop_graceful = False
+        with self.assertRaises(RuntimeError):
+            await self.service.pause(session["id"], 1, finish=True)
+        current = await self.service.get("session", session["id"])
+        self.assertEqual(current["state"], "FAILED")
+        self.assertNotEqual(current["result"], "clear_reported")
+        self.assertTrue((Path(self.manager.get_server(session["slot"]).cwd) / "world/level.dat").exists())
 
     async def test_stale_delete_confirmation_is_rejected(self) -> None:
         room = await self.room()

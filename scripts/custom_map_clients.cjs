@@ -33,4 +33,4 @@ setTimeout(() => {
   console.log(JSON.stringify({joined: [...joined], errors, codec: version === '26.2' ? '26.1/protocol776' : version}));
   clients.forEach(c => c.end());
   setTimeout(() => process.exit(joined.size === 4 ? 0 : 1), 500);
-}, 20000);
+}, 35000);

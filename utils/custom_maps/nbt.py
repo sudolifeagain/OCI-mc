@@ -6,7 +6,7 @@ from pathlib import Path
 import struct
 
 
-def world_metadata(path: Path) -> dict:
+def read_nbt(path: Path) -> dict:
     with gzip.open(path, "rb") as source:
         raw = source.read(32 * 1024 ** 2 + 1)
     if len(raw) > 32 * 1024 ** 2:
@@ -53,5 +53,9 @@ def world_metadata(path: Path) -> dict:
     if number(">B") != 10:
         raise ValueError("level.datのルートが不正である")
     string()
-    data = value(10).get("Data", {})
+    return value(10)
+
+
+def world_metadata(path: Path) -> dict:
+    data = read_nbt(path).get("Data", {})
     return {"version": data.get("Version", {}).get("Name"), "difficulty": data.get("Difficulty"), "gametype": data.get("GameType")}

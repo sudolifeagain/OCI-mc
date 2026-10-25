@@ -5,10 +5,13 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
-from utils.server_manager import MultiServerManager, ServerInstance
+from utils.server_manager import MultiServerManager, ServerInstance, save_failed_log_line
 
 
 class ServerInstanceCommandTests(unittest.TestCase):
+    def test_save_error_detection_does_not_treat_player_chat_as_an_error(self) -> None:
+        self.assertTrue(save_failed_log_line("[12:00:00] [Server thread/ERROR]: Failed to save chunk"))
+        self.assertFalse(save_failed_log_line("[12:00:00] [Server thread/INFO]: <Player> Failed to save chunk"))
     def test_default_java_command(self) -> None:
         server = ServerInstance(
             "paper",

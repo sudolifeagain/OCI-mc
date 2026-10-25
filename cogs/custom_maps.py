@@ -253,7 +253,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         screen = Screen(self, owner=interaction.user.id)
         size = 3 if filters.get("compact") else 5
         page = max(0, min(page, max(0, (len(items) - 1) // size)))
-        labels = {"players": "人数", "difficulty_max": "難易度上限", "max_minutes": "時間上限（分）", "keyword": "キーワード", "sort": "並び順", "source": "配布元", "version": "Minecraft版", "pack": "指定パック", "history": "履歴", "include_unknown_difficulty": "難易度未記載を含む", "include_unknown_duration": "時間未記載を含む", "no_horror": "ホラーなし", "no_parkour": "アスレなし", "no_combat": "戦闘なし", "compact": "短い表示"}
+        labels = {"players": "人数", "difficulty_max": "難易度上限", "max_minutes": "時間上限（分）", "keyword": "キーワード", "sort": "並び順", "source": "配布元", "version": "Minecraft版", "pack": "指定パック", "history": "履歴", "unknown_difficulty": "難易度未記載を含む", "unknown_duration": "時間未記載を含む", "no_horror": "ホラーなし", "no_parkour": "アスレなし", "no_combat": "戦闘なし", "compact": "短い表示"}
         conditions = " / ".join(f"{labels.get(k, k)}: {safe(SORTS.get(v, v) if isinstance(v, str) else v)}" for k, v in filters.items() if v not in (None, "", False)) or "指定なし"
         screen.text(f"# カスタムマップを探す\n条件: {conditions[:500]}\n{len(items)}件 / {page + 1}ページ目\n{self.host_status()}")
         screen.box.add_item(discord.ui.Separator())
@@ -300,10 +300,16 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         if not check_role(interaction, "escape_play"):
             raise ValueError("カスタムマップの代表者権限が必要である")
         async def submit(i: discord.Interaction, values: dict) -> None:
+            if not check_role(i, "escape_play"):
+                raise ValueError("カスタムマップの代表者権限が必要である")
+            current_session = None
+            if session:
+                current_session = await self.service.get("session", session["id"])
+                await self.permitted(i, current_session, control=True)
             players = values["players"].strip()
             if not players.isdecimal():
                 raise ValueError("予定人数は整数で指定する必要がある")
-            room = await self.service.create_room(i.guild_id, i.channel_id, i.user.id, item["id"], values["name"], int(players), session)
+            room = await self.service.create_room(i.guild_id, i.channel_id, i.user.id, item["id"], values["name"], int(players), current_session)
             channel = self.bot.get_channel(int(room["channel"])) or await self.bot.fetch_channel(int(room["channel"]))
             await self.bind_card("room", room["id"], channel)
             await self.show(i, await self.object_view(i, "room", room["id"]))
@@ -556,32 +562,40 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
     async def open_history(self, interaction: discord.Interaction) -> None:
         await self.history_view(interaction)
 
-    async def history_view(self, interaction: discord.Interaction, *, paused: bool = False, page: int = 0) -> None:
+    async def history_view(self, interaction: discord.Interaction, *, paused: bool = False, page: int = 0, channel_history: bool = False) -> None:
         if not interaction.response.is_done():
             await interaction.response.defer(ephemeral=True, thinking=True)
         sessions = await self.service.rows("session", interaction.guild_id)
         visible = []
         for item in sessions:
-            if paused and item["state"] not in ("PAUSED", "RUNNING", "FAILED"):
+            if paused and (item["state"] not in ("PAUSED", "RUNNING", "FAILED", "COMPLETED", "DELETED") or item.get("data_available") == "none"):
                 continue
-            if not paused and str(interaction.user.id) not in item.get("actual_players", {}):
-                continue
+            if not paused:
+                if channel_history:
+                    if item["channel"] != str(interaction.channel_id) or not item.get("actual_players"):
+                        continue
+                elif str(interaction.user.id) not in item.get("actual_players", {}):
+                    continue
             try:
                 await self.permitted(interaction, item)
                 visible.append(item)
             except ValueError:
                 continue
         screen = Screen(self, owner=interaction.user.id)
-        screen.text("# カスタムマップ｜" + ("続きから" if paused else "最近のプレイ") + f"\n{len(visible)}件。消去済みでも履歴は残る。")
+        screen.text("# カスタムマップ｜" + ("中断・保存データ" if paused else "このチャンネルのプレイ履歴" if channel_history else "自分の最近のプレイ") + f"\n{len(visible)}件。消去済みでも履歴は残る。")
         for item in visible[page * 5:page * 5 + 5]:
             async def detail(i: discord.Interaction, ident=item["id"]) -> None:
                 await self.show(i, await self.object_view(i, "session", ident))
             screen.box.add_item(discord.ui.Section(discord.ui.TextDisplay(f"**{safe(item['name'])}**\n{safe(item['map']['title'])} / {STATES.get(item['state'], item['state'])}"), accessory=screen.button("詳細・次の操作", detail, "cm:history:" + item["id"])))
         async def prev(i: discord.Interaction) -> None:
-            await self.history_view(i, paused=paused, page=max(0, page - 1))
+            await self.history_view(i, paused=paused, page=max(0, page - 1), channel_history=channel_history)
         async def next_page(i: discord.Interaction) -> None:
-            await self.history_view(i, paused=paused, page=page + 1)
+            await self.history_view(i, paused=paused, page=page + 1, channel_history=channel_history)
         screen.row(screen.button("前へ", prev, "cm:history:prev", disabled=page == 0), screen.button("次へ", next_page, "cm:history:next", disabled=(page + 1) * 5 >= len(visible)), screen.button("ホーム", self.open_home, "cm:history:home"))
+        if not paused:
+            async def toggle(i: discord.Interaction) -> None:
+                await self.history_view(i, channel_history=not channel_history)
+            screen.row(screen.button("自分の履歴" if channel_history else "このチャンネルの履歴", toggle, "cm:history:scope"))
         await self.show(interaction, screen)
 
     async def backup_view(self, interaction: discord.Interaction, ident: str) -> None:
@@ -658,8 +672,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.search_results(interaction, {"players": players, "difficulty_max": difficulty or None, "max_minutes": max_minutes, "keyword": keyword[:100], "sort": sort, "compact": compact})
 
     @app_commands.command(name="history", description="最近のカスタムマップのプレイを見る")
-    async def history(self, interaction: discord.Interaction) -> None:
-        await self.open_history(interaction)
+    async def history(self, interaction: discord.Interaction, channel_history: bool = False) -> None:
+        await self.history_view(interaction, channel_history=channel_history)
 
     @app_commands.command(name="sessions", description="中断・稼働中のカスタムマップを見る")
     async def sessions(self, interaction: discord.Interaction) -> None:
@@ -734,7 +748,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
                     raise ValueError("対象の保存データを安全に特定できない。起動枠の内容を保持して管理者による確認を待つ")
                 await asyncio.to_thread(self.service._detach, session)
             self.bot.server_manager._set_desired(session["slot"], False)
-            session.update(slot=None, state="PAUSED", error="異常終了後の保存データ。再開前に進行を確認する必要がある")
+            session.update(slot=None, state="PAUSED", save_error_seen=False, control_generation=session.get("control_generation", 0) + 1, error="異常終了後の保存データ。再開前に進行を確認する必要がある")
             await self.service.put("session", session)
         await interaction.edit_original_response(content="保存データを保持して復旧状態を更新した。/escape sessions で確認できる。")
 
