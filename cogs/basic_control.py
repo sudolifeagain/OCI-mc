@@ -20,6 +20,8 @@ def get_server_choices():
     """Discord用のサーバー選択肢を生成する"""
     choices = []
     for server_id, config in SERVERS_CONFIG.items():
+        if config.get("workload_type") == "custom_map":
+            continue
         choices.append(app_commands.Choice(name=config.get('name', server_id), value=server_id))
     return choices
 
@@ -326,6 +328,8 @@ class BasicControl(commands.Cog):
             )
 
             for server_id in SERVER_IDS:
+                if SERVERS_CONFIG[server_id].get("workload_type") == "custom_map":
+                    continue
                 server_instance = self.server_manager.get_server(server_id)
                 if not server_instance:
                     continue

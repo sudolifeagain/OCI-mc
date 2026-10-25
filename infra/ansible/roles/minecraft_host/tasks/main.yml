@@ -126,6 +126,77 @@
   loop: "{{ minecraft_server_accounts }}"
   register: minecraft_server_properties
 
+- name: Install restricted custom map permission helper
+  ansible.builtin.copy:
+    src: oci-mc-custom-permissions
+    dest: /usr/local/sbin/oci-mc-custom-permissions
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Allow custom map ownership assignment
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/oci-mc-custom-maps
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+    content: |
+      ubuntu ALL=(root) NOPASSWD: /usr/local/sbin/oci-mc-custom-permissions custom-1, /usr/local/sbin/oci-mc-custom-permissions custom-2
+
+- name: Prepare custom map storage and private RCON configuration
+  ansible.builtin.command:
+    argv: [/usr/bin/python3, "{{ minecraft_repo_root }}/scripts/setup_custom_maps.py"]
+  register: minecraft_custom_maps_setup
+  changed_when: "minecraft_custom_maps_setup.stdout | trim == 'changed'"
+  when: not ansible_check_mode
+
+- name: Make the custom map launcher executable
+  ansible.builtin.file:
+    path: "{{ minecraft_repo_root }}/scripts/launch_custom_map.py"
+    mode: "0755"
+
+- name: Install verified ARM Java 8 for legacy custom maps
+  ansible.builtin.command:
+    argv: [/usr/bin/python3, "{{ minecraft_repo_root }}/scripts/provision_custom_java.py"]
+  register: minecraft_custom_java
+  changed_when: "minecraft_custom_java.stdout | trim == 'changed'"
+  when: not ansible_check_mode
+
+- name: Allow loopback custom map RCON
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    in_interface: lo
+    destination_ports: ["25578", "25579"]
+    jump: ACCEPT
+    action: insert
+    rule_num: 1
+
+- name: Deny external custom map RCON
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    in_interface: "!lo"
+    destination_ports: ["25578", "25579"]
+    jump: DROP
+    action: insert
+    rule_num: 2
+
+- name: Allow custom map game ports
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports: ["25568", "25569"]
+    jump: ACCEPT
+    action: insert
+    rule_num: 3
+
+- name: Persist reviewed host firewall rules
+  ansible.builtin.shell:
+    cmd: /usr/sbin/iptables-save > /etc/iptables/rules.v4
+  changed_when: false
+
 - name: Protect existing server.properties files
   ansible.builtin.file:
     path: "{{ item.item.home }}/server.properties"

@@ -129,6 +129,8 @@ def get_server_choices():
     """Discord用のサーバー選択肢を生成する"""
     choices = []
     for server_id, config in SERVERS_CONFIG.items():
+        if config.get("workload_type") == "custom_map":
+            continue
         choices.append(app_commands.Choice(name=config.get('name', server_id), value=server_id))
     return choices
 
@@ -202,7 +204,12 @@ class BackupSystem(commands.Cog):
             servers_to_backup = [server_id]
 
         for srv_id in servers_to_backup:
+            if SERVERS_CONFIG.get(srv_id, {}).get("workload_type") == "custom_map":
+                continue
             await self._backup_single_server(channel, srv_id, force=force)
+        custom = getattr(self.bot, "custom_maps", None)
+        if custom and server_id is None:
+            await custom.backup_all(channel)
 
     async def _backup_single_server(self, channel, server_id: str, *, force: bool = False):
         """単一サーバーのバックアップを実行する"""
@@ -211,6 +218,9 @@ class BackupSystem(commands.Cog):
             if channel:
                 await channel.send(f"サーバー '{server_id}' が見つかりません。", silent=True)
             return
+
+        if server_instance.config.get("workload_type") == "custom_map":
+            raise ValueError("カスタムマップはセッションID単位でバックアップする必要がある")
 
         server_name = server_instance.name
         mc_dir = server_instance.cwd
@@ -446,6 +456,9 @@ class BackupSystem(commands.Cog):
 
             # ファイル名からサーバーIDを推測
             # 形式: backup_paper_20240105_1200.zip or backup_forge_20240105_1200.zip
+            if filename.startswith("backup_custom"):
+                await update_status("カスタムマップの復元は /escape restore でセッションIDを確認して実行する必要がある。枠単位の復元は拒否した。")
+                return
             detected_server_id = DEFAULT_SERVER
             for srv_id in SERVER_IDS:
                 if f"_{srv_id}_" in filename:
