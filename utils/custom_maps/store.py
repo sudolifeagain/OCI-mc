@@ -63,7 +63,7 @@ class Store:
             row = db.execute("SELECT data FROM records WHERE kind=? AND id=?", (kind, record["id"])).fetchone()
             old = json.loads(row[0]) if row else None
             if expected is not None and (old or {}).get("generation", 0) != expected:
-                raise ValueError("状態が更新された。最新の画面から操作をやり直す必要がある")
+                raise ValueError("内容が更新されました。画面を開き直して操作してください。")
             record["generation"] = (old or {}).get("generation", 0) + 1
             record["updated"] = time.time()
             db.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?)", (kind, record["id"], str(record.get("guild", "")), str(record.get("owner", "")), str(record.get("channel", "")), record["updated"], json.dumps(record, ensure_ascii=False)))
@@ -88,10 +88,10 @@ class Store:
                 for row in rows:
                     item = json.loads(row[0])
                     if item.get("uuid") == player_uuid and item["owner"] != str(user) and item.get("approved"):
-                        raise ValueError("このMinecraft UUIDは別の参加者に承認済みである")
+                        raise ValueError("このMinecraft名は別のDiscordアカウントに登録済みです。")
                 db.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?)", ("identity", result["id"], str(guild), str(user), "", result["updated"], json.dumps(result)))
         except sqlite3.IntegrityError:
-            raise ValueError("このMinecraft UUIDは別の参加者に承認済みである") from None
+            raise ValueError("このMinecraft名は別のDiscordアカウントに登録済みです。") from None
         self.event("identity_approved", result["id"], actor)
         return result
 

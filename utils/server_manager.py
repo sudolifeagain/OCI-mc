@@ -897,13 +897,13 @@ class MultiServerManager:
             reserved = [s for sid, s in self.servers.items() if sid != server_id and (s.is_running() or s._maintenance or sid in desired)]
             heavy = server_id in {"forge", "forge-alt"}
             if reserved and (heavy or any(s.server_id in {"forge", "forge-alt"} for s in reserved)):
-                return False, "Forge / Forge Altと他のサーバーは排他である（保守・復帰予約を含む）"
+                return False, "Forge系のサーバーと同時には起動できません。起動中のサーバーを停止してから、もう一度お試しください。"
             if len(reserved) >= 2:
-                return False, "通常サーバーとカスタムマップの同時実行は合計2台までである"
+                return False, "同時に起動できるサーバーは2つまでです。使用中のワールドを中断してから、もう一度お試しください。"
             if not heavy:
                 budget = server.config.get("reservation_mb", (server._get_allocated_memory_mb() or 0) + 1536)
                 if budget <= 1536:
-                    return False, "メモリ割り当てが不明な環境は起動できない"
+                    return False, "サーバーのメモリ設定を確認できません。管理者に確認を依頼してください。"
                 growth = 0
                 total = budget
                 for other in reserved:
@@ -913,7 +913,7 @@ class MultiServerManager:
                     growth += max(0, size - (stats["memory_mb"] if stats else 0))
                 mem = psutil.virtual_memory()
                 if total + 3072 > mem.total / 1048576 or budget + growth + 1024 > mem.available / 1048576:
-                    return False, "カスタムマップの予約メモリとホスト用余裕を確保できない"
+                    return False, "メモリが足りないため起動できません。使用中のワールドを中断してから、もう一度お試しください。"
 
         mem_ok, mem_msg, details = server._check_memory_available()
         if mem_ok:

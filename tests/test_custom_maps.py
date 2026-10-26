@@ -205,7 +205,7 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         paused = await self.service.pause(session["id"], 1)
         (self.service._session_path(paused["id"]) / "world" / "level.dat").unlink()
         room2 = await self.room(paused)
-        with self.assertRaisesRegex(ValueError, "原本による初期化は行わず"):
+        with self.assertRaisesRegex(ValueError, "中断したワールドの保存データ"):
             await self.service.start(room2["id"], 1, room2["generation"])
 
     async def test_failed_save_cannot_be_reported_as_completed(self) -> None:
