@@ -91,6 +91,15 @@ async def verify(args) -> None:
         if entry.get("workload_type") == "custom_map":
             entry["use_script"] = str(launcher)
     runtime = root / "qa" / ("run-" + str(time.time_ns()))
+    runtime.mkdir(parents=True)
+    whitelist = []
+    for n in range(1, 5):
+        digest = bytearray(hashlib.md5(f"OfflinePlayer:OCI_QA{n}".encode()).digest())
+        digest[6] = digest[6] & 0x0F | 0x30
+        digest[8] = digest[8] & 0x3F | 0x80
+        whitelist.append({"name": f"OCI_QA{n}", "uuid": str(uuid.UUID(bytes=bytes(digest)))})
+    (runtime / "whitelist.json").write_text(json.dumps(whitelist))
+    config["custom_maps"]["whitelist_sources"] = [str(runtime / "whitelist.json")]
     if args.trace_rcon:
         import utils.server_manager as module
         original_factory = module.get_rcon_client
@@ -110,11 +119,6 @@ async def verify(args) -> None:
     service = VerificationService(config["custom_maps"], manager, runtime)
     if any(Path(manager.get_server(slot).cwd).exists() and any(Path(manager.get_server(slot).cwd).iterdir()) for slot in service.slots):
         raise ValueError("起動枠に保存データがある。通常のプレイを中断して枠を空ける必要がある")
-    for n in range(1, 5):
-        digest = bytearray(hashlib.md5(f"OfflinePlayer:OCI_QA{n}".encode()).digest())
-        digest[6] = digest[6] & 0x0F | 0x30
-        digest[8] = digest[8] & 0x3F | 0x80
-        service.store.approve_identity(0, n, f"OCI_QA{n}", str(uuid.UUID(bytes=bytes(digest))), "qa")
     async def room(item, session=None):
         result = await service.create_room(0, 0, 1, item["id"], "接続・保存復元検証", 4, session)
         for n in range(1, 5):

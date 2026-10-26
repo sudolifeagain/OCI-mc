@@ -5,16 +5,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import re
 import time
-import uuid
 from pathlib import Path
 from typing import Callable, Awaitable
 
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-import requests
 
 from settings import CONFIG, SERVER_RUNTIME_DIR
 from utils.custom_maps.catalog import summary
@@ -48,7 +45,7 @@ def filter_summary(filters: dict) -> str:
     for key, labels in (
         ("source", {"colony": "クラフターズコロニー", "plum": "プラム太郎の群れ"}),
         ("pack", {"none": "リソースパック不要", "required": "リソースパックあり"}),
-        ("history", {"unplayed": "未プレイ", "played": "プレイ済み", "cleared": "クリア済み"}),
+        ("history", {"unplayed": "このチャンネルで未プレイ", "played": "このチャンネルでプレイ済み", "cleared": "このチャンネルでクリア済み"}),
     ):
         if filters.get(key) in labels:
             parts.append(labels[filters[key]])
@@ -269,7 +266,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         else:
             form.field("source", "配布元", select([("", "指定なし"), ("colony", "クラフターズコロニー"), ("plum", "プラム太郎の群れ")], filters.get("source") or ""))
             form.field("pack", "リソースパック", discord.ui.RadioGroup(options=[discord.RadioGroupOption(label=label, value=value, default=value == (filters.get("pack") or "any")) for value, label in [("any", "指定なし"), ("none", "不要なマップ"), ("required", "必要なマップ")]]))
-            form.field("history", "自分のプレイ履歴", select([("", "すべて"), ("unplayed", "未プレイ"), ("played", "プレイ済み"), ("cleared", "クリア済み")], filters.get("history") or ""))
+            form.field("history", "このチャンネルのプレイ履歴", select([("", "すべて"), ("unplayed", "未プレイ"), ("played", "プレイ済み"), ("cleared", "クリア済み")], filters.get("history") or ""))
             form.field("minutes", "時間上限（分、空欄なら指定なし）", discord.ui.TextInput(required=False, default=str(filters.get("max_minutes") or ""), max_length=6))
             form.field("extra", "追加条件", discord.ui.CheckboxGroup(required=False, min_values=0, options=[discord.CheckboxGroupOption(label=label, value=key, default=bool(filters.get(key))) for key, label in [("unknown_difficulty", "難易度未記載も含む"), ("unknown_duration", "時間未記載も含む"), ("no_horror", "ホラーなし"), ("no_parkour", "アスレチックなし"), ("no_combat", "戦闘なし")]]))
         await interaction.response.send_modal(form)
@@ -277,7 +274,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
     async def search_results(self, interaction: discord.Interaction, filters: dict, page: int = 0, *, update: bool = False) -> None:
         await asyncio.to_thread(self.service.store.put, "search", {"id": f"{interaction.guild_id}-{interaction.user.id}", "guild": str(interaction.guild_id), "owner": str(interaction.user.id), "filters": filters})
         available = await asyncio.to_thread(self.service.available)
-        played = await asyncio.to_thread(self.service.store.played, interaction.guild_id, interaction.user.id)
+        played = await asyncio.to_thread(self.service.store.played, interaction.guild_id, interaction.channel_id)
         items = self.service.catalog.search(filters, available=available, played=played)
         screen = Screen(self, owner=interaction.user.id)
         size = 3 if filters.get("compact") else 5
@@ -288,7 +285,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         for item in items[page * size:(page + 1) * size]:
             async def detail(i: discord.Interaction, ident=item["id"]) -> None:
                 await self.map_detail(i, ident, filters, page)
-            text = f"**{safe(item['title'])[:90]}**\n{safe(summary(item))}\n{('プレイ済み' if item['id'] in played else '未プレイ')}"
+            text = f"**{safe(item['title'])[:90]}**\n{safe(summary(item))}\n{('このチャンネルでプレイ済み' if item['id'] in played else 'このチャンネルでは未プレイ')}"
             screen.box.add_item(discord.ui.Section(discord.ui.TextDisplay(text), accessory=screen.button("詳細", detail, "cm:map:" + item["id"])))
         if not items:
             screen.text("条件に合うマップがありません。人数・難易度・所要時間などの条件を減らしてみてください。")
@@ -347,10 +344,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await interaction.response.send_modal(form)
 
     async def setup_view(self, interaction: discord.Interaction, item: dict, room: dict | None = None) -> None:
-        identity = await self.service.identity(interaction.guild_id, interaction.user.id)
         screen = Screen(self, owner=interaction.user.id)
-        status = "承認済み" if identity and identity.get("approved") else "承認待ち" if identity else "未登録"
-        screen.text(f"# 参加前の準備\n**{safe(item['title'])}**\nMinecraft Java版 **{safe(item['mc_version'])}**（Modは不要）\nMinecraft名の登録：**{status}**\n\n1. ランチャーで上記のバージョンを選びます。\n2. このマップ用のゲームディレクトリを作ります。\n3. リソースパックが必要な場合は、作者の説明に従って入れます。\n4. 準備ができたら、下の「準備状況を入力」から確認項目にチェックしてください。")
+        screen.text(f"# 参加前の準備\n**{safe(item['title'])}**\nMinecraft Java版 **{safe(item['mc_version'])}**（Modは不要）\n通常サーバーで接続を許可されている人は、そのまま参加できます。\n\n1. ランチャーで上記のバージョンを選びます。\n2. このマップ用のゲームディレクトリを作ります。\n3. リソースパックが必要な場合は、作者の説明に従って入れます。\n4. 準備ができたら、下の「準備状況を入力」から確認項目にチェックしてください。")
         settings = item.get("client_settings", [])
         preparation = await asyncio.to_thread(self.service.store.get, "preparation", f"{interaction.guild_id}-{interaction.user.id}-{item['requirements_hash']}")
         operating_system = (preparation or {}).get("os")
@@ -370,9 +365,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         screen.row(*links)
         async def readiness(i: discord.Interaction) -> None:
             await self.preparation_form(i, item)
-        async def register(i: discord.Interaction) -> None:
-            await self.identity_form(i)
-        screen.row(screen.button("準備状況を入力", readiness, "cm:setup:ready", style=discord.ButtonStyle.primary), screen.button("Minecraft名を登録", register, "cm:setup:identity"), screen.button("困ったとき", self.troubleshooting, "cm:setup:help"))
+        screen.row(screen.button("準備状況を入力", readiness, "cm:setup:ready", style=discord.ButtonStyle.primary), screen.button("困ったとき", self.troubleshooting, "cm:setup:help"))
         if room:
             async def back(i: discord.Interaction) -> None:
                 await self.show(i, await self.object_view(i, "room", room["id"]))
@@ -393,30 +386,9 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         form.field("checks", "準備できた項目にチェック", discord.ui.CheckboxGroup(required=False, min_values=0, options=checks))
         await interaction.response.send_modal(form)
 
-    async def identity_form(self, interaction: discord.Interaction) -> None:
-        async def submit(i: discord.Interaction, values: dict) -> None:
-            name = values["name"].strip()
-            if not re.fullmatch(r"[A-Za-z0-9_]{3,16}", name):
-                raise ValueError("Minecraft Java版のプレイヤー名を入力してください。")
-            def resolve() -> dict:
-                response = requests.get(f"https://api.mojang.com/users/profiles/minecraft/{name}", timeout=15)
-                response.raise_for_status()
-                return response.json()
-            profile = await asyncio.to_thread(resolve)
-            record = {"id": f"{i.guild_id}-{i.user.id}", "guild": str(i.guild_id), "owner": str(i.user.id), "name": profile["name"], "uuid": str(uuid.UUID(profile["id"])), "approved": False}
-            existing = await self.service.identity(i.guild_id, i.user.id)
-            if existing and existing.get("approved") and existing["uuid"] == record["uuid"]:
-                await i.edit_original_response(content="このMinecraft名は承認済みです。参加前の準備を続けてください。")
-                return
-            await self.service.put("identity", record)
-            await i.edit_original_response(content="登録を申請しました。管理者の承認後に参加できます。")
-        form = Form("Minecraft名を登録", self, interaction.user.id, submit)
-        form.field("name", "Minecraft Java版のプレイヤー名", discord.ui.TextInput(max_length=16, min_length=3))
-        await interaction.response.send_modal(form)
-
     async def troubleshooting(self, interaction: discord.Interaction) -> None:
         screen = Screen(self, owner=interaction.user.id)
-        screen.text("# 困ったとき\n**バージョンが違うと言われる**\nランチャーの「起動構成」で、マップに合ったバージョンを選んでください。\n\n**文字・見た目・音がおかしい**\nリソースパックの入れ方と、配布ページの推奨設定を確認してください。\n\n**接続できない**\nワールドがプレイ中になっているか、Minecraft名が承認済みかを確認してください。再開時は接続先が変わることがあるため、最新の接続先を使ってください。\n\n**Minecraft名が承認待ちのまま**\n管理者に承認を依頼してください。パスワードを送る必要はありません。")
+        screen.text("# 困ったとき\n**バージョンが違うと言われる**\nランチャーの「起動構成」で、マップに合ったバージョンを選んでください。\n\n**文字・見た目・音がおかしい**\nリソースパックの入れ方と、配布ページの推奨設定を確認してください。\n\n**接続できない**\nワールドがプレイ中になっているか、接続先が正しいかを確認してください。再開後は最新の接続先を使ってください。\n\n**ホワイトリストに入っていないと言われる**\n/whitelist_add でサーバーに「カスタムマップ」を選び、Java版のMinecraft名を追加してください。Discordとの紐付けや管理者の承認は不要です。")
         await self.show(interaction, screen)
 
     async def object_view(self, interaction: discord.Interaction, kind: str, ident: str) -> Screen:
@@ -431,10 +403,9 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         screen.text(f"# カスタムマップ｜{safe(record['name'])}\n**{safe(item['title'])}** / Java版 {safe(item['mc_version'])}\n状態: **{STATES.get(record['state'], record['state'])}**\n{safe(summary(item))}")
         if kind == "room":
             people = await self.service.readiness(record)
-            approved = sum(bool(p["identity"] and p["identity"].get("approved")) for p in people)
             ready = sum(p["ready"] for p in people)
-            screen.text(f"参加者：{len(people)}人 / 予定{record['players']}人\n準備完了：{ready}人　Minecraft名の承認済み：{approved}人\n\n" + "\n".join(f"{safe(p['identity']['name']) if p['identity'] else '<@' + p['user'] + '>'}：{'承認済み' if p['identity'] and p['identity'].get('approved') else 'Minecraft名の承認待ち' if p['identity'] else 'Minecraft名の登録が必要'} / {'準備完了' if p['ready'] else '準備中'}" for p in people)[:1100])
-            jobs = [j for j in await self.service.rows("job", record["guild"]) if j.get("room") == ident]
+            screen.text(f"参加者：{len(people)}人 / 予定{record['players']}人\n準備完了：{ready}人\n\n" + "\n".join(f"<@{p['user']}>：{'準備完了' if p['ready'] else '準備中'}" for p in people)[:1100])
+            jobs = [j for j in await self.service.rows("job", record["guild"]) if j.get("room") == ident and j["state"] != "SUPERSEDED"]
             if jobs:
                 job = jobs[0]
                 job_status = {"RUNNING": "準備中", "DONE": "起動完了", "FAILED": "起動できませんでした"}.get(job["state"], "要確認")
@@ -593,7 +564,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
     async def open_history(self, interaction: discord.Interaction) -> None:
         await self.history_view(interaction)
 
-    async def history_view(self, interaction: discord.Interaction, *, paused: bool = False, page: int = 0, channel_history: bool = False) -> None:
+    async def history_view(self, interaction: discord.Interaction, *, paused: bool = False, page: int = 0) -> None:
         if not interaction.response.is_done():
             await interaction.response.defer(ephemeral=True, thinking=True)
         sessions = await self.service.rows("session", interaction.guild_id)
@@ -601,32 +572,24 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         for item in sessions:
             if paused and (item["state"] not in ("PAUSED", "RUNNING", "FAILED", "COMPLETED", "DELETED") or item.get("data_available") == "none"):
                 continue
-            if not paused:
-                if channel_history:
-                    if item["channel"] != str(interaction.channel_id) or not item.get("actual_players"):
-                        continue
-                elif str(interaction.user.id) not in item.get("actual_players", {}):
-                    continue
+            if not paused and (item["channel"] != str(interaction.channel_id) or not item.get("actual_players")):
+                continue
             try:
                 await self.permitted(interaction, item)
                 visible.append(item)
             except ValueError:
                 continue
         screen = Screen(self, owner=interaction.user.id)
-        screen.text("# " + ("保存したワールド" if paused else "このチャンネルのプレイ履歴" if channel_history else "自分のプレイ履歴") + f"\n{len(visible)}件" + ("\nまだワールドがありません。マップを選んでプレイを始めてください。" if paused and not visible else "\nまだプレイ履歴がありません。" if not visible else ""))
+        screen.text("# " + ("保存したワールド" if paused else "このチャンネルのプレイ履歴") + f"\n{len(visible)}件" + ("\nまだワールドがありません。マップを選んでプレイを始めてください。" if paused and not visible else "\nまだプレイ履歴がありません。" if not visible else ""))
         for item in visible[page * 5:page * 5 + 5]:
             async def detail(i: discord.Interaction, ident=item["id"]) -> None:
                 await self.show(i, await self.object_view(i, "session", ident))
             screen.box.add_item(discord.ui.Section(discord.ui.TextDisplay(f"**{safe(item['name'])}**\n{safe(item['map']['title'])} / {STATES.get(item['state'], item['state'])}"), accessory=screen.button("開く", detail, "cm:history:" + item["id"])))
         async def prev(i: discord.Interaction) -> None:
-            await self.history_view(i, paused=paused, page=max(0, page - 1), channel_history=channel_history)
+            await self.history_view(i, paused=paused, page=max(0, page - 1))
         async def next_page(i: discord.Interaction) -> None:
-            await self.history_view(i, paused=paused, page=page + 1, channel_history=channel_history)
+            await self.history_view(i, paused=paused, page=page + 1)
         screen.row(screen.button("前へ", prev, "cm:history:prev", disabled=page == 0), screen.button("次へ", next_page, "cm:history:next", disabled=(page + 1) * 5 >= len(visible)), screen.button("ホーム", self.open_home, "cm:history:home"))
-        if not paused:
-            async def toggle(i: discord.Interaction) -> None:
-                await self.history_view(i, channel_history=not channel_history)
-            screen.row(screen.button("自分の履歴" if channel_history else "このチャンネルの履歴", toggle, "cm:history:scope"))
         await self.show(interaction, screen)
 
     async def backup_view(self, interaction: discord.Interaction, ident: str) -> None:
@@ -703,8 +666,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.search_results(interaction, {"players": players, "difficulty_max": difficulty or None, "max_minutes": max_minutes, "keyword": keyword[:100], "sort": sort, "compact": compact})
 
     @app_commands.command(name="history", description="カスタムマップのプレイ履歴を見る")
-    async def history(self, interaction: discord.Interaction, channel_history: bool = False) -> None:
-        await self.history_view(interaction, channel_history=channel_history)
+    async def history(self, interaction: discord.Interaction) -> None:
+        await self.history_view(interaction)
 
     @app_commands.command(name="sessions", description="保存したワールドの一覧を開く")
     async def sessions(self, interaction: discord.Interaction) -> None:
@@ -741,20 +704,6 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await interaction.response.defer(ephemeral=True, thinking=True)
         await self.bind_card("panel", str(interaction.channel_id), interaction.channel)
         await interaction.edit_original_response(content="カスタムマップのメニューを設置しました。")
-
-    @app_commands.command(name="approvals", description="Minecraft名の登録申請を承認する（管理者用）")
-    async def approvals(self, interaction: discord.Interaction, user: discord.Member | None = None) -> None:
-        if not check_role(interaction, "escape_manage"):
-            raise app_commands.CheckFailure()
-        if user:
-            record = await self.service.identity(interaction.guild_id, user.id)
-            if not record:
-                raise ValueError("この人からの登録申請はありません。")
-            await asyncio.to_thread(self.service.store.approve_identity, interaction.guild_id, user.id, record["name"], record["uuid"], interaction.user.id)
-            await interaction.response.send_message("Minecraft名の登録を承認しました。", ephemeral=True)
-        else:
-            records = [r for r in await self.service.rows("identity", interaction.guild_id) if not r.get("approved")]
-            await interaction.response.send_message("**承認待ちの登録申請**\n本人のMinecraft名を確認し、user に申請者を指定して再実行してください。\n" + ("\n".join(f"<@{r['owner']}>：{safe(r['name'])}" for r in records[:30]) or "承認待ちの申請はありません。"), ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
     @app_commands.command(name="recover", description="停止に失敗したワールドや投稿先を復旧する（管理者用）")
     async def recover(self, interaction: discord.Interaction, session_id: str, channel: discord.TextChannel | None = None) -> None:
