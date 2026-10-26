@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 LEVELS = ["指定なし", "入門", "やさしいまで", "標準まで", "難しいまで"]
 SORTS = {"popular": "人気順", "short": "短い順", "long": "長い順", "easy": "やさしい順", "hard": "難しい順", "many": "対応人数が多い順", "few": "対応人数が少ない順", "recent": "最近自分が遊んだ順"}
 STATES = {"OPEN": "参加準備中", "PREPARING": "ワールド作成中", "STARTING": "起動確認中", "RUNNING": "プレイ可能", "SAVING": "保存停止中", "PAUSED": "中断中", "COMPLETED": "クリア申告済み", "FAILED": "確認が必要", "DELETING": "片づけ中", "DELETED": "消去済み"}
+UNSPECIFIED_OPTION = "__unspecified__"
 
 
 def safe(text: object) -> str:
@@ -33,7 +34,8 @@ def safe(text: object) -> str:
 
 
 def select(values: list[tuple[str, str]], current: object = "") -> discord.ui.Select:
-    return discord.ui.Select(options=[discord.SelectOption(label=label[:100], value=value, default=value == str(current)) for value, label in values[:25]])
+    # Discordは空の選択値を受理しない。フォーム送信時に検索条件の空値へ戻す。
+    return discord.ui.Select(options=[discord.SelectOption(label=label[:100], value=value or UNSPECIFIED_OPTION, default=value == str(current)) for value, label in values[:25]])
 
 
 class Screen(discord.ui.LayoutView):
@@ -86,6 +88,8 @@ class Form(discord.ui.Modal):
             values = {}
             for key, item in self.fields.items():
                 values[key] = item.value if hasattr(item, "value") else list(item.values)
+                if isinstance(item, discord.ui.Select):
+                    values[key] = ["" if value == UNSPECIFIED_OPTION else value for value in values[key]]
             await self.submit(interaction, values)
         except Exception as error:
             await self.cog.error(interaction, error)
