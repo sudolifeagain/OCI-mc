@@ -74,6 +74,28 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(self.store.played(1, 2)["one"], {"last_played": 123.0, "cleared": True})
         self.assertEqual(set(self.store.played(1, 2)), {"one"})
 
+    def test_relocation_moves_history_and_cards_atomically(self) -> None:
+        session = self.store.create("session", guild="1", channel="2", map_id="one", actual_players={"Player1": 123.0}, result="clear_reported")
+        self.store.create("room", guild="1", channel="2", state="OPEN", members=["7"])
+        self.store.put("message", {"id": "panel-2", "guild": "1", "channel": "2", "type": "panel", "target": "2", "message_id": "old"})
+        with self.assertRaises(ValueError):
+            self.store.relocate_channel(1, 2, 3, {})
+        self.assertEqual(self.store.get("session", session["id"])["channel"], "2")
+        self.store.relocate_channel(1, 2, 3, {"panel-2": "new"})
+        self.assertIsNone(self.store.get("message", "panel-2"))
+        panel = self.store.get("message", "panel-3")
+        self.assertEqual((panel["channel"], panel["target"], panel["message_id"]), ("3", "3", "new"))
+        self.assertEqual(self.store.get("session", session["id"])["channel"], "3")
+        self.assertEqual(self.store.played(1, 2), {})
+        self.assertEqual(self.store.played(1, 3)["one"], {"last_played": 123.0, "cleared": True})
+
+    def test_relocation_rolls_back_when_destination_panel_exists(self) -> None:
+        for channel in (2, 3):
+            self.store.put("message", {"id": f"panel-{channel}", "guild": "1", "channel": str(channel), "type": "panel", "target": str(channel), "message_id": f"old-{channel}"})
+        with self.assertRaises(ValueError):
+            self.store.relocate_channel(1, 2, 3, {"panel-2": "new"})
+        self.assertEqual(self.store.get("message", "panel-2")["message_id"], "old-2")
+
 
 class ArchiveTests(unittest.TestCase):
     def test_zip_traversal_is_rejected(self) -> None:
@@ -176,6 +198,31 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def room(self, session: dict | None = None) -> dict:
         room = await self.service.create_room(1, 100, 1, "one", "test", 2, session)
         return await self.service.membership(room["id"], 2, True, room["generation"])
+
+    async def test_owner_can_start_before_other_players_join_or_confirm_preparation(self) -> None:
+        item = self.service.catalog.get("one")
+        self.service.store.put("preparation", {"id": f"1-1-{item['requirements_hash']}", "ready": False})
+        room = await self.service.create_room(1, 100, 1, "one", "先に起動", 4)
+        session = await self.service.start(room["id"], 1, room["generation"])
+        self.assertEqual(session["state"], "RUNNING")
+        self.assertEqual(session["current_members"], ["1"])
+        self.assertEqual(session["map"]["min_players"], 2)
+
+    async def test_invalid_planned_player_count_does_not_create_world(self) -> None:
+        room = await self.room()
+        room["players"] = 1
+        room = await self.service.put("room", room)
+        with self.assertRaisesRegex(ValueError, "参加予定人数"):
+            await self.service.start(room["id"], 1, room["generation"])
+        self.manager.start_server.assert_not_awaited()
+
+    async def test_dedicated_channel_is_checked_before_room_creation(self) -> None:
+        self.service.config["channel_id"] = 200
+        with self.assertRaisesRegex(ValueError, "<#200>"):
+            await self.service.create_room(1, 100, 1, "one", "wrong", 2)
+        self.assertEqual(await self.service.rows("room"), [])
+        room = await self.service.create_room(1, 200, 1, "one", "right", 2)
+        self.assertEqual(room["channel"], "200")
 
     async def test_start_uses_existing_whitelist_without_discord_identity(self) -> None:
         self.service.store.create("identity", guild="1", user="1", approved=False)

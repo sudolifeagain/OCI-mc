@@ -78,6 +78,9 @@ if not DISCORD_SHELL_USER_IDS and DISCORD_OWNER_ID:
 SERVER_RUNTIME_DIR = os.getenv('SERVER_RUNTIME_DIR', '/opt/minecraft/.bot-runtime')
 
 # サーバー別ログチャンネル（環境変数から読み込み、未設定の場合はデフォルトにフォールバック）
+CUSTOM_MAP_CHANNEL_ID = int(os.getenv('DISCORD_CUSTOM_MAP_CHANNEL_ID', 0))
+CUSTOM_MAP_LOG_CHANNEL_ID = int(os.getenv('DISCORD_CUSTOM_MAP_LOG_CHANNEL_ID', 0)) or CUSTOM_MAP_CHANNEL_ID
+CONFIG.setdefault('custom_maps', {})['channel_id'] = CUSTOM_MAP_CHANNEL_ID
 LOG_CHANNEL_IDS = {
     'paper': int(os.getenv('DISCORD_PAPER_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
     'forge': int(os.getenv('DISCORD_FORGE_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
@@ -87,6 +90,8 @@ LOG_CHANNEL_IDS = {
             os.getenv('DISCORD_NEOFORGE_LOG_CHANNEL_ID', '0'),
         )
     ) or CHANNEL_ID,
+    'custom-1': CUSTOM_MAP_LOG_CHANNEL_ID,
+    'custom-2': CUSTOM_MAP_LOG_CHANNEL_ID,
 }
 
 def get_log_channel_id(server_id: str) -> int:

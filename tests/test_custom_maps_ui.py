@@ -1,11 +1,29 @@
+import asyncio
 import copy
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from cogs.custom_maps import CustomMaps
 from utils.custom_maps.catalog import Catalog
+
+
+class LaunchResultTests(unittest.IsolatedAsyncioTestCase):
+    async def test_launch_updates_initial_reply_after_success_and_validation_failure(self) -> None:
+        for failure in (None, ValueError("Forgeを停止してください。")):
+            cog = CustomMaps.__new__(CustomMaps)
+            room = {"id": "room", "guild": "1", "channel": "2", "owner": "3"}
+            job = {"id": "job", "state": "RUNNING"}
+            cog.service = SimpleNamespace(get=AsyncMock(return_value=room), store=SimpleNamespace(create=Mock(return_value=job)), start=AsyncMock(return_value={"id": "session"}, side_effect=failure), put=AsyncMock(), jobs=set())
+            cog.bot = SimpleNamespace(get_channel=Mock(return_value=object()))
+            cog.permitted, cog.bind_card, cog.update_card = AsyncMock(), AsyncMock(), AsyncMock()
+            interaction = SimpleNamespace(user=SimpleNamespace(id=3), response=SimpleNamespace(defer=AsyncMock()), edit_original_response=AsyncMock())
+            await cog.launch(interaction, "room", 1)
+            await asyncio.gather(*cog.service.jobs)
+            self.assertEqual(job["state"], "FAILED" if failure else "DONE")
+            message = interaction.edit_original_response.await_args_list[-1].kwargs["content"]
+            self.assertIn("Forgeを停止してください。" if failure else "ワールドを起動しました", message)
 
 
 class SearchModalTests(unittest.IsolatedAsyncioTestCase):

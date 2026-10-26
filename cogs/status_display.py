@@ -63,7 +63,6 @@ class StatusDisplay(commands.Cog):
 
         for server_id, server in self.bot.server_manager.servers.items():
             if server.config.get("workload_type") == "custom_map":
-                embed.add_field(name=server.name, value="稼働中" if server.is_running() else "停止中", inline=False)
                 continue
             if not server.is_running():
                 embed.add_field(name=f"{server.name} (停止中)", value="Offline", inline=False)
@@ -109,6 +108,7 @@ class StatusDisplay(commands.Cog):
             async for msg in channel.history(limit=20):
                 if (
                     msg.author == self.bot.user
+                    and not msg.content
                     and not msg.flags.components_v2
                     and msg.embeds
                     and msg.embeds[0].title == embed.title

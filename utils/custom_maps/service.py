@@ -74,6 +74,7 @@ class CustomMapService:
         return await asyncio.to_thread(pinned)
 
     async def create_room(self, guild: int, channel: int, owner: int, map_id: str, name: str, players: int, session: dict | None = None) -> dict:
+        self.check_channel(session["channel"] if session else channel)
         item = session["map"] if session else dict(self.catalog.get(map_id))
         if not session and (not item["published"] or map_id not in await asyncio.to_thread(self.available)):
             raise ValueError("このマップは準備中です。公開までお待ちください。")
@@ -86,6 +87,11 @@ class CustomMapService:
         if not name.strip() or len(name) > 60:
             raise ValueError("ワールド名は1～60文字で入力してください。")
         return await asyncio.to_thread(self.store.create, "room", guild=str(guild), channel=session["channel"] if session else str(channel), owner=str(owner), map_id=item["id"], map=item, name=name.strip(), players=players, members=[str(owner)], state="OPEN", session_id=session["id"] if session else None)
+
+    def check_channel(self, channel: int | str) -> None:
+        expected = self.config.get("channel_id")
+        if expected and str(channel) != str(expected):
+            raise ValueError(f"カスタムマップは <#{expected}> で操作してください。")
 
     async def membership(self, room_id: str, user: int | str, join: bool, expected: int) -> dict:
         async with self.lock:
@@ -192,14 +198,13 @@ class CustomMapService:
     async def start(self, room_id: str, actor: int | str, expected: int) -> dict:
         async with self.lock:
             room = await self.get("room", room_id)
+            self.check_channel(room["channel"])
             if room["state"] != "OPEN" or room["generation"] != expected:
                 raise ValueError("募集内容が変更されました。画面を開き直して確認してください。")
             people = await self.readiness(room)
             item = room["map"]
-            if not item["min_players"] <= len(people) <= item["max_players"]:
-                raise ValueError(f"現在の参加者は{len(people)}人です。このマップは{item['min_players']}～{item['max_players']}人で遊べます。")
-            if any(not person["ready"] for person in people):
-                raise ValueError("準備が終わっていないメンバーがいます。全員が「参加前の準備」から確認項目にチェックしてください。")
+            if not item["min_players"] <= room["players"] <= item["max_players"] or len(people) > item["max_players"]:
+                raise ValueError(f"参加予定人数は{item['min_players']}～{item['max_players']}人で設定してください。")
             await asyncio.to_thread(self.allowed_players)
             if room.get("session_id"):
                 session = await self.get("session", room["session_id"])
@@ -487,7 +492,8 @@ class CustomMapService:
                     session.update(state="FAILED", error="処理の途中でボットが停止しました。保存データは残っています。管理者に復旧を依頼してください。")
                     await self.put("session", session)
             for job in await self.rows("job"):
-                if job["state"] == "FAILED" and job.get("error", "").startswith("Minecraft名が未承認のメンバーがいます。"):
+                obsolete = job.get("error", "").startswith(("Minecraft名が未承認のメンバーがいます。", "現在の参加者は", "準備が終わっていないメンバーがいます。"))
+                if job["state"] == "FAILED" and obsolete:
                     job["state"] = "SUPERSEDED"
                     await self.put("job", job)
                 if job["state"] == "RUNNING":

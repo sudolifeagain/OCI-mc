@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from settings import DISCORD_TOKEN, NOTION_TOKEN, SERVERS_CONFIG, SERVER_RUNTIME_DIR
-from utils.discord_security import is_allowed_command_context
+from utils.discord_security import is_allowed_command_context, is_custom_map_channel, custom_map_channel_notice
 from utils.server_manager import MultiServerManager
 
 
@@ -27,6 +27,11 @@ class SecureCommandTree(app_commands.CommandTree):
             interaction,
             shell=command_name == "shell",
         )
+        root = getattr(interaction.command, "root_parent", None) or interaction.command
+        if allowed and getattr(root, "name", "") == "escape" and not is_custom_map_channel(interaction):
+            if interaction.type is discord.InteractionType.application_command and not interaction.response.is_done():
+                await interaction.response.send_message(custom_map_channel_notice(), ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+            return False
         if allowed:
             return True
 
