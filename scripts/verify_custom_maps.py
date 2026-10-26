@@ -8,7 +8,6 @@ import asyncio
 import hashlib
 import json
 import logging
-import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -39,15 +38,22 @@ class VerificationService(CustomMapService):
         self._permissions(session["slot"])
 
 
-async def clients(node: str, server, *, first: bool) -> dict:
+def verification_players(item: dict) -> int:
+    count = min(4, item["max_players"])
+    if count < max(2, item["min_players"]):
+        raise ValueError("作者の対応人数内で2～4人の接続検証が必要である")
+    return count
+
+
+async def clients(node: str, server, *, first: bool, players: int = 4) -> dict:
     version = json.loads((Path(server.cwd) / "launch.json").read_text())["version"]
-    process = await asyncio.create_subprocess_exec(node, str(Path(__file__).with_name("custom_map_clients.cjs")), version, str(server.port), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    process = await asyncio.create_subprocess_exec(node, str(Path(__file__).with_name("custom_map_clients.cjs")), version, str(server.port), str(players), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     client = get_rcon_client(server.config)
     online = False
     for _ in range(12):
         await asyncio.sleep(2)
         success, response = await client.execute("list")
-        if success and all(f"OCI_QA{n}" in response for n in range(1, 5)):
+        if success and all(f"OCI_QA{n}" in response for n in range(1, players + 1)):
             online = True
             break
     stats = server.get_stats()
@@ -60,16 +66,22 @@ async def clients(node: str, server, *, first: bool) -> dict:
         result = json.loads(stdout.decode().splitlines()[-1])
     except (ValueError, IndexError):
         result = {"error": stderr.decode()[-700:]}
-    result["rcon_four_players"] = online
+    result["rcon_players"] = online
+    result["expected_players"] = players
+    if players == 4:
+        result["rcon_four_players"] = online
     result["server_memory_mb"] = stats["memory_mb"] if stats else None
     result["host_available_mb"] = round(psutil.virtual_memory().available / 1048576)
     if process.returncode != 0 or not online:
-        raise RuntimeError("4人同時接続を確認できない: " + json.dumps(result, ensure_ascii=False))
+        raise RuntimeError(f"{players}人同時接続を確認できない: " + json.dumps(result, ensure_ascii=False))
     return result
 
 
 def assert_saved_score(server_directory: Path) -> None:
-    nbt = read_nbt(server_directory / "world/data/scoreboard.dat")
+    # 26.1以降は共有データが名前空間フォルダーへ移動している。
+    namespaced = server_directory / "world/data/minecraft/scoreboard.dat"
+    scoreboard = namespaced if namespaced.is_file() else server_directory / "world/data/scoreboard.dat"
+    nbt = read_nbt(scoreboard)
     data = nbt.get("data", nbt.get("Data", {}))
     if not any(value.get("Name") == "OCI_QA1" and value.get("Objective") == "oci_qa" and value.get("Score") == 117 for value in data.get("PlayerScores", [])):
         raise RuntimeError("保存ファイル内の検証スコア117が一致しない")
@@ -81,12 +93,13 @@ async def verify(args) -> None:
     if any(p.info["name"] == "java" for p in psutil.process_iter(["name"])):
         raise ValueError("既存Minecraftプロセスが稼働中である")
     config = json.loads(Path("config.json").read_text())
+    config["custom_maps"]["catalog"] = str(args.catalog.resolve())
     config["custom_maps"]["channel_id"] = 0  # 検証用複製はDiscordへ投稿しない。
     for entry in config["servers"].values():
         entry["auto_start"] = False
     root = Path(config["custom_maps"]["root"])
     launcher = root / "qa-launch.py"
-    shutil.copyfile(Path(__file__).with_name("launch_custom_map.py"), launcher)
+    launcher.write_bytes(Path(__file__).with_name("launch_custom_map.py").read_bytes().replace(b"\r\n", b"\n"))
     launcher.chmod(0o755)
     for entry in config["servers"].values():
         if entry.get("workload_type") == "custom_map":
@@ -118,11 +131,16 @@ async def verify(args) -> None:
         module.get_rcon_client = traced_factory
     manager = MultiServerManager(config["servers"], str(runtime))
     service = VerificationService(config["custom_maps"], manager, runtime)
+    required = ({"deep-sea", "black-cat"} if args.parallel else set()) | ({"karakurari"} if args.integration else set())
+    missing = required - service.catalog.items.keys()
+    if missing:
+        raise ValueError("並列・統合検証には既存作品を含むカタログが必要である。不足: " + ", ".join(sorted(missing)))
     if any(Path(manager.get_server(slot).cwd).exists() and any(Path(manager.get_server(slot).cwd).iterdir()) for slot in service.slots):
         raise ValueError("起動枠に保存データがある。通常のプレイを中断して枠を空ける必要がある")
     async def room(item, session=None):
-        result = await service.create_room(0, 0, 1, item["id"], "接続・保存復元検証", 4, session)
-        for n in range(1, 5):
+        players = verification_players(item)
+        result = await service.create_room(0, 0, 1, item["id"], "接続・保存復元検証", players, session)
+        for n in range(1, players + 1):
             service.store.put("preparation", {"id": f"0-{n}-{result['map']['requirements_hash']}", "ready": True})
             if n > 1:
                 result = await service.membership(result["id"], n, True, result["generation"])
@@ -158,6 +176,8 @@ async def verify(args) -> None:
             evidence = {"map_id": item["id"], "mc_version": item["mc_version"], "host_arch": "aarch64", "checked_at": started, "synthetic_clients": True, "puzzle_completion_verified": False}
             ident = None
             try:
+                players = verification_players(item)
+                evidence["expected_players"] = players
                 manifest_file = root / "templates" / item["id"] / item["revision"] / "manifest.json"
                 original = manifest_file.parent / "world/level.dat"
                 digest = hashlib.sha256(original.read_bytes()).hexdigest()
@@ -165,13 +185,13 @@ async def verify(args) -> None:
                 session = await service.start(prepared["id"], "qa", prepared["generation"])
                 ident = session["id"]
                 evidence["rcon_ready"] = True
-                evidence["first_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=True)
+                evidence["first_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=True, players=players)
                 await service.poll()
                 session = await service.pause(ident, "qa")
                 assert_saved_score(service._session_path(ident))
                 prepared = await room(item, session)
                 session = await service.start(prepared["id"], "qa", prepared["generation"])
-                evidence["resumed_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=False)
+                evidence["resumed_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=False, players=players)
                 session = await service.pause(ident, "qa", finish=True)
                 assert_saved_score(service._session_path(ident))
                 evidence.update(save_resume=True, multiple_players=True, original_unchanged=hashlib.sha256(original.read_bytes()).hexdigest() == digest)
@@ -226,6 +246,7 @@ def main() -> None:
     parser.add_argument("--allow-production-maintenance", action="store_true")
     parser.add_argument("--node", required=True)
     parser.add_argument("--map")
+    parser.add_argument("--catalog", type=Path, default=Path("custom-maps.json"))
     parser.add_argument("--parallel", action="store_true")
     parser.add_argument("--only-unverified", action="store_true")
     parser.add_argument("--integration", action="store_true")

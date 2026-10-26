@@ -237,6 +237,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.search_form(interaction, {})
 
     async def search_form(self, interaction: discord.Interaction, filters: dict, mode: str = "basic") -> None:
+        versions = sorted({v["mc_version"] for v in self.service.catalog.items.values()}) if mode == "environment" else []
         async def apply(i: discord.Interaction, values: dict) -> None:
             changed = dict(filters)
             if mode == "basic":
@@ -245,7 +246,11 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
                     changed[key] = int(value) if value else None
                 changed.update(keyword=values["keyword"].strip(), sort=values["sort"][0])
             elif mode == "environment":
-                changed["version"] = values["version"][0] or None
+                value = values["version"]
+                version = (value if isinstance(value, str) else value[0]).strip()
+                if version and version not in versions:
+                    raise ValueError("次のバージョンから指定してください：" + "、".join(versions))
+                changed["version"] = version or None
             else:
                 changed.update(source=values["source"][0] or None, pack=values["pack"], history=values["history"][0] or None)
                 minutes = values["minutes"].strip()
@@ -266,8 +271,11 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             form.field("keyword", "作品名・作者名", discord.ui.TextInput(required=False, default=filters.get("keyword", ""), max_length=100))
             form.field("sort", "並び順", select(list(SORTS.items()), filters.get("sort", "popular")))
         elif mode == "environment":
-            versions = sorted({v["mc_version"] for v in self.service.catalog.items.values()})
-            form.field("version", "Minecraftのバージョン（Java版）", select([("", "指定なし")] + [(v, v) for v in versions], filters.get("version") or ""))
+            if len(versions) <= 24:
+                control = select([("", "指定なし")] + [(v, v) for v in versions], filters.get("version") or "")
+            else:
+                control = discord.ui.TextInput(required=False, default=filters.get("version") or "", placeholder="例：1.21.11 / 26.1（空欄で指定なし）", max_length=16)
+            form.field("version", "Minecraftのバージョン（Java版）", control)
         else:
             form.field("source", "配布元", select([("", "指定なし"), ("colony", "クラフターズコロニー"), ("plum", "プラム太郎の群れ")], filters.get("source") or ""))
             form.field("pack", "リソースパック", discord.ui.RadioGroup(options=[discord.RadioGroupOption(label=label, value=value, default=value == (filters.get("pack") or "any")) for value, label in [("any", "指定なし"), ("none", "不要なマップ"), ("required", "必要なマップ")]]))

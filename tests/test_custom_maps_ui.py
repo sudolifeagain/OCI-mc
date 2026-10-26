@@ -5,6 +5,8 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
+import discord
+
 from cogs.custom_maps import CustomMaps
 from utils.custom_maps.catalog import Catalog
 
@@ -91,7 +93,7 @@ class SearchModalTests(unittest.IsolatedAsyncioTestCase):
                 changed = await self.submit(await self.form(mode), {})
                 for key, value in expected.items():
                     self.assertEqual(changed[key], value)
-                self.assertEqual(len(self.cog.service.catalog.search(changed)), 28)
+                self.assertEqual(len(self.cog.service.catalog.search(changed)), len(self.cog.service.catalog.search({})))
 
     async def test_selected_conditions_round_trip_through_modal_submission(self) -> None:
         cases = [
@@ -101,6 +103,19 @@ class SearchModalTests(unittest.IsolatedAsyncioTestCase):
         ]
         for mode, selections, expected in cases:
             with self.subTest(mode=mode):
-                changed = await self.submit(await self.form(mode), selections)
+                form = await self.form(mode)
+                if mode == "environment" and isinstance(form.fields["version"], discord.ui.TextInput):
+                    selections["version"] = selections["version"][0]
+                changed = await self.submit(form, selections)
                 for key, value in expected.items():
                     self.assertEqual(changed[key], value)
+
+    async def test_all_versions_remain_searchable_when_dropdown_capacity_is_exceeded(self) -> None:
+        versions = [f"1.21.{index}" for index in range(30)]
+        self.cog.service.catalog = SimpleNamespace(items={version: {"mc_version": version} for version in versions})
+        form = await self.form("environment", {"version": "1.21.29"})
+        self.assertEqual(form.fields["version"].default, "1.21.29")
+        self.assertEqual((await self.submit(form, {"version": " 1.21.29 "}))["version"], "1.21.29")
+        self.assertIsNone((await self.submit(await self.form("environment"), {"version": ""}))["version"])
+        with self.assertRaisesRegex(ValueError, "バージョン"):
+            await form.submit(self.interaction, {"version": "1.99"})
