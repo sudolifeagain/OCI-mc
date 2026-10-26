@@ -189,6 +189,15 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(setting, properties)
         self.assertEqual(session["participants"], {"1": {}, "2": {}})
 
+    async def test_reconcile_preserves_but_retires_obsolete_approval_failure(self) -> None:
+        obsolete = self.service.store.create("job", state="FAILED", error="Minecraft名が未承認のメンバーがいます。「参加前の準備」で登録状況を確認してください。")
+        other = self.service.store.create("job", state="FAILED", error="ホワイトリストを読み込めません。")
+        await self.service.reconcile()
+        current = await self.service.get("job", obsolete["id"])
+        self.assertEqual(current["state"], "SUPERSEDED")
+        self.assertEqual(current["error"], obsolete["error"])
+        self.assertEqual((await self.service.get("job", other["id"]))["state"], "FAILED")
+
     async def test_empty_or_corrupt_whitelist_leaves_room_and_world_untouched(self) -> None:
         room = await self.room()
         for content in ("[]", "invalid", "{}"):

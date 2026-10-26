@@ -487,6 +487,9 @@ class CustomMapService:
                     session.update(state="FAILED", error="処理の途中でボットが停止しました。保存データは残っています。管理者に復旧を依頼してください。")
                     await self.put("session", session)
             for job in await self.rows("job"):
+                if job["state"] == "FAILED" and job.get("error", "").startswith("Minecraft名が未承認のメンバーがいます。"):
+                    job["state"] = "SUPERSEDED"
+                    await self.put("job", job)
                 if job["state"] == "RUNNING":
                     job.update(state="FAILED", error="ボットが再起動したため、起動結果を確認できませんでした。")
                     await self.put("job", job)

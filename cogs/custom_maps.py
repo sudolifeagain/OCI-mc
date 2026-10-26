@@ -405,7 +405,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             people = await self.service.readiness(record)
             ready = sum(p["ready"] for p in people)
             screen.text(f"参加者：{len(people)}人 / 予定{record['players']}人\n準備完了：{ready}人\n\n" + "\n".join(f"<@{p['user']}>：{'準備完了' if p['ready'] else '準備中'}" for p in people)[:1100])
-            jobs = [j for j in await self.service.rows("job", record["guild"]) if j.get("room") == ident]
+            jobs = [j for j in await self.service.rows("job", record["guild"]) if j.get("room") == ident and j["state"] != "SUPERSEDED"]
             if jobs:
                 job = jobs[0]
                 job_status = {"RUNNING": "準備中", "DONE": "起動完了", "FAILED": "起動できませんでした"}.get(job["state"], "要確認")
