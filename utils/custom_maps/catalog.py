@@ -55,7 +55,7 @@ class Catalog:
         try:
             return self.items[map_id]
         except KeyError:
-            raise ValueError("カスタムマップが見つからない") from None
+            raise ValueError("マップが見つかりません。") from None
 
     def search(self, filters: dict, *, available: set[str] | None = None, played: dict | None = None) -> list[dict]:
         played = played or {}
@@ -122,8 +122,8 @@ class Catalog:
 def summary(item: dict) -> str:
     difficulty = ["", "入門", "やさしい", "標準", "難しい", "とても難しい"]
     level = item.get("difficulty")
-    diff = difficulty[level] if level else "難易度未記載"
+    diff = f"難易度：{difficulty[level]}" if level else "難易度不明"
     low, high = item.get("duration_min"), item.get("duration_max")
-    duration = f"{low}～{high}分" if low and high and low != high else f"{high}分" if high else f"{low}分～" if low else item.get("duration_text", "時間未記載")
-    pack = "指定パックあり" if item.get("resource_pack") else "パックなし"
-    return f"{item['min_players']}～{item['max_players']}人 / {diff} / 目安{duration} / {pack}"
+    duration = f"{low}～{high}分" if low and high and low != high else f"約{high}分" if high else f"{low}分以上" if low else item.get("duration_text", "所要時間不明")
+    pack = "リソースパックあり" if item.get("resource_pack") else "リソースパック不要"
+    return f"{item['min_players']}～{item['max_players']}人 / {diff} / {duration} / {pack}"
