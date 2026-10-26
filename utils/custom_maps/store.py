@@ -76,33 +76,14 @@ class Store:
         with self.connect() as db:
             db.execute("INSERT INTO events(kind,target,actor,at,data) VALUES(?,?,?,?,?)", (kind, target, str(actor), time.time(), json.dumps(data, ensure_ascii=False)))
 
-    def identity(self, guild: int | str, user: int | str) -> dict | None:
-        return self.get("identity", f"{guild}-{user}")
-
-    def approve_identity(self, guild: int | str, user: int | str, name: str, player_uuid: str, actor: int | str) -> dict:
-        result = {"id": f"{guild}-{user}", "guild": str(guild), "owner": str(user), "name": name, "uuid": player_uuid, "approved": True, "approved_by": str(actor), "updated": time.time()}
-        try:
-            with self.connect() as db:
-                db.execute("BEGIN IMMEDIATE")
-                rows = db.execute("SELECT data FROM records WHERE kind='identity' AND guild=?", (str(guild),)).fetchall()
-                for row in rows:
-                    item = json.loads(row[0])
-                    if item.get("uuid") == player_uuid and item["owner"] != str(user) and item.get("approved"):
-                        raise ValueError("このMinecraft名は別のDiscordアカウントに登録済みです。")
-                db.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?)", ("identity", result["id"], str(guild), str(user), "", result["updated"], json.dumps(result)))
-        except sqlite3.IntegrityError:
-            raise ValueError("このMinecraft名は別のDiscordアカウントに登録済みです。") from None
-        self.event("identity_approved", result["id"], actor)
-        return result
-
-    def played(self, guild: int | str, user: int | str) -> dict:
+    def played(self, guild: int | str, channel: int | str) -> dict:
         result = {}
         for session in self.list("session", guild):
-            if str(user) not in session.get("actual_players", {}):
+            if session.get("channel") != str(channel) or not session.get("actual_players"):
                 continue
             ident = session["map_id"]
             old = result.setdefault(ident, {"last_played": 0, "cleared": False})
-            old["last_played"] = max(old["last_played"], session["actual_players"][str(user)])
+            old["last_played"] = max(old["last_played"], max(session["actual_players"].values()))
             old["cleared"] |= session.get("result") == "clear_reported"
         return result
 

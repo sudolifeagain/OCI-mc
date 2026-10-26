@@ -28,6 +28,7 @@ def get_server_choices():
 
 # サーバー選択肢をグローバルに定義
 SERVER_CHOICES = get_server_choices()
+WHITELIST_SERVER_CHOICES = SERVER_CHOICES + ([app_commands.Choice(name="カスタムマップ", value="custom-maps")] if any(config.get("workload_type") == "custom_map" for config in SERVERS_CONFIG.values()) else [])
 
 TICK_FOOTER = "TPS: 🟢 正常 (<40ms) | 🟡 注意 (40-50ms) | 🔴 危険 (>50ms)"
 
@@ -253,7 +254,7 @@ class BasicControl(commands.Cog):
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
     @app_commands.guild_only()
     @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")
-    @app_commands.choices(server=SERVER_CHOICES)
+    @app_commands.choices(server=WHITELIST_SERVER_CHOICES)
     async def whitelist_add(self, interaction: discord.Interaction, player_name: str, server: str = DEFAULT_SERVER):
         if not is_allowed_command_context(interaction):
             return await interaction.response.send_message(
@@ -261,6 +262,24 @@ class BasicControl(commands.Cog):
             )
         if not check_role(interaction, 'whitelist_add'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
+
+        if server == "custom-maps":
+            service = getattr(self.bot, "custom_maps", None)
+            if service is None:
+                return await interaction.response.send_message("カスタムマップは現在利用できません。", ephemeral=True)
+            await interaction.response.defer(ephemeral=True, thinking=True)
+            try:
+                name, failed = await service.add_whitelist_player(player_name.strip())
+            except ValueError as error:
+                return await interaction.edit_original_response(content=str(error), allowed_mentions=discord.AllowedMentions.none())
+            except Exception:
+                logging.exception("カスタムマップのホワイトリスト追加に失敗")
+                return await interaction.edit_original_response(content="追加できませんでした。しばらく待ってから、もう一度お試しください。")
+            logging.info("User %s executed /whitelist_add server=custom-maps player=%s", interaction.user.id, name)
+            message = f"カスタムマップのホワイトリストに `{name}` を追加しました。"
+            if failed:
+                message += "\n起動中の一部ワールドに反映できませんでした。ワールドを中断・再開すると反映されます。"
+            return await interaction.edit_original_response(content=message, allowed_mentions=discord.AllowedMentions.none())
 
         server_instance = self.server_manager.get_server(server)
         if not server_instance:

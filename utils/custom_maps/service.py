@@ -11,7 +11,10 @@ import shutil
 import time
 import tempfile
 import zipfile
+import uuid
 from pathlib import Path
+
+import requests
 
 from utils.custom_maps.artifacts import ensure_vanilla, safe_extract, MAX_EXPANDED
 from utils.backup_archive import create_server_archive
@@ -103,16 +106,88 @@ class CustomMapService:
             room["members"] = members
             return await self.put("room", room, expected)
 
-    async def identity(self, guild: int | str, user: int | str) -> dict | None:
-        return await asyncio.to_thread(self.store.identity, guild, user)
-
     async def readiness(self, room: dict) -> list[dict]:
         result = []
         for user in room["members"]:
-            identity = await self.identity(room["guild"], user)
             prep = await asyncio.to_thread(self.store.get, "preparation", f"{room['guild']}-{user}-{room['map']['requirements_hash']}")
-            result.append({"user": user, "identity": identity, "ready": bool(prep and prep.get("ready"))})
+            result.append({"user": user, "ready": bool(prep and prep.get("ready"))})
         return result
+
+    def allowed_players(self) -> list[dict]:
+        sources = self.config.get("whitelist_sources")
+        if sources is None:
+            sources = [str(Path(server.cwd) / "whitelist.json") for server in self.manager.servers.values() if server.config.get("workload_type") != "custom_map"]
+            sources.append(str(self.root / "whitelist.json"))
+        players = {}
+        for source in sources:
+            path = Path(source)
+            if not path.exists():
+                continue
+            try:
+                entries = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(entries, list):
+                    raise ValueError()
+                for entry in entries:
+                    if not isinstance(entry, dict) or not re.fullmatch(r"[A-Za-z0-9_]{3,16}", str(entry.get("name", ""))):
+                        continue
+                    try:
+                        player_uuid = str(uuid.UUID(entry["uuid"]))
+                    except (ValueError, KeyError, AttributeError, TypeError):
+                        continue
+                    players[player_uuid] = {"uuid": player_uuid, "name": entry["name"]}
+            except (OSError, ValueError) as error:
+                raise ValueError("ホワイトリストを読み込めません。管理者に連絡してください。") from error
+        if not players:
+            raise ValueError("ホワイトリストが空です。/whitelist_add のサーバーに「カスタムマップ」を選び、Minecraft名を追加してください。")
+        return list(players.values())
+
+    async def add_whitelist_player(self, name: str) -> tuple[str, list[str]]:
+        if not re.fullmatch(r"[A-Za-z0-9_]{3,16}", name):
+            raise ValueError("Minecraft Java版のプレイヤー名を入力してください。")
+
+        def resolve() -> dict:
+            response = requests.get(f"https://api.mojang.com/users/profiles/minecraft/{name}", timeout=15)
+            if response.status_code in (204, 404):
+                raise ValueError("そのMinecraft名が見つかりません。Java版のプレイヤー名を確認してください。")
+            response.raise_for_status()
+            profile = response.json()
+            if not re.fullmatch(r"[A-Za-z0-9_]{3,16}", profile["name"]):
+                raise ValueError("Minecraftのプロフィールを確認できませんでした。")
+            return {"name": profile["name"], "uuid": str(uuid.UUID(profile["id"]))}
+
+        profile = await asyncio.to_thread(resolve)
+        async with self.lock:
+            def save() -> None:
+                path = self.root / "whitelist.json"
+                entries = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+                if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
+                    raise ValueError("ホワイトリストを読み込めません。管理者に連絡してください。")
+                entries = [entry for entry in entries if entry.get("uuid") != profile["uuid"]]
+                entries.append(profile)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                temporary = path.with_suffix(".tmp")
+                try:
+                    with temporary.open("w", encoding="utf-8") as stream:
+                        json.dump(entries, stream, ensure_ascii=False)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                    temporary.chmod(0o600)
+                    os.replace(temporary, path)
+                finally:
+                    temporary.unlink(missing_ok=True)
+            await asyncio.to_thread(save)
+            failed = []
+            for session in await self.rows("session"):
+                slot = session.get("slot")
+                if session["state"] != "RUNNING" or not slot or not self.manager.is_running(slot):
+                    continue
+                client = get_rcon_client(self.manager.get_server(slot).config)
+                ok, _ = await client.execute(f"whitelist add {profile['name']}") if client else (False, "")
+                if ok and session["map"].get("op_required"):
+                    ok, _ = await client.execute(f"op {profile['name']}")
+                if not ok:
+                    failed.append(slot)
+            return profile["name"], failed
 
     async def start(self, room_id: str, actor: int | str, expected: int) -> dict:
         async with self.lock:
@@ -123,10 +198,9 @@ class CustomMapService:
             item = room["map"]
             if not item["min_players"] <= len(people) <= item["max_players"]:
                 raise ValueError(f"現在の参加者は{len(people)}人です。このマップは{item['min_players']}～{item['max_players']}人で遊べます。")
-            if any(not person["identity"] or not person["identity"].get("approved") for person in people):
-                raise ValueError("Minecraft名が未承認のメンバーがいます。「参加前の準備」で登録状況を確認してください。")
             if any(not person["ready"] for person in people):
                 raise ValueError("準備が終わっていないメンバーがいます。全員が「参加前の準備」から確認項目にチェックしてください。")
+            await asyncio.to_thread(self.allowed_players)
             if room.get("session_id"):
                 session = await self.get("session", room["session_id"])
                 if session["state"] != "PAUSED":
@@ -148,7 +222,7 @@ class CustomMapService:
                 session = await asyncio.to_thread(self.store.create, "session", guild=room["guild"], channel=room["channel"], owner=room["owner"], name=room["name"], map_id=item["id"], map=item, state="PREPARING", result="unknown", slot=None, actual_players={}, active_seconds=0, missing_seconds=0, participants={}, last_saved=None)
             session["room_id"] = room["id"]
             session["attach_mode"] = "resume" if room.get("session_id") else "new"
-            session["participants"].update({p["user"]: p["identity"] for p in people})
+            session["participants"].update({p["user"]: {} for p in people})
             session["current_members"] = [p["user"] for p in people]
             session["slot"] = slot
             session["last_slot"] = slot
@@ -238,6 +312,7 @@ class CustomMapService:
         if version_numbers[0] == 1 and version_numbers[1] <= 12:
             props["gamemode"] = {"survival": "0", "creative": "1", "adventure": "2", "spectator": "3"}.get(str(props["gamemode"]), str(props["gamemode"]))
         props.update({"server-port": str(slot.port), "server-ip": "", "level-name": "world", "online-mode": "true", "white-list": "true", "enforce-whitelist": "true", "max-players": str(item["max_players"]), "enable-command-block": "true", "enable-rcon": "true", "rcon.port": str(slot.config["rcon_port"]), "rcon.password": client.password, "broadcast-rcon-to-ops": "false", "motd": "カスタムマップ | " + item["title"], "require-resource-pack": "true" if props.get("resource-pack") else "false"})
+        props["op-permission-level"] = "2"
         def property_value(value: str) -> str:
             result = []
             for char in str(value):
@@ -248,8 +323,7 @@ class CustomMapService:
                     result.extend(f"\\u{int.from_bytes(data[n:n + 2], 'big'):04x}" for n in range(0, len(data), 2))
             return "".join(result)
         file.write_text("\n".join(f"{key}={property_value(value)}" for key, value in props.items()) + "\n", encoding="utf-8")
-        people = [session["participants"][u] for u in session["current_members"]]
-        entries = [{"uuid": p["uuid"], "name": p["name"]} for p in people]
+        entries = self.allowed_players()
         (destination / "whitelist.json").write_text(json.dumps(entries), encoding="utf-8")
         ops = [{**p, "level": 2, "bypassesPlayerLimit": False} for p in entries] if item.get("op_required") else []
         (destination / "ops.json").write_text(json.dumps(ops), encoding="utf-8")
@@ -457,9 +531,8 @@ class CustomMapService:
                 session["online"] = [name for name in names if name]
                 if session["online"]:
                     session["active_seconds"] += max(0, elapsed)
-                for user, identity in session["participants"].items():
-                    if identity["name"] in session["online"]:
-                        session["actual_players"][user] = now
+                for name in session["online"]:
+                    session["actual_players"][name] = now
             try:
                 await self.put("session", session, session["generation"])
             except ValueError:
