@@ -63,7 +63,7 @@ class StatusDisplay(commands.Cog):
 
         for server_id, server in self.bot.server_manager.servers.items():
             if server.config.get("workload_type") == "custom_map":
-                embed.add_field(name=server.name, value="稼働中" if server.is_running() else "空き・停止中", inline=False)
+                embed.add_field(name=server.name, value="稼働中" if server.is_running() else "停止中", inline=False)
                 continue
             if not server.is_running():
                 embed.add_field(name=f"{server.name} (停止中)", value="Offline", inline=False)

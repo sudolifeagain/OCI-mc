@@ -205,9 +205,9 @@ class CustomMapService:
         artifact = ensure_vanilla(self.root, item["mc_version"])
         client = get_rcon_client(slot.config)
         if client is None:
-            raise ValueError("サーバーの設定に不備があります。管理者に確認を依頼してください。")
+            raise ValueError("サーバーの設定に不備があります。管理者に連絡してください。")
         if destination.exists() and any(destination.iterdir()):
-            raise ValueError("別の保存データが残っているため起動できません。管理者に確認を依頼してください。")
+            raise ValueError("別の保存データが残っているため起動できません。管理者に連絡してください。")
         if destination.exists():
             destination.rmdir()
         if saved.exists():
@@ -215,7 +215,7 @@ class CustomMapService:
         else:
             template = self.root / "templates" / valid_id(item["id"]) / valid_id(item["revision"])
             if not (template / "world" / "level.dat").is_file():
-                raise ValueError("マップのファイルが見つかりません。管理者に確認を依頼してください。")
+                raise ValueError("マップのファイルが見つかりません。管理者に連絡してください。")
             required = sum(p.stat().st_size for p in template.rglob("*") if p.is_file())
             if shutil.disk_usage(self.root).free < required + 1024 ** 3:
                 raise ValueError("サーバーの空き容量が足りないため、ワールドを作成できません。")
@@ -283,7 +283,7 @@ class CustomMapService:
                 if not server.last_stop_graceful:
                     session["state"] = "FAILED"
                     await self.put("session", session)
-                    raise RuntimeError("ワールドを正しく保存・停止できませんでした。データは削除せずに残しています。管理者に確認を依頼してください。")
+                    raise RuntimeError("ワールドを正しく保存・停止できませんでした。データは削除せずに残しています。管理者に連絡してください。")
                 await asyncio.to_thread(self._detach, session)
                 session["slot"] = None
                 session["last_saved"] = time.time()
@@ -302,7 +302,7 @@ class CustomMapService:
         target = self._session_path(session["id"])
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
-            raise ValueError("保存先に別のデータがあるため、中断できません。管理者に確認を依頼してください。")
+            raise ValueError("保存先に別のデータがあるため、中断できません。管理者に連絡してください。")
         os.replace(source, target)
         source.mkdir()
 
@@ -327,7 +327,7 @@ class CustomMapService:
                     session["result"] = "abandoned"
             if purge:
                 if not target.resolve().is_relative_to((self.root / "trash").resolve()) or target.is_symlink():
-                    raise ValueError("削除するワールドを確認できませんでした。管理者に確認を依頼してください。")
+                    raise ValueError("削除するワールドを確認できませんでした。管理者に連絡してください。")
                 if target.exists():
                     await asyncio.to_thread(shutil.rmtree, target)
                 session["data_available"] = "none"
@@ -377,7 +377,7 @@ class CustomMapService:
                 destination = self._session_path(ident)
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 if destination.exists():
-                    raise ValueError("同じ保存先にデータがあるため、元に戻せません。管理者に確認を依頼してください。")
+                    raise ValueError("同じ保存先にデータがあるため、元に戻せません。管理者に連絡してください。")
                 await asyncio.to_thread(os.replace, source, destination)
                 session.update(data_available="saved", trash_until=None)
             elif session["state"] != "COMPLETED":
@@ -400,7 +400,7 @@ class CustomMapService:
                             stream.seek(max(0, log.stat().st_size - 2 * 1024 ** 2))
                             return any(save_failed_log_line(line) for line in stream.read().decode("utf-8", errors="replace").splitlines())
                     if session.get("save_error_seen") or await asyncio.to_thread(failed_save):
-                        session.update(state="FAILED", error="前回の保存に失敗しているため、自動再開を止めています。管理者に確認を依頼してください。")
+                        session.update(state="FAILED", error="前回の保存に失敗しているため、自動再開を止めています。管理者に連絡してください。")
                         await self.put("session", session)
                 if session["state"] == "DELETING":
                     source, trash = self._session_path(session["id"]), self.root / "trash" / valid_id(session["id"])
@@ -489,7 +489,7 @@ class CustomMapService:
                     if not await self.manager.stop_server(slot, preserve_desired=True, maintenance=True):
                         raise RuntimeError("バックアップのためにワールドを停止できませんでした。")
                     if not self.manager.get_server(slot).last_stop_graceful:
-                        session.update(state="FAILED", error="バックアップ中にワールドを正しく停止できませんでした。管理者に確認を依頼してください。")
+                        session.update(state="FAILED", error="バックアップ中にワールドを正しく停止できませんでした。管理者に連絡してください。")
                         await self.put("session", session)
                         raise RuntimeError("保存を確認できなかったため、バックアップを中止しました。")
                     safe_restart = True
@@ -542,7 +542,7 @@ class CustomMapService:
                     if safe_restart and not self.manager.is_running(slot):
                         restored = await self.manager.start_server(slot, maintenance=True, custom_session=True)
                         if not restored:
-                            session.update(state="FAILED", error="バックアップ後にワールドを再開できませんでした。保存データは残っています。管理者に確認を依頼してください。")
+                            session.update(state="FAILED", error="バックアップ後にワールドを再開できませんでした。保存データは残っています。管理者に連絡してください。")
                             await self.put("session", session)
                     self.manager.end_maintenance(slot)
 
@@ -564,7 +564,7 @@ class CustomMapService:
             original = await self.get("session", record["session_id"])
             archive = Path(record["path"])
             if not archive.resolve().is_relative_to((self.root / "backups").resolve()):
-                raise ValueError("バックアップの保存先を確認できません。管理者に確認を依頼してください。")
+                raise ValueError("バックアップの保存先を確認できません。管理者に連絡してください。")
             if not archive.exists():
                 from utils.notion_api import get_backups_list, download_file
                 remote = next((x for x in await asyncio.to_thread(get_backups_list, 1, record["filename"]) if x.get("filename") == record["filename"]), None)
@@ -576,19 +576,19 @@ class CustomMapService:
                     await asyncio.to_thread(download_file, remote["url"], str(partial))
                     with partial.open("rb") as stream:
                         if hashlib.file_digest(stream, "sha256").hexdigest() != record["sha256"]:
-                            raise ValueError("ダウンロードしたバックアップが破損しているため復元できません。管理者に確認を依頼してください。")
+                            raise ValueError("ダウンロードしたバックアップが破損しているため復元できません。管理者に連絡してください。")
                     await asyncio.to_thread(os.replace, partial, archive)
                 finally:
                     partial.unlink(missing_ok=True)
             with archive.open("rb") as stream:
                 if hashlib.file_digest(stream, "sha256").hexdigest() != record["sha256"]:
-                    raise ValueError("バックアップが破損しているため復元できません。管理者に確認を依頼してください。")
+                    raise ValueError("バックアップが破損しているため復元できません。管理者に連絡してください。")
             with tempfile.TemporaryDirectory(dir=archive.parent, prefix=".restore-") as temporary:
                 stage = Path(temporary)
                 await asyncio.to_thread(safe_extract, archive, stage)
                 data = json.loads((stage / "custom-session.json").read_text(encoding="utf-8"))["session"]
                 if data["id"] != record["session_id"] or data["map_id"] != record["map_id"] or data["map"]["revision"] != record["revision"] or not (stage / "world" / "level.dat").is_file():
-                    raise ValueError("バックアップとワールドの情報が一致しないため、復元できません。管理者に確認を依頼してください。")
+                    raise ValueError("バックアップとワールドの情報が一致しないため、復元できません。管理者に連絡してください。")
                 data = {**data, "name": data["name"][:52] + "（復元）", "state": "PAUSED", "slot": None, "result": "unknown", "actual_players": {}, "active_seconds": 0, "restored_from": data["id"], "last_saved": time.time(), "control_generation": 1}
                 data.update({key: original[key] for key in ("guild", "channel", "owner")})
                 for key in ("id", "created", "updated", "generation"):

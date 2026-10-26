@@ -903,7 +903,7 @@ class MultiServerManager:
             if not heavy:
                 budget = server.config.get("reservation_mb", (server._get_allocated_memory_mb() or 0) + 1536)
                 if budget <= 1536:
-                    return False, "サーバーのメモリ設定を確認できません。管理者に確認を依頼してください。"
+                    return False, "サーバーのメモリ設定を確認できません。管理者に連絡してください。"
                 growth = 0
                 total = budget
                 for other in reserved:

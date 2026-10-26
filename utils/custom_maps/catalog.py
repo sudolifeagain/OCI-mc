@@ -55,7 +55,7 @@ class Catalog:
         try:
             return self.items[map_id]
         except KeyError:
-            raise ValueError("カスタムマップが見つからない") from None
+            raise ValueError("マップが見つかりません。") from None
 
     def search(self, filters: dict, *, available: set[str] | None = None, played: dict | None = None) -> list[dict]:
         played = played or {}
