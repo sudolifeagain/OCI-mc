@@ -16,7 +16,7 @@ from discord.ext import commands, tasks
 from settings import CONFIG, SERVER_RUNTIME_DIR
 from utils.custom_maps.catalog import summary
 from utils.custom_maps.service import CustomMapService
-from utils.discord_security import is_allowed_command_context
+from utils.discord_security import is_allowed_command_context, is_custom_map_channel, custom_map_channel_notice
 from utils.permissions import check_role
 
 log = logging.getLogger(__name__)
@@ -83,6 +83,9 @@ class Screen(discord.ui.LayoutView):
         if not is_allowed_command_context(interaction):
             await interaction.response.send_message("このDiscordサーバーでは利用できません。", ephemeral=True)
             return False
+        if not is_custom_map_channel(interaction):
+            await interaction.response.send_message(custom_map_channel_notice(), ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+            return False
         if self.owner is not None and (interaction.user.id != self.owner or time.time() > self.expires):
             await interaction.response.send_message("この画面は有効期限が切れています。/escape home から開き直してください。", ephemeral=True)
             return False
@@ -105,6 +108,8 @@ class Form(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction) -> None:
         if self.owner != interaction.user.id or not is_allowed_command_context(interaction):
             return await interaction.response.send_message("このフォームを送信する権限がありません。", ephemeral=True)
+        if not is_custom_map_channel(interaction):
+            return await interaction.response.send_message(custom_map_channel_notice(), ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
         await interaction.response.defer(ephemeral=True, thinking=True)
         try:
             values = {}
@@ -210,7 +215,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
 
     def panel_view(self) -> Screen:
         screen = Screen(self)
-        screen.text("# カスタムマップ\n脱出マップを選んで、みんなで遊べます。\n中断したワールドは「続きから」で再開できます。")
+        screen.text("# カスタムマップ\n脱出マップを選んで、みんなで遊べます。\n中断したワールドは「続きから」で再開できます。\n\n" + self.host_status())
         screen.row(screen.button("ホームを開く", self.open_home, "cm:panel:home", style=discord.ButtonStyle.primary), screen.button("マップを探す", self.open_search, "cm:panel:search"), screen.button("続きから", self.open_sessions, "cm:panel:sessions"))
         return screen
 
@@ -404,7 +409,8 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         if kind == "room":
             people = await self.service.readiness(record)
             ready = sum(p["ready"] for p in people)
-            screen.text(f"参加者：{len(people)}人 / 予定{record['players']}人\n準備完了：{ready}人\n\n" + "\n".join(f"<@{p['user']}>：{'準備完了' if p['ready'] else '準備中'}" for p in people)[:1100])
+            screen.text(f"参加予定：{record['players']}人（このマップは{item['min_players']}～{item['max_players']}人）\n募集への参加：{len(people)}人 / 準備の確認：{ready}人\n\n" + "\n".join(f"<@{p['user']}>：{'準備完了' if p['ready'] else '準備未確認'}" for p in people)[:1100])
+            screen.text("代表者だけで先にサーバーを起動できます。遊ぶ前に全員が「参加前の準備」でバージョンや設定を確認してください。")
             jobs = [j for j in await self.service.rows("job", record["guild"]) if j.get("room") == ident and j["state"] != "SUPERSEDED"]
             if jobs:
                 job = jobs[0]
@@ -445,7 +451,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
                 await self.service.cancel_room(ident, i.user.id)
                 await self.update_card(kind, ident)
                 await self.show(i, await self.object_view(i, kind, ident))
-            screen.row(screen.button("参加する", join, f"cm:room:{ident}:join"), screen.button("参加を取り消す", leave, f"cm:room:{ident}:leave"), screen.button("プレイを開始", start, f"cm:room:{ident}:start", style=discord.ButtonStyle.primary))
+            screen.row(screen.button("参加する", join, f"cm:room:{ident}:join"), screen.button("参加を取り消す", leave, f"cm:room:{ident}:leave"), screen.button("ワールドを起動", start, f"cm:room:{ident}:start", style=discord.ButtonStyle.primary))
             screen.row(screen.button("募集を取り消す", cancel, f"cm:room:{ident}:cancel"))
         if kind == "session":
             async def action(i: discord.Interaction, finish: bool) -> None:
@@ -496,6 +502,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
     async def bind_card(self, kind: str, ident: str, channel) -> None:
         if channel is None:
             raise ValueError("投稿先のチャンネルが見つかりません。")
+        self.service.check_channel(channel.id)
         if kind != "panel":
             record = await self.service.get(kind, ident)
             if str(channel.id) != record["channel"] or str(channel.guild.id) != record["guild"]:
@@ -509,7 +516,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         if not binding:
             return
         try:
-            view = await self.shared_view(kind, ident)
+            view = self.panel_view() if kind == "panel" else await self.shared_view(kind, ident)
             rendered = json.dumps(view.to_components(), ensure_ascii=False, sort_keys=True)
             if self.rendered.get(binding["id"]) == rendered:
                 return
@@ -526,6 +533,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         job = await asyncio.to_thread(self.service.store.create, "job", guild=room["guild"], channel=room["channel"], owner=room["owner"], room=ident, state="RUNNING")
         await interaction.edit_original_response(content="ワールドを準備しています。起動が終わると、このチャンネルに接続先を表示します。")
         async def run() -> None:
+            session = None
             try:
                 session = await self.service.start(ident, interaction.user.id, generation)
                 channel = self.bot.get_channel(int(room["channel"])) or await self.bot.fetch_channel(int(room["channel"]))
@@ -533,10 +541,23 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
                 job["session"] = session["id"]
                 job["state"] = "DONE"
             except Exception as error:
-                log.exception("カスタムマップの初期化・起動が失敗した")
+                if isinstance(error, ValueError):
+                    log.info("カスタムマップを起動できない: %s", error)
+                else:
+                    log.exception("カスタムマップの初期化・起動が失敗した")
                 job["state"], job["error"] = "FAILED", str(error)[:500]
             finally:
                 await self.service.put("job", job)
+                if job["state"] == "DONE":
+                    result = "ワールドを起動しました。このチャンネルのプレイ画面に接続先を表示しています。"
+                elif session:
+                    result = "ワールドは起動しましたが、プレイ画面を投稿できませんでした。管理者に連絡してください。\n" + job["error"]
+                else:
+                    result = "ワールドを起動できませんでした。\n" + job["error"]
+                try:
+                    await interaction.edit_original_response(content=result, allowed_mentions=discord.AllowedMentions.none())
+                except discord.HTTPException:
+                    log.warning("起動結果の個別メッセージを更新できない: %s", ident)
                 await self.update_card("room", ident)
         task = asyncio.create_task(run())
         self.service.jobs.add(task)
@@ -642,7 +663,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             await self.service.poll()
             await self.service.expire_trash()
             for binding in await self.service.rows("message"):
-                if binding["type"] in ("room", "session"):
+                if binding["type"] in ("panel", "room", "session"):
                     await self.update_card(binding["type"], binding["target"])
         except Exception:
             log.exception("カスタムマップの定期更新が失敗した")
@@ -688,7 +709,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
         await self.permitted(interaction, session, control=True)
         await self.room_form(interaction, session["map"], session)
 
-    @app_commands.command(name="start", description="参加者の準備を確認してプレイを始める")
+    @app_commands.command(name="start", description="ワールドを起動して接続先を表示する")
     async def start(self, interaction: discord.Interaction, room_id: str) -> None:
         room = await self.service.get("room", room_id)
         await self.launch(interaction, room_id, room["generation"])
@@ -714,6 +735,7 @@ class CustomMaps(commands.GroupCog, group_name="escape", group_description="カ�
             raise ValueError("別のDiscordサーバーのワールドは復旧できません。")
         await interaction.response.defer(ephemeral=True, thinking=True)
         if channel:
+            self.service.check_channel(channel.id)
             session["channel"] = str(channel.id)
             session = await self.service.put("session", session)
             await self.bind_card("session", session_id, channel)

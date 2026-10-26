@@ -52,7 +52,7 @@
 			"auto_start": false,
 			"run_as_user": "mc-custom-1",
 			"startup_timeout": 300,
-			"log_forwarding": false,
+			"log_forwarding": true,
 			"rcon_port": 25578,
 			"rcon_password_env": "CUSTOM_MAP_1_RCON_PASSWORD"
 		},
@@ -68,7 +68,7 @@
 			"auto_start": false,
 			"run_as_user": "mc-custom-2",
 			"startup_timeout": 300,
-			"log_forwarding": false,
+			"log_forwarding": true,
 			"rcon_port": 25579,
 			"rcon_password_env": "CUSTOM_MAP_2_RCON_PASSWORD"
 		}

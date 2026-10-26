@@ -92,3 +92,28 @@ class Store:
         with self.connect() as source, contextlib.closing(sqlite3.connect(destination)) as target:
             with target:
                 source.backup(target)
+
+    def relocate_channel(self, guild: int | str, source: int | str, destination: int | str, messages: dict[str, str]) -> dict[str, str]:
+        """投稿済みカードの対応表と全関連レコードを一度に移す。"""
+        if str(source) == str(destination):
+            raise ValueError("移動元と移動先のチャンネルが同じである")
+        moved = {}
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT kind,id,data FROM records WHERE guild=? AND channel=?", (str(guild), str(source))).fetchall()
+            bindings = {row["id"] for row in rows if row["kind"] == "message"}
+            if bindings != set(messages):
+                raise ValueError("移動対象の共有カードと投稿結果が一致しない")
+            for row in rows:
+                record = json.loads(row["data"])
+                record.update(channel=str(destination), generation=record.get("generation", 0) + 1, updated=time.time())
+                if row["kind"] == "message":
+                    record["message_id"] = str(messages[row["id"]])
+                    if record["type"] == "panel":
+                        record.update(id=f"panel-{destination}", target=str(destination))
+                        if db.execute("SELECT 1 FROM records WHERE kind='message' AND id=?", (record["id"],)).fetchone():
+                            raise ValueError("移動先の常設パネルがすでに存在する")
+                    moved[row["id"]] = record["id"]
+                db.execute("DELETE FROM records WHERE kind=? AND id=?", (row["kind"], row["id"]))
+                db.execute("INSERT INTO records VALUES(?,?,?,?,?,?,?)", (row["kind"], record["id"], str(guild), str(record.get("owner", "")), str(destination), record["updated"], json.dumps(record, ensure_ascii=False)))
+        return moved

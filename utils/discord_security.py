@@ -3,6 +3,7 @@ import re
 import discord
 
 from settings import (
+    CUSTOM_MAP_CHANNEL_ID,
     DISCORD_GUILD_IDS,
     DISCORD_SHELL_CHANNEL_IDS,
     DISCORD_SHELL_USER_IDS,
@@ -10,6 +11,14 @@ from settings import (
 
 
 PLAYER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,32}$")
+
+
+def is_custom_map_channel(interaction: discord.Interaction) -> bool:
+    return not CUSTOM_MAP_CHANNEL_ID or interaction.channel_id == CUSTOM_MAP_CHANNEL_ID
+
+
+def custom_map_channel_notice() -> str:
+    return f"カスタムマップは <#{CUSTOM_MAP_CHANNEL_ID}> で操作してください。"
 
 
 def _interaction_channel_ids(interaction: discord.Interaction) -> set[int]:

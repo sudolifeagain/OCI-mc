@@ -81,6 +81,7 @@ async def verify(args) -> None:
     if any(p.info["name"] == "java" for p in psutil.process_iter(["name"])):
         raise ValueError("既存Minecraftプロセスが稼働中である")
     config = json.loads(Path("config.json").read_text())
+    config["custom_maps"]["channel_id"] = 0  # 検証用複製はDiscordへ投稿しない。
     for entry in config["servers"].values():
         entry["auto_start"] = False
     root = Path(config["custom_maps"]["root"])
