@@ -1,0 +1,1549 @@
+{
+  "checked_date_jst": "2026-10-27",
+  "host_arch": "aarch64",
+  "existing_maps": 28,
+  "added_maps": 32,
+  "published_maps": 60,
+  "synthetic_clients": true,
+  "puzzle_completion_verified": false,
+  "maps": [
+    {
+      "map_id": "butterfly-dream",
+      "title": "胡蝶と夢",
+      "source_url": "https://minecraft-mcworld.com/643/",
+      "mc_version": "1.16.1",
+      "revision": "20261027",
+      "archive_sha256": "eb687e326880860341496f9bbe0b78e0c4f1cb8228a201b2822aaf9184c1c21d",
+      "original_level_sha256": "f72f9cc0dd7c81e81239c52b2a57eef72bd47a6a57eb88e3f1960a0a8570a954",
+      "host_arch": "aarch64",
+      "checked_at": 1793029846.6805975,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 3,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.16.1",
+        "rcon_players": true,
+        "server_memory_mb": 1048.14453125,
+        "host_available_mb": 14153
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.16.1",
+        "rcon_players": true,
+        "server_memory_mb": 1022.05078125,
+        "host_available_mb": 14274
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "arcana",
+      "title": "Arcana",
+      "source_url": "https://minecraft-mcworld.com/3095/",
+      "mc_version": "1.17.1",
+      "revision": "20261027",
+      "archive_sha256": "97b8276772ce0687e647857cd626a7246547e93b6cfd570b7282359700d7bbe3",
+      "original_level_sha256": "a5c74917c07f5d6e0de552a5b75fc38e955fee3bb7f843239e5b8bc5b1950bd1",
+      "host_arch": "aarch64",
+      "checked_at": 1793029846.681538,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.17.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1950.76171875,
+        "host_available_mb": 14180
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.17.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1931.93359375,
+        "host_available_mb": 15330
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "gemuseka",
+      "title": "ゲムセカ脱出ゲーム",
+      "source_url": "https://minecraft-mcworld.com/9915/",
+      "mc_version": "1.18.1",
+      "revision": "20261027",
+      "archive_sha256": "8c2660494e4a2a9fc569db3c7fd05e98d1861ff1466e86431d2010139cc462e4",
+      "original_level_sha256": "1a766b1386362e86c37915e0633b30c8ad58f3e9dbc311db22b15e7b5160e2c0",
+      "host_arch": "aarch64",
+      "checked_at": 1793030000.185549,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2379.5546875,
+        "host_available_mb": 13122
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2367.86328125,
+        "host_available_mb": 13446
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "heros-challenge",
+      "title": "英雄からの挑戦状",
+      "source_url": "https://minecraft-mcworld.com/20897/",
+      "mc_version": "1.19",
+      "revision": "20261027",
+      "archive_sha256": "a07a37e87b74b393348a33df70ba081ef78fd033177e0b53bca0bb6bebac6ad3",
+      "original_level_sha256": "dc7a88f31231173372eaf3cf058feec3c509e48d090e345a390ff92d3381e5d2",
+      "host_arch": "aarch64",
+      "checked_at": 1793030000.1858912,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1351.02734375,
+        "host_available_mb": 13205
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1321.41796875,
+        "host_available_mb": 15504
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "witch-sky-island",
+      "title": "歯車仕掛けの魔女の空島",
+      "source_url": "https://minecraft-mcworld.com/34307/",
+      "mc_version": "1.19.3",
+      "revision": "20261027",
+      "archive_sha256": "1d4bacd3724f30b7329499b0c4e76f585fe680521c9142c2565925227ef8a78c",
+      "original_level_sha256": "5fd734416d095d5af3923a30ac208b6c6b08dfd60b691815367fe62f83f36dbc",
+      "host_arch": "aarch64",
+      "checked_at": 1793030164.0647926,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19.3",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1737.65625,
+        "host_available_mb": 14622
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19.3",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1966.8515625,
+        "host_available_mb": 15301
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "moonlight-flower",
+      "title": "月光に咲く魔法の花",
+      "source_url": "https://minecraft-mcworld.com/140943/",
+      "mc_version": "1.21.4",
+      "revision": "20261027",
+      "archive_sha256": "7424599381ef27829bb1c0d67064d6f51b947b59ed714ed509be514336bfac4c",
+      "original_level_sha256": "19f9ec219e7a636d18bf70dee047dc43b5af1bb283539d6007643a7006cf5e37",
+      "host_arch": "aarch64",
+      "checked_at": 1793030164.0649407,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 644.49609375,
+        "host_available_mb": 14561
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 662.19921875,
+        "host_available_mb": 14474
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "polar-night",
+      "title": "極夜の星誕祭",
+      "source_url": "https://minecraft-mcworld.com/55465/",
+      "mc_version": "1.20.2",
+      "revision": "20261027",
+      "archive_sha256": "275d1c5180499c826c44c4f8147c044e1e1419d96ac68308f313e7d7b12a4823",
+      "original_level_sha256": "9f19a9e7dd604d78a130e5d01c46853fad3116f2800480b7233a5f1c63f427c4",
+      "host_arch": "aarch64",
+      "checked_at": 1793030299.3814077,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1409.84765625,
+        "host_available_mb": 14828
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1479.0078125,
+        "host_available_mb": 15760
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "mirror-inn",
+      "title": "かがみの旅館",
+      "source_url": "https://minecraft-mcworld.com/200645/",
+      "mc_version": "1.21.11",
+      "revision": "20261027",
+      "archive_sha256": "3080dc842185b24dec0694a48ddd625645692028dc8a0c3215913085b1dd75a8",
+      "original_level_sha256": "96c198617d78d6bd3ec8c02941ea25f1d6e6356db9699ce4a965faaeb4d5c358",
+      "host_arch": "aarch64",
+      "checked_at": 1793030299.3819041,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 671.29296875,
+        "host_available_mb": 14943
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 646.09765625,
+        "host_available_mb": 14711
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "forgotten-shrine",
+      "title": "忘れられた神社からの脱出",
+      "source_url": "https://minecraft-mcworld.com/89366/",
+      "mc_version": "1.21.1",
+      "revision": "20261027",
+      "archive_sha256": "47aa8467ecacd696a70e1d4687c0c2fb4e820b3545b0420fa98fa47f05aa975e",
+      "original_level_sha256": "ba2c7aadfb13ad9a23fc40cd8a8a27a02cd460b39a24b68ceffc593e3bb8a76f",
+      "host_arch": "aarch64",
+      "checked_at": 1793030420.883444,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 688.3125,
+        "host_available_mb": 15559
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 686.23046875,
+        "host_available_mb": 15547
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "returning-knight",
+      "title": "回帰する騎士",
+      "source_url": "https://minecraft-mcworld.com/211026/",
+      "mc_version": "1.21.11",
+      "revision": "20261027",
+      "archive_sha256": "357b9c61f5126d4c99510e536dad77a2a82e268319d9f1cea9d80e503de457d2",
+      "original_level_sha256": "6db35daef2519e24bc1ddc00c4f94706fd747d73a07eec09bdaf45f9ef33a5ee",
+      "host_arch": "aarch64",
+      "checked_at": 1793030420.8835928,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 673.48046875,
+        "host_available_mb": 15564
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 665.73046875,
+        "host_available_mb": 16529
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "riddle-mansion",
+      "title": "謎解きの館",
+      "source_url": "https://minecraft-mcworld.com/101263/",
+      "mc_version": "1.20.4",
+      "revision": "20261027",
+      "archive_sha256": "ef3752e2c797d96157045701ef790a29bcd49777db7ede0dc69a29c391422d22",
+      "original_level_sha256": "d57f1a4d61f016966e578c086b96436e1c81b924e60985810e930a53126cc220",
+      "host_arch": "aarch64",
+      "checked_at": 1793030541.6133146,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1455.1171875,
+        "host_available_mb": 14806
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1365.16015625,
+        "host_available_mb": 15837
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "ewelteere-tomb",
+      "title": "エウェルテーレの墓",
+      "source_url": "https://minecraft-mcworld.com/181619/",
+      "mc_version": "1.21.10",
+      "revision": "20261027",
+      "archive_sha256": "5ba1ce2e01c405b1c5475a4c06f429f03f84b81b38a0ef970306d249d1d41207",
+      "original_level_sha256": "e297da5c014f1e1ac993b019a153f0f75a91234ef95a939825a84b0bf4b93985",
+      "host_arch": "aarch64",
+      "checked_at": 1793030541.6134567,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.10",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 679.94921875,
+        "host_available_mb": 14916
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.10",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 595.96875,
+        "host_available_mb": 15018
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "seventh-period-shrine",
+      "title": "七限目は祠の中で",
+      "source_url": "https://minecraft-mcworld.com/170351/",
+      "mc_version": "1.21.5",
+      "revision": "20261027",
+      "archive_sha256": "a4ac24ba3e4f6f4ff40feb1fb3bab8f6a11e84653a4907ed43854923f573facf",
+      "original_level_sha256": "87e5de141fc66ac8039b676099824a89fa6f0c4cf01731b396c05db63f3e0411",
+      "host_arch": "aarch64",
+      "checked_at": 1793030666.0531466,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.5",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 678.00390625,
+        "host_available_mb": 15603
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.5",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 681.4765625,
+        "host_available_mb": 15586
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "horalumina",
+      "title": "煌翼の天秤ホラルミナ",
+      "source_url": "https://minecraft-mcworld.com/191537/",
+      "mc_version": "1.21.11",
+      "revision": "20261027",
+      "archive_sha256": "21e1e1ba28832bd47fbb913c4ee02aaa33368d78dafb326f5907446108cc1a2d",
+      "original_level_sha256": "2f405ebd7714b7f09642a67319db22c6a16c19de0e458b712b5b00c458a8059b",
+      "host_arch": "aarch64",
+      "checked_at": 1793030666.0533137,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 666.0390625,
+        "host_available_mb": 15575
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 657.05078125,
+        "host_available_mb": 16557
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "strange-mansion",
+      "title": "奇妙なマンションからの脱出",
+      "source_url": "https://minecraft-mcworld.com/136809/",
+      "mc_version": "1.21",
+      "revision": "20261027",
+      "archive_sha256": "f74e110445cc3c27afd524888004d54276e175fc0502dd06ad3a6808c24dc2f5",
+      "original_level_sha256": "6809831b01abf61b1c6b0ca44f03d383b269bbbd5235795a8bcf05011845f47e",
+      "host_arch": "aarch64",
+      "checked_at": 1793030784.6788323,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 3,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.21",
+        "rcon_players": true,
+        "server_memory_mb": 694.01171875,
+        "host_available_mb": 15224
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA1"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.21",
+        "rcon_players": true,
+        "server_memory_mb": 709.11328125,
+        "host_available_mb": 16532
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "windless-valley",
+      "title": "かぜなき谷の大風車",
+      "source_url": "https://minecraft-mcworld.com/19671/",
+      "mc_version": "1.19.4",
+      "revision": "20261027",
+      "archive_sha256": "b80ab0e3ee4814572abfaacfb23b6e1b7f21732fb75f477e2e2be7430ebbf64c",
+      "original_level_sha256": "8de686ce9eb9251971942e4bfb6bf4e4ccab587733cf891abeff78ead68a218d",
+      "host_arch": "aarch64",
+      "checked_at": 1793030784.6789691,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1392.50390625,
+        "host_available_mb": 14719
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19.4",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1415.01171875,
+        "host_available_mb": 14898
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "seven-days-system",
+      "title": "システム停止まで残り7日",
+      "source_url": "https://minecraft-mcworld.com/216009/",
+      "mc_version": "26.1",
+      "revision": "20261027",
+      "archive_sha256": "ba530070d863bfd827ef2866e3f3948297e4960d1bff6630c2b95ab92ce080b2",
+      "original_level_sha256": "87a38cbfc1742e70d1a8bbe860a8b6a15d6eaf79dc62352c1c004f783b1b0d2c",
+      "host_arch": "aarch64",
+      "checked_at": 1793032346.3003876,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "26.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 663.6640625,
+        "host_available_mb": 15596
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "26.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 668.80859375,
+        "host_available_mb": 15656
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "abandoned-library",
+      "title": "廃れた図書館からの脱出",
+      "source_url": "https://minecraft-mcworld.com/32653/",
+      "mc_version": "1.19.4",
+      "revision": "20261027",
+      "archive_sha256": "7f2871f40151c2b9e38cafbdb94f754dbafb756c6a5400ec2a993104e59df3fa",
+      "original_level_sha256": "e2379a263cf9ba7cde4dc0aed9a4dbf73255ba13fd77173b86075cc722bb3f86",
+      "host_arch": "aarch64",
+      "checked_at": 1793030909.3715463,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 3,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA1"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.19.4",
+        "rcon_players": true,
+        "server_memory_mb": 1307.2421875,
+        "host_available_mb": 14872
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA3"
+        ],
+        "expected_players": 3,
+        "errors": [],
+        "codec": "1.19.4",
+        "rcon_players": true,
+        "server_memory_mb": 1463.5546875,
+        "host_available_mb": 15798
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "time-valley",
+      "title": "時渡りの谷",
+      "source_url": "https://minecraft-mcworld.com/206330/",
+      "mc_version": "1.21.11",
+      "revision": "20261027",
+      "archive_sha256": "1b847d1394d704d1fcd0824c88761c5fc34646f1a4a68a4d2b947214418adf77",
+      "original_level_sha256": "58c9c322680342ed3cafe186b7b9ace72ea958a0e644f031e894c2665c661fc8",
+      "host_arch": "aarch64",
+      "checked_at": 1793031019.7575111,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 666.77734375,
+        "host_available_mb": 14710
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.11",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 660.23046875,
+        "host_available_mb": 14795
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "suspicious-laboratory",
+      "title": "協力して怪しい研究所から脱出せよ",
+      "source_url": "https://minecraft-mcworld.com/66107/",
+      "mc_version": "1.20.4",
+      "revision": "20261027",
+      "archive_sha256": "a4d19282637d16e721136bd5435ef97104a949b6e04c4a08d5df39cfa0e63c71",
+      "original_level_sha256": "d1a139de4ca46e0087beab34794843ab40e8c97c33a55d0b92121e07c56b43e3",
+      "host_arch": "aarch64",
+      "checked_at": 1793031019.757667,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 2,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "server_memory_mb": 1725.6875,
+        "host_available_mb": 14509
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "server_memory_mb": 1633.15234375,
+        "host_available_mb": 15592
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "time-mansion",
+      "title": "時の館",
+      "source_url": "https://minecraft-mcworld.com/154846/",
+      "mc_version": "1.21.6",
+      "revision": "20261027",
+      "archive_sha256": "55d0504737afb1ca9fcf3b71d8337e4cd99db21df2235fdb9a15f339944f6ed1",
+      "original_level_sha256": "b24de62a66b4d9052abc0c1f84ab7040ee31ea469c92211f1fb97aa489204a15",
+      "host_arch": "aarch64",
+      "checked_at": 1793031147.5120919,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.6",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 690.0859375,
+        "host_available_mb": 14878
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.6",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 732.80859375,
+        "host_available_mb": 14672
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "dream-escape",
+      "title": "夢からの脱出",
+      "source_url": "https://minecraft-mcworld.com/76375/",
+      "mc_version": "1.20.4",
+      "revision": "20261027",
+      "archive_sha256": "86599dbc1ff540eb48e15c1c75024b44efc6b34a22471b20a5ca7a2025862939",
+      "original_level_sha256": "d5318237faeda15b709db608da842e1db68bddac15d804c72920b5212d00d14f",
+      "host_arch": "aarch64",
+      "checked_at": 1793031147.5122309,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 2,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "server_memory_mb": 1375.9609375,
+        "host_available_mb": 14818
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.20.4",
+        "rcon_players": true,
+        "server_memory_mb": 1688.83984375,
+        "host_available_mb": 15544
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "trap-house",
+      "title": "トラップ 罠だらけの家からの脱出",
+      "source_url": "https://minecraft-mcworld.com/243711/",
+      "mc_version": "1.18.2",
+      "revision": "20261027",
+      "archive_sha256": "c29c6e49140627505d1eea1e2823f3aec50320fce64ac127d7f7ba3de4d3faa4",
+      "original_level_sha256": "b6cf93c3bfe0c43cc3205354168a71c9760f285b00bc0f228460b5d6303c2f2c",
+      "host_arch": "aarch64",
+      "checked_at": 1793031278.549623,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1972.58203125,
+        "host_available_mb": 14348
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1920.984375,
+        "host_available_mb": 15293
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "hakobite-garden",
+      "title": "ハコビテの庭",
+      "source_url": "https://minecraft-mcworld.com/166263/",
+      "mc_version": "1.21.8",
+      "revision": "20261027",
+      "archive_sha256": "b33b70939a6913493b9f020170375f3004b4c2d145c83003fb14703d0c8be1be",
+      "original_level_sha256": "edd0231fa86253dbc8c6df6e46b18e3d734876bab17c3aea69903802ef169a1e",
+      "host_arch": "aarch64",
+      "checked_at": 1793031278.549775,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 2,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.21.8",
+        "rcon_players": true,
+        "server_memory_mb": 660.74609375,
+        "host_available_mb": 14411
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2"
+        ],
+        "expected_players": 2,
+        "errors": [],
+        "codec": "1.21.8",
+        "rcon_players": true,
+        "server_memory_mb": 570.9140625,
+        "host_available_mb": 14370
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "ghost-girl-mansion",
+      "title": "幽霊少女と謎の屋敷",
+      "source_url": "https://minecraft-mcworld.com/228315/",
+      "mc_version": "26.1.2",
+      "revision": "20261027",
+      "archive_sha256": "20360b56cf368db102d6b2dbc1f7421ac27c679d3092b98d094f8ca596d3dcb1",
+      "original_level_sha256": "8c7e35de371e958c84f636b7eccdd07e6aa55bcfab4a12bfa1b6c996bff471aa",
+      "host_arch": "aarch64",
+      "checked_at": 1793032346.3014033,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "26.1.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 664.08984375,
+        "host_available_mb": 15591
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "26.1.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 662.11328125,
+        "host_available_mb": 16574
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "rainy-night",
+      "title": "雨宿りの夜 – Escape with a wolf",
+      "source_url": "https://minecraft-mcworld.com/6063/",
+      "mc_version": "1.20.2",
+      "revision": "20261027",
+      "archive_sha256": "ce416ee05a752c3c98c715eade05868218debdcdefa5c3a919f014af230aca73",
+      "original_level_sha256": "a2238e5d23992c8575b097be73cfc44dd77f516e0a0f7465d8921458a905df5a",
+      "host_arch": "aarch64",
+      "checked_at": 1793031420.5430014,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1772.4609375,
+        "host_available_mb": 15488
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.2",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1609.203125,
+        "host_available_mb": 15679
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "snow-night-tale",
+      "title": "雪夜狂談 – What is a Magical Pot?",
+      "source_url": "https://minecraft-mcworld.com/45396/",
+      "mc_version": "1.20.1",
+      "revision": "20261027",
+      "archive_sha256": "4c9736f2f0289f377388ac7fc51db4425aef46596ac273e9c2cc79c58f31330d",
+      "original_level_sha256": "7fce6671f65aea2d4f2c27d2e12e7a457dd13369b8ca0d39fa2b1a2cc6fd9bb7",
+      "host_arch": "aarch64",
+      "checked_at": 1793031558.3228114,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1384.26171875,
+        "host_available_mb": 14759
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.20.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1496.6328125,
+        "host_available_mb": 15733
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "nine-tailed-fox",
+      "title": "九尾狐の鎖",
+      "source_url": "https://minecraft-mcworld.com/176714/",
+      "mc_version": "1.21.10",
+      "revision": "20261027",
+      "archive_sha256": "34c9dd978313931ad3967407d3e1879e8e3a01e6c04e9c401424c000b86b3b7b",
+      "original_level_sha256": "9169370135180f428148a32338907c923a64febdff089814c22405f675e09742",
+      "host_arch": "aarch64",
+      "checked_at": 1793031558.322961,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.10",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 693.8359375,
+        "host_available_mb": 14591
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.21.10",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 665.984375,
+        "host_available_mb": 14997
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "jungle-ruins",
+      "title": "密林の遺跡からの脱出",
+      "source_url": "https://minecraft-mcworld.com/17103/",
+      "mc_version": "1.19",
+      "revision": "20261027",
+      "archive_sha256": "7fefa3bc4b998897dbe93fc5874ccd5f74cf2c940e76af6576c0217878f10803",
+      "original_level_sha256": "e48d8aa52cf9058fc386af39f6de4e1bf6016adf34c86b3b1df06296eb282f84",
+      "host_arch": "aarch64",
+      "checked_at": 1793031701.4010172,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2248.93359375,
+        "host_available_mb": 13211
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA4",
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2338.53125,
+        "host_available_mb": 14932
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "rain-ruins",
+      "title": "雨天の遺跡からの脱出",
+      "source_url": "https://minecraft-mcworld.com/18386/",
+      "mc_version": "1.19",
+      "revision": "20261027",
+      "archive_sha256": "8ecb364110e53bbd967473c2200c2947a22899a1f2ace2b03615aca9ba702ecb",
+      "original_level_sha256": "7b5e6a8a21641bf7741bdac955074ef8168a879825cbd4242a91eb6adfd87bb3",
+      "host_arch": "aarch64",
+      "checked_at": 1793031701.4011705,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1593.06640625,
+        "host_available_mb": 13358
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA3",
+          "OCI_QA4",
+          "OCI_QA2"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.19",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1609.90234375,
+        "host_available_mb": 12970
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "dungeon-escape",
+      "title": "地下牢からの脱出",
+      "source_url": "https://minecraft-mcworld.com/11742/",
+      "mc_version": "1.16.5",
+      "revision": "20261027",
+      "archive_sha256": "2b4967ddcdc93fc48c79f866cb9db14f34e31b02fdaec0104d3b2dfe4d5b41c6",
+      "original_level_sha256": "42b413c1b68b74059feb42fe357cfb69659f63f21d064f0a7e52bf5e835911ba",
+      "host_arch": "aarch64",
+      "checked_at": 1793031871.107887,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA1",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.16.5",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1015.8125,
+        "host_available_mb": 14089
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA2",
+          "OCI_QA3",
+          "OCI_QA4"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.16.5",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 1033.97265625,
+        "host_available_mb": 14945
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    },
+    {
+      "map_id": "strangeday-room",
+      "title": "なんとも不思議な部屋からの脱出",
+      "source_url": "https://minecraft-mcworld.com/10216/",
+      "mc_version": "1.18.1",
+      "revision": "20261027",
+      "archive_sha256": "5a2dc90f19655efd492885d2fee764b178811e68298f77d43d6290c68f4d38fa",
+      "original_level_sha256": "36db6a2c12ef305afb7df9382f11b4618197f588d80742d5fdc0859d31334c8a",
+      "host_arch": "aarch64",
+      "checked_at": 1793031871.108041,
+      "synthetic_clients": true,
+      "puzzle_completion_verified": false,
+      "expected_players": 4,
+      "rcon_ready": true,
+      "first_clients": {
+        "joined": [
+          "OCI_QA1",
+          "OCI_QA4",
+          "OCI_QA2",
+          "OCI_QA3"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2330.0546875,
+        "host_available_mb": 14130
+      },
+      "resumed_clients": {
+        "joined": [
+          "OCI_QA3",
+          "OCI_QA2",
+          "OCI_QA4",
+          "OCI_QA1"
+        ],
+        "expected_players": 4,
+        "errors": [],
+        "codec": "1.18.1",
+        "rcon_players": true,
+        "rcon_four_players": true,
+        "server_memory_mb": 2369.65234375,
+        "host_available_mb": 14881
+      },
+      "save_resume": true,
+      "multiple_players": true,
+      "original_unchanged": true,
+      "passed": true
+    }
+  ]
+}
