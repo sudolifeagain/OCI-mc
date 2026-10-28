@@ -71,7 +71,7 @@ class CustomMapService:
             except (OSError, ValueError, KeyError):
                 pass
             return item
-        return await asyncio.to_thread(pinned)
+        return self.catalog.runtime_map(await asyncio.to_thread(pinned))
 
     async def create_room(self, guild: int, channel: int, owner: int, map_id: str, name: str, players: int, session: dict | None = None) -> dict:
         self.check_channel(session["channel"] if session else channel)
@@ -82,6 +82,7 @@ class CustomMapService:
             manifest_path = self.root / "templates" / item["id"] / item["revision"] / "manifest.json"
             manifest = await asyncio.to_thread(lambda: json.loads(manifest_path.read_text(encoding="utf-8")))
             item = manifest["catalog"]
+        item = self.catalog.runtime_map(item)
         if not item["min_players"] <= players <= item["max_players"]:
             raise ValueError(f"参加人数は{item['min_players']}～{item['max_players']}人で設定してください。")
         if not name.strip() or len(name) > 60:
@@ -189,7 +190,7 @@ class CustomMapService:
                     continue
                 client = get_rcon_client(self.manager.get_server(slot).config)
                 ok, _ = await client.execute(f"whitelist add {profile['name']}") if client else (False, "")
-                if ok and session["map"].get("op_required"):
+                if ok and self.catalog.runtime_map(session["map"]).get("op_required"):
                     ok, _ = await client.execute(f"op {profile['name']}")
                 if not ok:
                     failed.append(slot)
@@ -202,7 +203,8 @@ class CustomMapService:
             if room["state"] != "OPEN" or room["generation"] != expected:
                 raise ValueError("募集内容が変更されました。画面を開き直して確認してください。")
             people = await self.readiness(room)
-            item = room["map"]
+            item = self.catalog.runtime_map(room["map"])
+            room["map"] = item
             if not item["min_players"] <= room["players"] <= item["max_players"] or len(people) > item["max_players"]:
                 raise ValueError(f"参加予定人数は{item['min_players']}～{item['max_players']}人で設定してください。")
             await asyncio.to_thread(self.allowed_players)
@@ -274,7 +276,8 @@ class CustomMapService:
         return self.root / "sessions" / valid_id(session_id) / "server"
 
     def _attach(self, session: dict) -> None:
-        item = session["map"]
+        item = self.catalog.runtime_map(session["map"])
+        session["map"] = item
         slot = self.manager.get_server(session["slot"])
         destination = Path(slot.cwd)
         destination.parent.mkdir(parents=True, exist_ok=True)

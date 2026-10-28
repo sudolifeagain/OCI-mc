@@ -57,6 +57,15 @@ class Catalog:
         except KeyError:
             raise ValueError("マップが見つかりません。") from None
 
+    def runtime_map(self, pinned: dict) -> dict:
+        """保存版を維持し、同一版に対する運用上の修正だけを反映する。"""
+        result = dict(pinned)
+        current = self.items.get(pinned["id"])
+        if current and all(current[key] == pinned[key] for key in ("revision", "mc_version")):
+            if "op_required" in current:
+                result["op_required"] = current["op_required"]
+        return result
+
     def search(self, filters: dict, *, available: set[str] | None = None, played: dict | None = None) -> list[dict]:
         played = played or {}
         result = []

@@ -632,6 +632,7 @@
     {
       "id": "hero-remake",
       "title": "英雄墓地からの脱出 Remake",
+      "op_required": true,
       "author": "プラム太郎",
       "mc_version": "1.16.5",
       "revision": "20261026",

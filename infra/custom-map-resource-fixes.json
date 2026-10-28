@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "rules": [
+    {
+      "id": "hero-remake-20261026",
+      "version": "1.16.5",
+      "description": "作者の作業用ファイルを実行対象外へ退避し、存在しないヒントページの呼び出しを除去する。進行・建築・原本は変更しない。",
+      "marker": {
+        "path": "world/datapacks/taro_pack/data/once_magic/functions/click_magic.mcfunction",
+        "sha256": "ce56a35a8e4b1af8cd69fcb983ba67bc2b3e52cf204c5ee302864109649c5e83"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/ikenie/functions/check_box/check_item - âRâsü[.mcfunction",
+          "sha256": "da76d1194bf523d5b6eaf8f822343f1a2eb044a53cb36eab371c994f75ea7792"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/word/functions/readüiâ}âXâ^ü[20210916üj.mcfunction",
+          "sha256": "8ea9189df58432f98899b074e1d26319c229c437f657956f4557835f7900e361"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/èmöFâtâHâïâ_",
+          "files": {
+            "check_glass_for_particle.mcfunction": "9675c70ba7be93e650007b84d494a7540e5ab1c71c31d441e0fca0a349b96a7c",
+            "check_void_for_particle.mcfunction": "500c061815b1b80a542c48488c3a4c8240af258452c054a6b6c3cf5219707bc7",
+            "step_all_delete.mcfunction": "f4b1e987b713f033cf8daa2349cf09f97239d39df42f7abbd33c74a494d5ec83",
+            "step_particle.mcfunction": "4f1a099319008dcf6e3cc9f52aaf381021ac259ea6c37662977fcd180d873fa0",
+            "steps.mcfunction": "36355f1f18abc6b32d8b4b08c68152642d458e49765ea5ec5a706613820ae292",
+            "system.mcfunction": "f46bea80a36521a18ca3d28a3f2b632f49a7a430da334ece295924c4089ec011"
+          }
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/pack.mcmeta",
+          "sha256": "7f6cff69e41606eec83155cb78e8810ce5c96d463b23d26a4d7791cb2b928313",
+          "result_sha256": "3faf8b72b5b477abf8c78f812ee87338f2ed365269263528d76bdeb956c9564b",
+          "replacements": [
+            {
+              "before": "\"pack_format\": 1",
+              "after": "\"pack_format\": 6"
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/data/hint/functions/hint_text/hint_text_no39.mcfunction",
+          "sha256": "3e424f96d8af4e670292413b2e2cfab63094c3d078bdece2e7637159b384efdc",
+          "result_sha256": "0f124fc19eb400e851d94a0c8f71a4cd0c42224837c750a2da5fa3149e672f75",
+          "replacements": [
+            {
+              "before": "schedule function hint:hint_text/hint_text_no39_3 9s",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/data/hint/functions/hint_text/hint_text_no40.mcfunction",
+          "sha256": "9573e1ec3db0fea4e791b592b41d974b4d46f2152eb57777414c412d7f407b1e",
+          "result_sha256": "041d82ba7682a0352e5100e349dde1eb2f783a543955c009e433f35fb179ccd7",
+          "replacements": [
+            {
+              "before": "schedule function hint:hint_text/hint_text_no40_3 9s",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/data/hint/functions/hint_text/hint_text_no51.mcfunction",
+          "sha256": "d2db0c4a5df606ee693d922d680169b9bfbec13426a9cc9da379be8b2f7f1062",
+          "result_sha256": "0c422f823c80f955b5c81a103541122910581e761c7eb5c8e381e8dcf770c188",
+          "replacements": [
+            {
+              "before": "schedule function hint:hint_text/hint_text_no51_3 9s",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/data/hint/functions/hint_text/hint_text_no52.mcfunction",
+          "sha256": "c97ddc931f663bc5536468de90658b5117711ec24a4802e46aa152101af86ba7",
+          "result_sha256": "44199add468f4380c41507f9ce739a48ca1ca7c8a4633cca470f43fecfb5a54f",
+          "replacements": [
+            {
+              "before": "schedule function hint:hint_text/hint_text_no52_3 9s",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/taro_pack/data/hint/functions/click_text/click_text_found_fire.mcfunction",
+          "sha256": "18acec938fbe9dcdce1faa9a0e4b9530d3e31ccad99dd74897f916288979d097",
+          "result_sha256": "f567854ae1f1529bcd58b628e8d28e3dced307a270aceffbf44e653687120139",
+          "replacements": [
+            {
+              "before": "execute if block -7 15 -55 diamond_block run function hint:hint_text/hint_text_no69\r\n",
+              "after": ""
+            },
+            {
+              "before": "execute if block -7 15 -59 diamond_block run function hint:hint_text/hint_text_no70",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "action": "create",
+          "path": "world/datapacks/oci_mc_hero_remake_fixes/pack.mcmeta",
+          "content": "{\"pack\": {\"pack_format\": 6, \"description\": \"OCI-mc: disable obsolete duplicate gravity controllers\"}}\n",
+          "result_sha256": "2c9af3a75ef0415aaadef1d9a724a85a17d06451b20df25a467dc564c080afe1"
+        },
+        {
+          "action": "create",
+          "path": "world/datapacks/oci_mc_hero_remake_fixes/data/minecraft/tags/functions/tick.json",
+          "content": "{\"values\": [\"oci_mc_hero_remake_fixes:legacy_gravity\"]}\n",
+          "result_sha256": "cd2945a97822bec3f2840ca27f9cbb760e39df167ae80702fa7889f2c4961c38"
+        },
+        {
+          "action": "create",
+          "path": "world/datapacks/oci_mc_hero_remake_fixes/data/oci_mc_hero_remake_fixes/functions/legacy_gravity.mcfunction",
+          "content": "execute if data block -119 80 -297 {Command:\"function gravityroom:gravity90\"} run data merge block -119 80 -297 {Command:\"\",TrackOutput:0b,LastOutput:'{\"text\":\"\"}'}\nexecute if data block -119 88 -231 {Command:\"function gravityroom:gravity180\"} run data merge block -119 88 -231 {Command:\"\",TrackOutput:0b,LastOutput:'{\"text\":\"\"}'}\nexecute if data block -119 72 -152 {Command:\"function gravityroom:gravity270\"} run data merge block -119 72 -152 {Command:\"\",TrackOutput:0b,LastOutput:'{\"text\":\"\"}'}\n",
+          "result_sha256": "25924fd9639fbd6d71d104e006e969fcc0bd85cfbd0fcd7a451d9c67b7cf4f35"
+        }
+      ]
+    }
+  ]
+}
