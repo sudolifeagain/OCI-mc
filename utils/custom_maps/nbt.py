@@ -9,6 +9,11 @@ import struct
 def read_nbt(path: Path) -> dict:
     with gzip.open(path, "rb") as source:
         raw = source.read(32 * 1024 ** 2 + 1)
+    return read_nbt_bytes(raw)
+
+
+def read_nbt_bytes(raw: bytes) -> dict:
+    """展開済みのNBTを読む。リージョン内の本・コマンドの監査にも使用する。"""
     if len(raw) > 32 * 1024 ** 2:
         raise ValueError("level.datが読み取り上限を超える")
     stream = io.BytesIO(raw)

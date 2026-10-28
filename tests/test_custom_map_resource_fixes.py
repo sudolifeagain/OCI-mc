@@ -66,6 +66,16 @@ class ResourceFixTests(unittest.TestCase):
             self.apply()
         self.assertTrue(self.scratch.exists())
 
+    def test_tree_hash_quarantine_requires_the_complete_original_directory(self) -> None:
+        item = self.plan["rules"][0]["operations"][1]
+        item["tree_sha256"] = hashlib.sha256(json.dumps(item.pop("files"), sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+        self.save_plan()
+        (self.scratch / "extra.txt").write_bytes(b"not in the approved tree")
+        with self.assertRaisesRegex(ValueError, "内容が異なる"):
+            self.apply()
+        (self.scratch / "extra.txt").unlink()
+        self.assertEqual(len(self.apply()), 2)
+
     def test_skips_other_maps_and_versions(self) -> None:
         self.assertEqual(apply_fixes(self.server, "1.21", self.plan_path), [])
         self.marker.write_bytes(b"another map")
