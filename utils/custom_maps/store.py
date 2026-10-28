@@ -63,7 +63,7 @@ class Store:
             row = db.execute("SELECT data FROM records WHERE kind=? AND id=?", (kind, record["id"])).fetchone()
             old = json.loads(row[0]) if row else None
             if expected is not None and (old or {}).get("generation", 0) != expected:
-                raise ValueError("状態が更新された。最新の画面から操作をやり直す必要がある")
+                raise ValueError("内容が更新されました。画面を開き直して操作してください。")
             record["generation"] = (old or {}).get("generation", 0) + 1
             record["updated"] = time.time()
             db.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?)", (kind, record["id"], str(record.get("guild", "")), str(record.get("owner", "")), str(record.get("channel", "")), record["updated"], json.dumps(record, ensure_ascii=False)))
@@ -76,33 +76,14 @@ class Store:
         with self.connect() as db:
             db.execute("INSERT INTO events(kind,target,actor,at,data) VALUES(?,?,?,?,?)", (kind, target, str(actor), time.time(), json.dumps(data, ensure_ascii=False)))
 
-    def identity(self, guild: int | str, user: int | str) -> dict | None:
-        return self.get("identity", f"{guild}-{user}")
-
-    def approve_identity(self, guild: int | str, user: int | str, name: str, player_uuid: str, actor: int | str) -> dict:
-        result = {"id": f"{guild}-{user}", "guild": str(guild), "owner": str(user), "name": name, "uuid": player_uuid, "approved": True, "approved_by": str(actor), "updated": time.time()}
-        try:
-            with self.connect() as db:
-                db.execute("BEGIN IMMEDIATE")
-                rows = db.execute("SELECT data FROM records WHERE kind='identity' AND guild=?", (str(guild),)).fetchall()
-                for row in rows:
-                    item = json.loads(row[0])
-                    if item.get("uuid") == player_uuid and item["owner"] != str(user) and item.get("approved"):
-                        raise ValueError("このMinecraft UUIDは別の参加者に承認済みである")
-                db.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?)", ("identity", result["id"], str(guild), str(user), "", result["updated"], json.dumps(result)))
-        except sqlite3.IntegrityError:
-            raise ValueError("このMinecraft UUIDは別の参加者に承認済みである") from None
-        self.event("identity_approved", result["id"], actor)
-        return result
-
-    def played(self, guild: int | str, user: int | str) -> dict:
+    def played(self, guild: int | str, channel: int | str) -> dict:
         result = {}
         for session in self.list("session", guild):
-            if str(user) not in session.get("actual_players", {}):
+            if session.get("channel") != str(channel) or not session.get("actual_players"):
                 continue
             ident = session["map_id"]
             old = result.setdefault(ident, {"last_played": 0, "cleared": False})
-            old["last_played"] = max(old["last_played"], session["actual_players"][str(user)])
+            old["last_played"] = max(old["last_played"], max(session["actual_players"].values()))
             old["cleared"] |= session.get("result") == "clear_reported"
         return result
 
@@ -111,3 +92,28 @@ class Store:
         with self.connect() as source, contextlib.closing(sqlite3.connect(destination)) as target:
             with target:
                 source.backup(target)
+
+    def relocate_channel(self, guild: int | str, source: int | str, destination: int | str, messages: dict[str, str]) -> dict[str, str]:
+        """投稿済みカードの対応表と全関連レコードを一度に移す。"""
+        if str(source) == str(destination):
+            raise ValueError("移動元と移動先のチャンネルが同じである")
+        moved = {}
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT kind,id,data FROM records WHERE guild=? AND channel=?", (str(guild), str(source))).fetchall()
+            bindings = {row["id"] for row in rows if row["kind"] == "message"}
+            if bindings != set(messages):
+                raise ValueError("移動対象の共有カードと投稿結果が一致しない")
+            for row in rows:
+                record = json.loads(row["data"])
+                record.update(channel=str(destination), generation=record.get("generation", 0) + 1, updated=time.time())
+                if row["kind"] == "message":
+                    record["message_id"] = str(messages[row["id"]])
+                    if record["type"] == "panel":
+                        record.update(id=f"panel-{destination}", target=str(destination))
+                        if db.execute("SELECT 1 FROM records WHERE kind='message' AND id=?", (record["id"],)).fetchone():
+                            raise ValueError("移動先の常設パネルがすでに存在する")
+                    moved[row["id"]] = record["id"]
+                db.execute("DELETE FROM records WHERE kind=? AND id=?", (row["kind"], row["id"]))
+                db.execute("INSERT INTO records VALUES(?,?,?,?,?,?,?)", (row["kind"], record["id"], str(guild), str(record.get("owner", "")), str(destination), record["updated"], json.dumps(record, ensure_ascii=False)))
+        return moved

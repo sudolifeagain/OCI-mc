@@ -14,6 +14,12 @@ from utils.rcon import RconClient, get_rcon_client
 MEMORY_THRESHOLD = 0.8  # 空きメモリが割り当ての80%未満なら起動拒否
 
 
+def save_failed_log_line(text: str) -> bool:
+    text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+    prefix = text.partition("]:")[0] + "]"
+    return bool(re.search(r"\b(?:ERROR|WARN)\]", prefix) and re.search(r"Failed to save (?:chunk|level|player)|Error saving (?:chunk|level|player)|Could(?:n't| not) save (?:chunk|level|player)", text, re.I))
+
+
 class ServerInstance:
     """個別のMinecraftサーバーインスタンスを管理するクラス"""
 
@@ -42,6 +48,7 @@ class ServerInstance:
         self._stdout_task: asyncio.Task | None = None
         self.last_error = ""
         self.last_stop_graceful = False
+        self._save_error_seen = False
         # Regex patterns for join/leave
         self.join_pattern = re.compile(r': (.+) joined the game')
         self.leave_pattern = re.compile(r': (.+) left the game')
@@ -58,6 +65,8 @@ class ServerInstance:
 
     def _get_allocated_memory_mb(self) -> int | None:
         """サーバーに割り当てられた最大メモリ(MB)を取得する"""
+        if self.config.get("workload_type") == "custom_map":
+            return self._parse_memory_value(self.memory)
         if self.use_script:
             # スクリプト起動: user_jvm_args.txt から -Xmx を読み取る
             jvm_args_path = os.path.join(self.cwd, 'user_jvm_args.txt')
@@ -234,7 +243,7 @@ class ServerInstance:
 
             if rcon_client:
                 success, response = await rcon_client.execute("list")
-                if success:
+                if success and re.search(r"There are \d+.*players online", response):
                     return True
                 last_message = response
             else:
@@ -291,6 +300,7 @@ class ServerInstance:
             return False
 
         self.process = process
+        self._save_error_seen = False
         self._generation += 1
         generation = self._generation
 
@@ -350,7 +360,14 @@ class ServerInstance:
                         exit_code = await asyncio.wait_for(self.process.wait(), timeout=10)
                     except asyncio.TimeoutError:
                         exit_code = None
-                self.last_stop_graceful = exit_code == 0
+                if self._stdout_task and not self._stdout_task.done():
+                    try:
+                        await asyncio.wait_for(asyncio.shield(self._stdout_task), timeout=2)
+                    except asyncio.TimeoutError:
+                        exit_code = None
+                if self._stdout_task and self._stdout_task.done() and (self._stdout_task.cancelled() or self._stdout_task.exception() is not None):
+                    exit_code = None
+                self.last_stop_graceful = exit_code == 0 and not self._save_error_seen
                 logging.info(f"Server '{self.server_id}' stopped gracefully")
                 return True
 
@@ -439,6 +456,8 @@ class ServerInstance:
                 if not line:
                     break
                 text = line.decode('utf-8', errors='ignore')
+                if save_failed_log_line(text):
+                    self._save_error_seen = True
 
                 # プレイヤー参加/退出の検知
                 if "joined the game" in text:
@@ -453,12 +472,17 @@ class ServerInstance:
                         self.online_players.pop(player_name, None)
 
                 self._enqueue_log(text)
+        except Exception:
+            self._save_error_seen = True
+            logging.exception("Server '%s' stdout reader failed", self.server_id)
+            raise
         finally:
             # 古いstdoutタスクが新しいプロセス状態を消さないよう世代を照合する。
             if (
                 not self._stopping
                 and self._generation == generation
                 and self.process is process
+                and process.returncode is not None
             ):
                 logging.info(f"Server '{self.server_id}' process ended unexpectedly")
                 self._cleanup_server_state(process)
@@ -678,10 +702,10 @@ class MultiServerManager:
         return get_rcon_client(config)
 
     @staticmethod
-    def _parse_player_count(list_response: str) -> int:
+    def _parse_player_count(list_response: str) -> int | None:
         """RCON list レスポンスからプレイヤー数を抽出"""
         match = re.search(r'There are (\d+)', list_response)
-        return int(match.group(1)) if match else 0
+        return int(match.group(1)) if match else None
 
     async def _prepare_graceful_stop(
         self,
@@ -704,7 +728,7 @@ class MultiServerManager:
 
         try:
             success, response = await asyncio.wait_for(
-                rcon_client.execute("list"), timeout=5.0
+                rcon_client.execute("list"), timeout=15.0
             )
         except Exception as e:
             logging.warning(f"Server '{server_id}': RCON check failed: {e}")
@@ -721,6 +745,11 @@ class MultiServerManager:
             return True
 
         player_count = self._parse_player_count(response)
+        if player_count is None:
+            if not force:
+                server.last_error = "接続者数を読み取れないため停止を中止した"
+                return False
+            return True
         if player_count <= 0:
             logging.info(f"Server '{server_id}': no players online, stopping immediately")
             return True
@@ -868,13 +897,13 @@ class MultiServerManager:
             reserved = [s for sid, s in self.servers.items() if sid != server_id and (s.is_running() or s._maintenance or sid in desired)]
             heavy = server_id in {"forge", "forge-alt"}
             if reserved and (heavy or any(s.server_id in {"forge", "forge-alt"} for s in reserved)):
-                return False, "Forge / Forge Altと他のサーバーは排他である（保守・復帰予約を含む）"
+                return False, "Forge系のサーバーと同時には起動できません。起動中のサーバーを停止してから、もう一度お試しください。"
             if len(reserved) >= 2:
-                return False, "通常サーバーとカスタムマップの同時実行は合計2台までである"
+                return False, "同時に起動できるサーバーは2つまでです。使用中のワールドを中断してから、もう一度お試しください。"
             if not heavy:
                 budget = server.config.get("reservation_mb", (server._get_allocated_memory_mb() or 0) + 1536)
                 if budget <= 1536:
-                    return False, "メモリ割り当てが不明な環境は起動できない"
+                    return False, "サーバーのメモリ設定を確認できません。管理者に連絡してください。"
                 growth = 0
                 total = budget
                 for other in reserved:
@@ -884,7 +913,7 @@ class MultiServerManager:
                     growth += max(0, size - (stats["memory_mb"] if stats else 0))
                 mem = psutil.virtual_memory()
                 if total + 3072 > mem.total / 1048576 or budget + growth + 1024 > mem.available / 1048576:
-                    return False, "カスタムマップの予約メモリとホスト用余裕を確保できない"
+                    return False, "メモリが足りないため起動できません。使用中のワールドを中断してから、もう一度お試しください。"
 
         mem_ok, mem_msg, details = server._check_memory_available()
         if mem_ok:

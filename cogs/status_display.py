@@ -63,7 +63,6 @@ class StatusDisplay(commands.Cog):
 
         for server_id, server in self.bot.server_manager.servers.items():
             if server.config.get("workload_type") == "custom_map":
-                embed.add_field(name=server.name, value="稼働中" if server.is_running() else "空き・停止中", inline=False)
                 continue
             if not server.is_running():
                 embed.add_field(name=f"{server.name} (停止中)", value="Offline", inline=False)
@@ -104,10 +103,16 @@ class StatusDisplay(commands.Cog):
             logging.warning(f"Status update failed (will retry next loop): {e}")
 
     async def find_or_send_message(self, channel, embed):
-        """チャンネル内の最新の自分のメッセージを探すか、新規送信する"""
+        """通常ステータスのメッセージだけを再利用する。"""
         try:
             async for msg in channel.history(limit=20):
-                if msg.author == self.bot.user:
+                if (
+                    msg.author == self.bot.user
+                    and not msg.content
+                    and not msg.flags.components_v2
+                    and msg.embeds
+                    and msg.embeds[0].title == embed.title
+                ):
                     await msg.edit(embed=embed)
                     return msg
         except Exception as e:

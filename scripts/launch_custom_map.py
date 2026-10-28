@@ -10,6 +10,26 @@ import subprocess
 from pathlib import Path
 
 
+LOGGING_CHECKSUMS = {
+    "log4j2_112-116.xml": "29534615b561487bccd3f2ec859b172bc642096cef4f8606754ead7eca5050dd",
+    "log4j2_17-111.xml": "c04eb15a3b6b0cc5642a439793c295172491a86da34c176403752fac61bafd72",
+}
+
+
+def logging_arguments(root: Path, version: str) -> list[str]:
+    numbers = tuple(int(v) for v in version.split("."))
+    if numbers[0] == 1 and numbers[1] <= 16:
+        name = "log4j2_112-116.xml" if numbers[1] >= 12 else "log4j2_17-111.xml"
+        path = root / "artifacts" / "logging" / name
+        with path.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != LOGGING_CHECKSUMS[name]:
+                raise ValueError("旧版用の公式ログ設定が一致しない")
+        return [f"-Dlog4j.configurationFile={path}"]
+    if numbers[0] == 1 and (numbers[1] == 17 or numbers == (1, 18)):
+        return ["-Dlog4j2.formatMsgNoLookups=true"]
+    return []
+
+
 def main() -> int:
     cwd = Path.cwd().resolve()
     root = Path("/opt/minecraft/custom-maps")
@@ -33,7 +53,7 @@ def main() -> int:
         java = Path(f"/usr/lib/jvm/java-{17 if major == 16 else major}-openjdk-arm64/bin/java")
     else:
         raise ValueError("未対応のJava実行環境である")
-    return subprocess.call([str(java), f"-Xms{launch['min_memory']}", f"-Xmx{launch['memory']}", "-jar", str(jar), "nogui"])
+    return subprocess.call([str(java), *logging_arguments(root, version), f"-Xms{launch['min_memory']}", f"-Xmx{launch['memory']}", "-jar", str(jar), "nogui"])
 
 
 if __name__ == "__main__":

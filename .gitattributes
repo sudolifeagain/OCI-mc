@@ -1,0 +1,4 @@
+*.py text eol=lf
+*.sh text eol=lf
+*.cjs text eol=lf
+infra/ansible/roles/minecraft_host/files/oci-mc-* text eol=lf
