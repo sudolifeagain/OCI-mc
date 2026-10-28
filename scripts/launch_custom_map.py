@@ -7,7 +7,11 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.custom_map_resource_fixes import apply_fixes  # noqa: E402
 
 
 LOGGING_CHECKSUMS = {
@@ -30,9 +34,8 @@ def logging_arguments(root: Path, version: str) -> list[str]:
     return []
 
 
-def main() -> int:
-    cwd = Path.cwd().resolve()
-    root = Path("/opt/minecraft/custom-maps")
+def launch_server(cwd: Path, root: Path) -> int:
+    cwd, root = cwd.resolve(), root.resolve()
     if cwd not in (root / "slots" / "custom-1", root / "slots" / "custom-2"):
         raise ValueError("カスタムマップの起動枠ではない")
     launch = json.loads((cwd / "launch.json").read_text())
@@ -53,7 +56,14 @@ def main() -> int:
         java = Path(f"/usr/lib/jvm/java-{17 if major == 16 else major}-openjdk-arm64/bin/java")
     else:
         raise ValueError("未対応のJava実行環境である")
+    repaired = apply_fixes(cwd, version)
+    if repaired:
+        print(f"カスタムマップの既知リソース不備を修復: {len(repaired)}件", flush=True)
     return subprocess.call([str(java), *logging_arguments(root, version), f"-Xms{launch['min_memory']}", f"-Xmx{launch['memory']}", "-jar", str(jar), "nogui"])
+
+
+def main() -> int:
+    return launch_server(Path.cwd(), Path("/opt/minecraft/custom-maps"))
 
 
 if __name__ == "__main__":

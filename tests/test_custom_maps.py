@@ -51,6 +51,16 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(catalog.search({}, available=set()), [])
         self.assertEqual([x["id"] for x in catalog.search({}, available={"one", "two"})], ["one"])
 
+    def test_runtime_policy_corrects_stale_op_flag_without_changing_pinned_content(self) -> None:
+        catalog = self.catalog([fixture_item(op_required=True, resource_pack={"sha256": "new"})])
+        pinned = fixture_item(op_required=False, resource_pack={"sha256": "pinned"})
+        result = catalog.runtime_map(pinned)
+        self.assertTrue(result["op_required"])
+        self.assertEqual(result["resource_pack"], {"sha256": "pinned"})
+        self.assertFalse(pinned["op_required"])
+        for changes in ({"revision": "old"}, {"mc_version": "1.16.5"}):
+            self.assertFalse(catalog.runtime_map({**pinned, **changes})["op_required"])
+
 
 class StoreTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -236,6 +246,36 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(setting, properties)
         self.assertEqual(session["participants"], {"1": {}, "2": {}})
 
+    async def test_new_world_uses_fixed_op_policy_from_stale_template_metadata(self) -> None:
+        manifest = self.root / "templates/one/1/manifest.json"
+        original = manifest.read_bytes()
+        self.service.catalog.get("one")["op_required"] = True
+        self.assertTrue((await self.service.map_info("one"))["op_required"])
+        room = await self.room()
+        self.assertTrue(room["map"]["op_required"])
+        session = await self.service.start(room["id"], 1, room["generation"])
+        directory = Path(self.manager.get_server(session["slot"]).cwd)
+        self.assertEqual(json.loads((directory / "ops.json").read_text()), [{**p, "level": 2, "bypassesPlayerLimit": False} for p in self.players])
+        self.assertTrue(session["map"]["op_required"])
+        self.assertEqual(manifest.read_bytes(), original)
+
+    async def test_pending_room_and_old_resume_data_receive_fixed_op_policy(self) -> None:
+        room = await self.room()
+        self.service.catalog.get("one")["op_required"] = True
+        session = await self.service.start(room["id"], 1, room["generation"])
+        active = Path(self.manager.get_server(session["slot"]).cwd)
+        (active / "world/progress").write_bytes(b"halfway")
+        paused = await self.service.pause(session["id"], 1)
+        paused["map"]["op_required"] = False
+        paused = await self.service.put("session", paused)
+        (self.service._session_path(paused["id"]) / "ops.json").write_text("[]")
+        room2 = await self.room(paused)
+        resumed = await self.service.start(room2["id"], 1, room2["generation"])
+        directory = Path(self.manager.get_server(resumed["slot"]).cwd)
+        self.assertTrue(resumed["map"]["op_required"])
+        self.assertEqual(len(json.loads((directory / "ops.json").read_text())), 2)
+        self.assertEqual((directory / "world/progress").read_bytes(), b"halfway")
+
     async def test_reconcile_preserves_but_retires_obsolete_approval_failure(self) -> None:
         obsolete = self.service.store.create("job", state="FAILED", error="Minecraft名が未承認のメンバーがいます。「参加前の準備」で登録状況を確認してください。")
         other = self.service.store.create("job", state="FAILED", error="ホワイトリストを読み込めません。")
@@ -296,6 +336,12 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([call.args[0] for call in client.execute.await_args_list], ["whitelist add NewPlayer"])
             session["map"]["op_required"] = True
             await self.service.put("session", session)
+            client.execute.reset_mock()
+            await self.service.add_whitelist_player("NewPlayer")
+            self.assertEqual([call.args[0] for call in client.execute.await_args_list], ["whitelist add NewPlayer", "op NewPlayer"])
+            session["map"]["op_required"] = False
+            await self.service.put("session", session)
+            self.service.catalog.get("one")["op_required"] = True
             client.execute.reset_mock()
             await self.service.add_whitelist_player("NewPlayer")
             self.assertEqual([call.args[0] for call in client.execute.await_args_list], ["whitelist add NewPlayer", "op NewPlayer"])

@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-10-29T02:22:00+09:00",
+  "map_id": "hero-remake",
+  "revision": "20261026",
+  "mc_version": "1.16.5",
+  "host": "production-arm-loopback-qa",
+  "new_session": {
+    "source": "unmodified-template-world",
+    "template_op_required": false,
+    "catalog_op_required": true,
+    "operator_level": 2,
+    "automatic_resource_repairs": 12,
+    "startup_errors": 0
+  },
+  "resume": {
+    "saved_op_required": false,
+    "saved_ops_empty": true,
+    "operator_level": 2,
+    "automatic_resource_repairs": 0,
+    "startup_errors": 0,
+    "score_before": 42,
+    "score_after": 42
+  },
+  "additional_checks": {
+    "template_manifest_unchanged": true,
+    "four_hint_wrappers_verified": true,
+    "three_obsolete_gravity_controllers_disabled": true,
+    "nonmatching_controller_preserved": true,
+    "unit_tests": 178,
+    "unit_tests_skipped_on_windows": 1
+  }
+}
