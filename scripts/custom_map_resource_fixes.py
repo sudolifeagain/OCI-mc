@@ -70,7 +70,9 @@ def apply_fixes(server: Path, version: str, plan_path: Path = DEFAULT_PLAN) -> l
                     checked_path(server, child.relative_to(server).as_posix())
                     if child.is_file():
                         actual[child.relative_to(path).as_posix()] = digest(child)
-                if item["action"] != "quarantine" or actual != item["files"]:
+                tree_hash = hashlib.sha256(json.dumps(actual, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+                matches = actual == item["files"] if "files" in item else tree_hash == item.get("tree_sha256")
+                if item["action"] != "quarantine" or not matches:
                     raise ValueError(f"修復対象フォルダーの内容が異なる: {item['path']}")
                 replacement = None
             else:
