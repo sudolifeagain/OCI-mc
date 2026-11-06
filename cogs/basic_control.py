@@ -3,10 +3,10 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from settings import SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
+from settings import CONFIG, SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 from utils.rcon import get_rcon_client
-from utils.whitelist import JAVA_NAME, add_verified_profile, resolve_java_profile
+from utils.whitelist import JAVA_NAME, add_verified_profile, resolve_bedrock_profile, resolve_java_profile
 from utils.discord_security import (
     escape_discord_code_block,
     is_allowed_command_context,
@@ -255,9 +255,13 @@ class BasicControl(commands.Cog):
 
     @app_commands.command(name="whitelist_add", description="ホワイトリストにプレイヤーを追加します")
     @app_commands.guild_only()
-    @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー")
-    @app_commands.choices(server=WHITELIST_SERVER_CHOICES)
-    async def whitelist_add(self, interaction: discord.Interaction, player_name: str, server: str = DEFAULT_SERVER):
+    @app_commands.describe(player_name="追加するプレイヤー名", server="対象サーバー", edition="Java版・統合版、または同名の両方")
+    @app_commands.choices(server=WHITELIST_SERVER_CHOICES, edition=[
+        app_commands.Choice(name="Java版", value="java"),
+        app_commands.Choice(name="統合版", value="bedrock"),
+        app_commands.Choice(name="両方（同じ名前）", value="both"),
+    ])
+    async def whitelist_add(self, interaction: discord.Interaction, player_name: str, server: str = DEFAULT_SERVER, edition: str = "java"):
         if not is_allowed_command_context(interaction):
             return await interaction.response.send_message(
                 "このチャンネルでは管理コマンドを実行できません。", ephemeral=True
@@ -265,7 +269,11 @@ class BasicControl(commands.Cog):
         if not check_role(interaction, 'whitelist_add'):
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
 
+        if edition not in {"java", "bedrock", "both"}:
+            return await interaction.response.send_message("版の指定が不正です。", ephemeral=True)
         if server == "custom-maps":
+            if edition != "java":
+                return await interaction.response.send_message("カスタムマップはJava版のみ対応しています。", ephemeral=True)
             service = getattr(self.bot, "custom_maps", None)
             if service is None:
                 return await interaction.response.send_message("カスタムマップは現在利用できません。", ephemeral=True)
@@ -290,55 +298,60 @@ class BasicControl(commands.Cog):
         if not self.server_manager.is_running(server):
             return await interaction.response.send_message(f"{server_instance.name} は起動していません。", ephemeral=True)
 
-        safe_player_name = validate_player_name(player_name)
-        if not safe_player_name:
-            return await interaction.response.send_message(
-                "プレイヤー名が不正です。英数字、`_`、`.`、`-`のみを使用できます。",
-                ephemeral=True,
-            )
-
+        player_name = player_name.strip()
+        if not player_name or len(player_name) > 32 or not player_name.isprintable():
+            return await interaction.response.send_message("プレイヤー名を確認してください。", ephemeral=True)
+        plugin_config = CONFIG.get("plugins", {}).get(server, {})
+        if edition in {"bedrock", "both"} and not {"geyser", "floodgate"}.issubset(plugin_config):
+            return await interaction.response.send_message("このサーバーは統合版の登録に対応していません。", ephemeral=True)
         rcon_client = get_rcon_client(SERVERS_CONFIG.get(server, {}))
         if not rcon_client:
-            return await interaction.response.send_message(
-                f"{server_instance.name} のRCONが設定されていません。",
-                ephemeral=True,
-            )
-        # プロフィール照会はDiscordの初回応答期限より長くかかる場合がある。
+            return await interaction.response.send_message(f"{server_instance.name} のRCONが設定されていません。", ephemeral=True)
+
         await interaction.response.defer(ephemeral=True, thinking=True)
+        results = []
         async with self._whitelist_lock:
-            success, result = await rcon_client.execute(f"whitelist add {safe_player_name}")
-            logging.info(
-                "User %s (%s) executed /whitelist_add server=%s player=%s transport_success=%s",
-                interaction.user,
-                interaction.user.id,
-                server,
-                safe_player_name,
-                success,
-            )
-            # Paperのプロフィール照会が失敗した場合のみ、Mojang公式のUUIDで補完する。
-            if success and result.strip().lower() == "that player does not exist" and JAVA_NAME.fullmatch(safe_player_name):
+            async def add_profile(profile: dict[str, str]) -> None:
+                await asyncio.to_thread(add_verified_profile, server_instance.cwd, profile)
+                reloaded, reload_result = await rcon_client.execute("whitelist reload")
+                if not reloaded or "reloaded the whitelist" not in reload_result.lower():
+                    raise RuntimeError("ファイル追加後、サーバーへの再読込を確認できませんでした。")
+                listed, list_result = await rcon_client.execute("whitelist list")
+                names = [name.strip().lower() for name in list_result.partition(":")[2].split(",")]
+                if not listed or profile["name"].lower() not in names:
+                    raise RuntimeError("再読込後の登録を確認できませんでした。")
+
+            if edition in {"java", "both"}:
+                safe_name = validate_player_name(player_name)
+                if not safe_name or not JAVA_NAME.fullmatch(safe_name):
+                    results.append("Java版: 名前を確認してください。")
+                else:
+                    success, result = await rcon_client.execute(f"whitelist add {safe_name}")
+                    if success and result.strip().lower() == "that player does not exist":
+                        try:
+                            profile = await asyncio.to_thread(resolve_java_profile, safe_name)
+                            await add_profile(profile)
+                            result = f"公式プロフィールを照合し、{profile['name']} を追加しました。"
+                        except Exception as error:
+                            logging.exception("Java whitelist registration failed for server %s", server)
+                            result = f"登録に失敗しました: {error}"
+                    elif not success:
+                        result = f"サーバーへの問い合わせに失敗しました: {result}"
+                    elif not result.strip():
+                        result = "サーバーから応答がなく、登録結果を確認できませんでした。"
+                    results.append("Java版: " + result)
+
+            if edition in {"bedrock", "both"}:
                 try:
-                    profile = await asyncio.to_thread(resolve_java_profile, safe_player_name)
-                    await asyncio.to_thread(add_verified_profile, server_instance.cwd, profile)
-                    reloaded, reload_result = await rcon_client.execute("whitelist reload")
-                    if not reloaded or "reloaded the whitelist" not in reload_result.lower():
-                        raise RuntimeError("ファイルへの追加後、サーバーへの再読込を確認できませんでした。")
-                    listed, list_result = await rcon_client.execute("whitelist list")
-                    names = [name.strip().lower() for name in list_result.partition(":")[2].split(",")]
-                    if not listed or profile["name"].lower() not in names:
-                        raise RuntimeError("再読込後の登録を確認できませんでした。")
-                    result = f"公式プロフィールを照合し、{profile['name']} をホワイトリストに追加しました。"
+                    profile = await asyncio.to_thread(resolve_bedrock_profile, player_name, server_instance.cwd)
+                    await add_profile(profile)
+                    results.append(f"統合版: {profile['name']} を追加し、登録を確認しました。")
                 except Exception as error:
-                    logging.exception("Official profile fallback failed for server %s", server)
-                    result = f"サーバー側で名前を確認できず、公式プロフィールを使った登録にも失敗しました: {error}"
-        # RCONの成功は通信の成功を意味する。登録成功かどうかは応答本文で判断する。
-        if not success:
-            message = f"[{server_instance.name}] サーバーへの問い合わせに失敗しました: {escape_discord_code_block(result)}"
-        elif result.strip():
-            message = f"[{server_instance.name}] ホワイトリスト登録の結果:\n```{escape_discord_code_block(result[:1500])}```"
-        else:
-            message = f"[{server_instance.name}] サーバーから応答がなかったため、登録結果を確認できませんでした。"
-        await interaction.edit_original_response(content=message, allowed_mentions=discord.AllowedMentions.none())
+                    logging.exception("Bedrock whitelist registration failed for server %s", server)
+                    results.append(f"統合版: 登録に失敗しました: {error}")
+        logging.info("User %s (%s) executed /whitelist_add server=%s edition=%s", interaction.user, interaction.user.id, server, edition)
+        message = f"[{server_instance.name}] ホワイトリスト登録の結果:\n" + "\n".join(results)
+        await interaction.edit_original_response(content=escape_discord_code_block(message[:1800]), allowed_mentions=discord.AllowedMentions.none())
 
     @app_commands.command(name="status", description="サーバーのステータス(CPU, Memory, Uptime)を表示します")
     @app_commands.guild_only()
