@@ -64,6 +64,47 @@ class WhitelistCommandTests(unittest.IsolatedAsyncioTestCase):
             await self.invoke()
         self.assertIn('再読込を確認できません', self.interaction.edit_original_response.await_args.kwargs['content'])
 
+    async def test_both_registers_each_edition_and_reports_both(self) -> None:
+        self.client.execute.side_effect = [
+            (True, 'Added Player to the whitelist'),
+            (True, 'Reloaded the whitelist'),
+            (True, 'There are 2 whitelisted players: Player, .Player'),
+        ]
+        profile = {'name': '.Player', 'uuid': '00000000-0000-0000-0009-123456789abc'}
+        with patch('cogs.basic_control.is_allowed_command_context', return_value=True), \
+             patch('cogs.basic_control.check_role', return_value=True), \
+             patch('cogs.basic_control.get_rcon_client', return_value=self.client), \
+             patch('cogs.basic_control.resolve_bedrock_profile', return_value=profile), \
+             patch('cogs.basic_control.add_verified_profile') as add:
+            await BasicControl.whitelist_add.callback(self.cog, self.interaction, 'Player', 'paper-new', 'both')
+        add.assert_called_once_with('/tmp/azb', profile)
+        content = self.interaction.edit_original_response.await_args.kwargs['content']
+        self.assertIn('Java版: Added Player', content)
+        self.assertIn('統合版: .Player を追加', content)
+
+    async def test_both_reports_partial_failure_separately(self) -> None:
+        self.client.execute.return_value = (True, 'Added Player to the whitelist')
+        with patch('cogs.basic_control.is_allowed_command_context', return_value=True), \
+             patch('cogs.basic_control.check_role', return_value=True), \
+             patch('cogs.basic_control.get_rcon_client', return_value=self.client), \
+             patch('cogs.basic_control.resolve_bedrock_profile', side_effect=ValueError('公式APIで照合できません')):
+            await BasicControl.whitelist_add.callback(self.cog, self.interaction, 'Player', 'paper-new', 'both')
+        content = self.interaction.edit_original_response.await_args.kwargs['content']
+        self.assertIn('Java版: Added Player', content)
+        self.assertIn('統合版: 登録に失敗', content)
+
+    async def test_bedrock_only_never_adds_java_account(self) -> None:
+        self.client.execute.side_effect = [(True, 'Reloaded the whitelist'), (True, 'Whitelist: .Player')]
+        profile = {'name': '.Player', 'uuid': '00000000-0000-0000-0009-123456789abc'}
+        with patch('cogs.basic_control.is_allowed_command_context', return_value=True), \
+             patch('cogs.basic_control.check_role', return_value=True), \
+             patch('cogs.basic_control.get_rcon_client', return_value=self.client), \
+             patch('cogs.basic_control.resolve_bedrock_profile', return_value=profile), \
+             patch('cogs.basic_control.add_verified_profile'):
+            await BasicControl.whitelist_add.callback(self.cog, self.interaction, 'Player', 'paper-new', 'bedrock')
+        commands = [c.args[0] for c in self.client.execute.await_args_list]
+        self.assertEqual(commands, ['whitelist reload', 'whitelist list'])
+
     async def test_rcon_failure_is_reported(self) -> None:
         self.client.execute.return_value = (False, 'Connection timed out')
         await self.invoke()
