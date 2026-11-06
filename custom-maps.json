@@ -17,7 +17,7 @@
       "duration_max": null,
       "resource_pack": null,
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "作者指定の設定を配布ページで確認する"
       ],
@@ -192,7 +192,7 @@
         "archive_sha256": "1a9a52c0929db93a5ba4682d987337372c488874ec8c3078fe51ba96ffba796a"
       },
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "作者指定の設定を配布ページで確認する",
         "同梱リソースパックを解凍し、pack.mcmetaを直接含むフォルダーをresourcepacksへ配置する"
@@ -312,7 +312,7 @@
         "sha256": "968f4fb07f8caa643f99cd5889fa27f23a23fff31c9e6bd25b465b4a7bda7333"
       },
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "作者指定の設定を配布ページで確認する"
       ],
@@ -347,7 +347,7 @@
         "sha256": "15759644057b772bf31fe8a8598e7f327eb6ccad4fc3b9dc541eea9f03844f6c"
       },
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "BGMをオフにする",
         "その他の音はすべて聞こえるようにする",
@@ -567,6 +567,7 @@
       "duration_max": 240,
       "resource_pack": null,
       "published": true,
+      "op_required": true,
       "client_settings": [
         "アドベンチャーモードでプレイする"
       ],
@@ -593,6 +594,7 @@
       "duration_max": 180,
       "resource_pack": null,
       "published": true,
+      "op_required": true,
       "client_settings": [
         "アドベンチャーモードでプレイする"
       ],
@@ -998,7 +1000,7 @@
         "sha256": "37494250a5e04436e7f4dc2b243372fa04700716be1c61f33b5f0e0a1c777b9f"
       },
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "視野90以上、視野の変化オフ、パーティクルすべて",
         "接続時に作者のリソースパックを適用する"
@@ -1248,7 +1250,7 @@
       "duration_max": 180,
       "resource_pack": null,
       "published": true,
-      "op_required": false,
+      "op_required": true,
       "client_settings": [
         "描画距離16チャンク程度推奨",
         "BGMのみオフ、主音量40%以上推奨",

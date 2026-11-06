@@ -127,6 +127,539 @@
           "result_sha256": "25924fd9639fbd6d71d104e006e969fcc0bd85cfbd0fcd7a451d9c67b7cf4f35"
         }
       ]
+    },
+    {
+      "id": "forbidden-abyss-20261026",
+      "version": "1.21.4",
+      "description": "未使用の大文字名前空間と空の述語・進捗テンプレートを退避する。",
+      "marker": {
+        "path": "world/datapacks/gokigennyou/data/area/function/bending.mcfunction",
+        "sha256": "65b50d58b5735ba2429272c8f77f4b618033db816f3c8e9436a5f2e115ffbe9d"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/A",
+          "tree_sha256": "177c236f26ec12a5e79b7d86a6cb46ae61f692bfc573d2096f66ae4d37a0da07"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/area/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/beam/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/bending/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/bending/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/big_cave/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/camp/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/camp/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/death/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/death/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/delay/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/delay/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/end_portal_frame/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/end_portal_frame/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/ending/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/ending/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/entrance/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/entrance/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/fire_stone/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/gear/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/hint/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/item/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/item/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/last_gate/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/last_gate/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/lodestone/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/p/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/p/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/reset/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/reset/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/setting/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/setting/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/start/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/start/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/warp/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/water/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/water/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/white_glass/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/wind/advancement/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/gokigennyou/data/wind/predicate/.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "llama-20261026",
+      "version": "1.19.4",
+      "description": "複製されたヒント関数、使用不可の旧操作、関数フォルダーの日本語メモを退避する。",
+      "marker": {
+        "path": "world/datapacks/taro_pack/data/0th_lobby/functions/reset_for_loop.mcfunction",
+        "sha256": "48d75aa6345cf36ad01c4de5abd8989a85dc5c15ba3a96f2b1fc4d9d7cb848da"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/hint_event/functions/speak_schedule/新しいフォルダー",
+          "tree_sha256": "ec7b20b45c3557f1eb32014e6a416426efa29aa7ba266144aaacdb510265bdf3"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/llama/functions/action/使用不可",
+          "tree_sha256": "b1f05be5591f555dacb82eacfcd097090f0510d16e95cde04ca3f21f6117eb84"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/hint_event/functions/speak_schedule/表示するテキストをまとめたもの.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/taro_pack/data/hint_event/functions/speak_schedule/text/表示するテキストファイル.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "lost-melodia-20261026",
+      "version": "1.16.4",
+      "description": "処理なしのイベントをコメントとして登録し、参照のない未完成の草稿関数を退避する。",
+      "marker": {
+        "path": "world/datapacks/melodies/data/yohapack/functions/8maze/destroyer.mcfunction",
+        "sha256": "a6333d065cb8d708546634a7607022fc2da7433e71055c7a50d71b5e700d3278"
+      },
+      "operations": [
+        {
+          "action": "replace",
+          "path": "world/datapacks/melodies/data/yohapack/functions/tower/ev31.mcfunction",
+          "sha256": "4ce6d56bd3c2c2f3931c60db18494cddc3b16e80818ba4d221da318fd6a82663",
+          "result_sha256": "be28f2ac472ca8e64f31fa092351d97cfd0d01e5cb7944c775108652bbdee70e",
+          "replacements": [
+            {
+              "before": "存在しない\n",
+              "after": "# 存在しない\n"
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/melodies/data/yohapack/functions/tower/ev33.mcfunction",
+          "sha256": "868310e193d1af0b9a0a16b18d5826a5490fe3f9410defa30dc115829fc1db4a",
+          "result_sha256": "19ca526464bc79a3ca51b00dc6cbca63a78c1c15e774eb386e2aa0491f4059ee",
+          "replacements": [
+            {
+              "before": "なし",
+              "after": "# なし"
+            }
+          ]
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/melodies/data/yohapack/functions/tower/ev35.mcfunction",
+          "sha256": "868310e193d1af0b9a0a16b18d5826a5490fe3f9410defa30dc115829fc1db4a",
+          "result_sha256": "19ca526464bc79a3ca51b00dc6cbca63a78c1c15e774eb386e2aa0491f4059ee",
+          "replacements": [
+            {
+              "before": "なし",
+              "after": "# なし"
+            }
+          ]
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/melodies/data/yohapack/functions/last/honpenstart.mcfunction",
+          "sha256": "9148b5443593b79da3fa8ea42d4815e0b1904c5460df63c38f49cbe8466f4f79"
+        }
+      ]
+    },
+    {
+      "id": "forgotten-museum-20261026",
+      "version": "1.21.5",
+      "description": "空の述語を退避し、空JSONで無効化されていたVanillaの進捗と地図拡張レシピを正規のパックフィルターで無効化する。",
+      "marker": {
+        "path": "world/datapacks/cohi_lie/data/cohi_lie/function/click_saigo.mcfunction",
+        "sha256": "2d778a92e94ce2a33572c753d5e4f642ce2530eaea4b51d25454f0efee6220b9"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/cohi_lie/predicate/item/shears/2.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/cohi_lie/predicate/item/shears/22.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/advancement/adventure/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/advancement/end/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/advancement/husbandry/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/advancement/nether/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/advancement/story/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohi_lie/data/minecraft/recipe/map_extending.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/cohi_lie/pack.mcmeta",
+          "sha256": "b5d4c0f0321750cd7e490cc08b1cdbb0541b00406a4aa9987b536286e852b2dc",
+          "result_sha256": "046272e095191c2cef2d509fc4234fc2594c5c81f72c2e3a652c1ae47e21831c",
+          "replacements": [
+            {
+              "before": "{\r\n    \"pack\": {\r\n      \"pack_format\": 48,\r\n      \"description\": \"リハビリ\"\r\n    }\r\n  }",
+              "after": "{\n  \"pack\": {\n    \"pack_format\": 48,\n    \"description\": \"リハビリ\"\n  },\n  \"filter\": {\n    \"block\": [\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"advancement/(adventure|end|husbandry|nether|story)/.*\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/map_extending\\\\.json\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"advancement/recipes/[^/]+/map_extending\\\\.json\"\n      }\n    ]\n  }\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "balloon-village-20261026",
+      "version": "1.21",
+      "description": "Vanillaを除外するフィルターにより不在となる進捗の親参照を除去し、金リンゴの解放条件と報酬を維持する。",
+      "marker": {
+        "path": "world/datapacks/dassyutu/data/dassyutu/function/eye_10/answer/.mcfunction",
+        "sha256": "8a4406cf314fe4822ead50bf17cd67825b54ecaa8c9199f86c06dd303e102799"
+      },
+      "operations": [
+        {
+          "action": "replace",
+          "path": "world/datapacks/dassyutu/data/minecraft/advancement/recipes/food/golden_apple.json",
+          "sha256": "89782b0f51483743a7705a9a7354963e7acec0136309b38652089c504a5c7496",
+          "result_sha256": "11373e7011d079eefee447ee70a8a6a8e00689d91b334af85c9c8d9fc205a878",
+          "replacements": [
+            {
+              "before": "  \"parent\": \"minecraft:recipes/root\",\n",
+              "after": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no-entrance-20261026",
+      "version": "1.21.11",
+      "description": "関数フォルダーに含まれる大文字名の説明用Markdownを退避する。",
+      "marker": {
+        "path": "world/datapacks/game/data/bld/function/disp/block/_set.mcfunction",
+        "sha256": "2f9c54281a5dd6987f073abf0da22ac93bb350404dff857f1d03e129ad38a6fb"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/game/data/bld/function/ReadMe.md",
+          "sha256": "bf7545a4a434d4b29aca590d46e1488d419e46ad17b52c1c86175136de706375"
+        }
+      ]
+    },
+    {
+      "id": "windless-valley-20261027",
+      "version": "1.19.4",
+      "description": "空JSONによるVanilla進捗の無効化を正規のパックフィルターへ置き換える。",
+      "marker": {
+        "path": "world/datapacks/windmill/data/mech/functions/altar/activate.mcfunction",
+        "sha256": "9fca39ebf8f9634e0ff13b9fc5bd92ffb698ec4057434341167b385bd1f8ece2"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/adventure/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/end/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/husbandry/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/nether/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/recipes/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/windmill/data/minecraft/advancements/story/root.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/windmill/pack.mcmeta",
+          "sha256": "88407af07db0e93bf80940e38a6b2dff0748d5c8c579fabb32aac6610235c352",
+          "result_sha256": "fcf6fdc5d3a480a596b7a06f993662f8bf35f559ee4a6eece85feb6ef124c60c",
+          "replacements": [
+            {
+              "before": "{\r\n  \"pack\": {\r\n    \"pack_format\": 10,\r\n    \"description\": \"\"\r\n  }\r\n}\r\n",
+              "after": "{\n  \"pack\": {\n    \"pack_format\": 10,\n    \"description\": \"\"\n  },\n  \"filter\": {\n    \"block\": [\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"advancements/.*\"\n      }\n    ]\n  }\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seventh-period-shrine-20261027",
+      "version": "1.21.5",
+      "description": "空JSONによる骨粉レシピの無効化を正規のパックフィルターへ置き換える。",
+      "marker": {
+        "path": "world/datapacks/school_seven_wonders/data/minecraft/function/load.mcfunction",
+        "sha256": "573b42027fbed7de36b64d31b818bab291907f70f4cd23fa4e072da02f319d8b"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/school_seven_wonders/data/minecraft/recipe/bone_meal.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/school_seven_wonders/data/minecraft/recipe/bone_meal_from_bone_block.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/school_seven_wonders/pack.mcmeta",
+          "sha256": "5e5d4cef36404299ad75962b4e4ade962c696023be83e992d1d4398f081b9be3",
+          "result_sha256": "1dffca7e50d952e24acb401a7b43c962a787d971847ea8f71beedfca10db0b2a",
+          "replacements": [
+            {
+              "before": "{\r\n  \"pack\": {\r\n    \"pack_format\": 761,\r\n    \"description\": \"\"\r\n  }\r\n}\r\n",
+              "after": "{\n  \"pack\": {\n    \"pack_format\": 761,\n    \"description\": \"\"\n  },\n  \"filter\": {\n    \"block\": [\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/(bone_meal|bone_meal_from_bone_block)\\\\.json\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"advancement/recipes/[^/]+/(bone_meal|bone_meal_from_bone_block)\\\\.json\"\n      }\n    ]\n  }\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hakobite-garden-20261027",
+      "version": "1.21.8",
+      "description": "空のboatレシピを退避し、元の無効化意図をパックフィルターで保持する。",
+      "marker": {
+        "path": "world/datapacks/cohidev/data/cohidev/function/camera/ladder_1.mcfunction",
+        "sha256": "04e94387bcf3577cdfef5243c31b0c40f8a1348f64236cbb6676d165ee73fd3a"
+      },
+      "operations": [
+        {
+          "action": "quarantine",
+          "path": "world/datapacks/cohidev/data/minecraft/recipe/boat.json",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "action": "replace",
+          "path": "world/datapacks/cohidev/pack.mcmeta",
+          "sha256": "4af3c24e14b8d68d6d50721665a651c6f89ba774f05f269e008eb874c77395d4",
+          "result_sha256": "1ce49d15402f7b771d8ca4733ffe6864fe51f81192d84b630f4080cbb9f76a93",
+          "replacements": [
+            {
+              "before": "{\r\n    \"pack\": {\r\n      \"pack_format\": 48,\r\n      \"description\": \"リハビリ\"\r\n    },\r\n    \"filter\":{\r\n      \"block\":[{\r\n        \"namespace\": \"minecraft\",\r\n        \"path\":\"recipe/acacia_boat.json\"\r\n      },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/pale_oak_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/birch_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/spruce_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/cherry_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/mangrove_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/dark_oak_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/bamboo_raft\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/jungle_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/oak_boat\"\r\n    },\r\n    {\r\n      \"namespace\": \"minecraft\",\r\n      \"path\":\"recipe/crafting_table\"\r\n    }]\r\n    }\r\n  }",
+              "after": "{\n  \"pack\": {\n    \"pack_format\": 48,\n    \"description\": \"リハビリ\"\n  },\n  \"filter\": {\n    \"block\": [\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/acacia_boat.json\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/pale_oak_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/birch_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/spruce_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/cherry_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/mangrove_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/dark_oak_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/bamboo_raft\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/jungle_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/oak_boat\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/crafting_table\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"recipe/boat\\\\.json\"\n      },\n      {\n        \"namespace\": \"minecraft\",\n        \"path\": \"advancement/recipes/[^/]+/boat\\\\.json\"\n      }\n    ]\n  }\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strange-mansion-20261027",
+      "version": "1.21",
+      "description": "同梱の正常な壺レシピと照合し、複製側で欠けた設置先ブロックIDの末尾を補う。材料・装飾・内容物は変更しない。",
+      "marker": {
+        "path": "world/datapacks/command_haihu/data/s/function/104/104.mcfunction",
+        "sha256": "0f689e93673d9a9ef31974a2e532a4b37ec177b8d3f1fa611466d2709c6e1a57"
+      },
+      "operations": [
+        {
+          "action": "replace",
+          "path": "world/datapacks/command_haihu/data/s/recipe/tubo2.json",
+          "sha256": "e91972d97c7add5833e22421c3fc468f0a152356acfd451185a18684eec755ed",
+          "result_sha256": "ff3409929fa44724c03afe0dd1e407d1f0cd6cfb7ca6ce084da71245b8af2969",
+          "replacements": [
+            {
+              "before": "\"blocks\": \"waxe\"",
+              "after": "\"blocks\": \"waxed_copper_bulb\""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

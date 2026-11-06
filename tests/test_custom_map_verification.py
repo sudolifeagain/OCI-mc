@@ -96,6 +96,22 @@ class VerificationTests(unittest.IsolatedAsyncioTestCase):
                                 await clients("node", server, first=False, players=2)
                     self.assertEqual(spawn.call_args.args[-1], "2")
 
+    async def test_joining_is_not_enough_when_operator_permissions_are_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            Path(temporary, "launch.json").write_text(json.dumps({"version": "1.20.4"}))
+            server = SimpleNamespace(cwd=temporary, port=25568, config={}, get_stats=lambda: None)
+            for verified in (False, True):
+                data = {"joined": ["OCI_QA1", "OCI_QA2"], "permissions_verified": verified, "permission_levels": {"OCI_QA1": 2, "OCI_QA2": 2 if verified else 0}}
+                process = SimpleNamespace(returncode=0, communicate=AsyncMock(return_value=(json.dumps(data).encode(), b"")))
+                rcon = SimpleNamespace(execute=AsyncMock(return_value=(True, "OCI_QA1, OCI_QA2")))
+                with patch("scripts.verify_custom_maps.asyncio.create_subprocess_exec", new_callable=AsyncMock, return_value=process) as spawn, patch("scripts.verify_custom_maps.get_rcon_client", return_value=rcon), patch("scripts.verify_custom_maps.asyncio.sleep", new_callable=AsyncMock):
+                    if verified:
+                        self.assertTrue((await clients("node", server, first=False, players=2, op_required=True))["permissions_verified"])
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "OP権限"):
+                            await clients("node", server, first=False, players=2, op_required=True)
+                    self.assertEqual(spawn.call_args.args[-1], "2")
+
 
 if __name__ == "__main__":
     unittest.main()

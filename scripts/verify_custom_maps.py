@@ -22,6 +22,7 @@ from utils.custom_maps.service import CustomMapService  # noqa: E402
 from utils.custom_maps.nbt import read_nbt  # noqa: E402
 from utils.rcon import get_rcon_client  # noqa: E402
 from utils.server_manager import MultiServerManager  # noqa: E402
+from scripts.audit_custom_map_content import assert_verified_content  # noqa: E402
 
 
 class VerificationService(CustomMapService):
@@ -45,9 +46,10 @@ def verification_players(item: dict) -> int:
     return count
 
 
-async def clients(node: str, server, *, first: bool, players: int = 4) -> dict:
+async def clients(node: str, server, *, first: bool, players: int = 4, op_required: bool | None = None) -> dict:
     version = json.loads((Path(server.cwd) / "launch.json").read_text())["version"]
-    process = await asyncio.create_subprocess_exec(node, str(Path(__file__).with_name("custom_map_clients.cjs")), version, str(server.port), str(players), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    permission_args = [] if op_required is None else ["2" if op_required else "0"]
+    process = await asyncio.create_subprocess_exec(node, str(Path(__file__).with_name("custom_map_clients.cjs")), version, str(server.port), str(players), *permission_args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     client = get_rcon_client(server.config)
     online = False
     for _ in range(12):
@@ -68,6 +70,8 @@ async def clients(node: str, server, *, first: bool, players: int = 4) -> dict:
         result = {"error": stderr.decode()[-700:]}
     result["rcon_players"] = online
     result["expected_players"] = players
+    if op_required is not None and not result.get("permissions_verified"):
+        raise RuntimeError("合成クライアントのOP権限を確認できない: " + json.dumps(result, ensure_ascii=False))
     if players == 4:
         result["rcon_four_players"] = online
     result["server_memory_mb"] = stats["memory_mb"] if stats else None
@@ -99,7 +103,8 @@ async def verify(args) -> None:
         entry["auto_start"] = False
     root = Path(config["custom_maps"]["root"])
     launcher = root / "qa-launch.py"
-    launcher.write_bytes(Path(__file__).with_name("launch_custom_map.py").read_bytes().replace(b"\r\n", b"\n"))
+    source_root = str(Path(__file__).resolve().parents[1])
+    launcher.write_text(f"#!/usr/bin/python3\nimport sys\nsys.path.insert(0, {source_root!r})\nfrom scripts.launch_custom_map import main\nraise SystemExit(main())\n")
     launcher.chmod(0o755)
     for entry in config["servers"].values():
         if entry.get("workload_type") == "custom_map":
@@ -185,13 +190,16 @@ async def verify(args) -> None:
                 session = await service.start(prepared["id"], "qa", prepared["generation"])
                 ident = session["id"]
                 evidence["rcon_ready"] = True
-                evidence["first_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=True, players=players)
+                effective = session.get("map", item)
+                evidence.update(await asyncio.to_thread(assert_verified_content, effective, Path(manager.get_server(session["slot"]).cwd)))
+                evidence["first_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=True, players=players, op_required=bool(effective.get("op_required")))
                 await service.poll()
                 session = await service.pause(ident, "qa")
                 assert_saved_score(service._session_path(ident))
                 prepared = await room(item, session)
                 session = await service.start(prepared["id"], "qa", prepared["generation"])
-                evidence["resumed_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=False, players=players)
+                evidence["resumed_content"] = await asyncio.to_thread(assert_verified_content, session.get("map", item), Path(manager.get_server(session["slot"]).cwd))
+                evidence["resumed_clients"] = await clients(args.node, manager.get_server(session["slot"]), first=False, players=players, op_required=bool(effective.get("op_required")))
                 session = await service.pause(ident, "qa", finish=True)
                 assert_saved_score(service._session_path(ident))
                 evidence.update(save_resume=True, multiple_players=True, original_unchanged=hashlib.sha256(original.read_bytes()).hexdigest() == digest)
