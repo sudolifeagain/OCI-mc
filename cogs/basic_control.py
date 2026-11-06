@@ -6,6 +6,7 @@ from discord.ext import commands, tasks
 from settings import SERVER_IDS, SERVERS_CONFIG, DEFAULT_SERVER, get_log_channel_id
 from utils.permissions import check_role
 from utils.rcon import get_rcon_client
+from utils.whitelist import JAVA_NAME, add_verified_profile, resolve_java_profile
 from utils.discord_security import (
     escape_discord_code_block,
     is_allowed_command_context,
@@ -51,6 +52,7 @@ class BasicControl(commands.Cog):
         self.bot = bot
         self.server_manager = server_manager
         self._shell_lock = asyncio.Lock()
+        self._whitelist_lock = asyncio.Lock()
         self.discord_log_sender.start()
 
     def cog_unload(self):
@@ -301,26 +303,42 @@ class BasicControl(commands.Cog):
                 f"{server_instance.name} のRCONが設定されていません。",
                 ephemeral=True,
             )
-        success, result = await rcon_client.execute(f"whitelist add {safe_player_name}")
-        logging.info(
-            "User %s (%s) executed /whitelist_add server=%s player=%s success=%s",
-            interaction.user,
-            interaction.user.id,
-            server,
-            safe_player_name,
-            success,
-        )
-        if success:
-            await interaction.response.send_message(
-                f"[{server_instance.name}] ホワイトリストへ `{safe_player_name}` を追加しました。",
-                silent=True,
-                allowed_mentions=discord.AllowedMentions.none(),
+        # プロフィール照会はDiscordの初回応答期限より長くかかる場合がある。
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        async with self._whitelist_lock:
+            success, result = await rcon_client.execute(f"whitelist add {safe_player_name}")
+            logging.info(
+                "User %s (%s) executed /whitelist_add server=%s player=%s transport_success=%s",
+                interaction.user,
+                interaction.user.id,
+                server,
+                safe_player_name,
+                success,
             )
+            # Paperのプロフィール照会が失敗した場合のみ、Mojang公式のUUIDで補完する。
+            if success and result.strip().lower() == "that player does not exist" and JAVA_NAME.fullmatch(safe_player_name):
+                try:
+                    profile = await asyncio.to_thread(resolve_java_profile, safe_player_name)
+                    await asyncio.to_thread(add_verified_profile, server_instance.cwd, profile)
+                    reloaded, reload_result = await rcon_client.execute("whitelist reload")
+                    if not reloaded or "reloaded the whitelist" not in reload_result.lower():
+                        raise RuntimeError("ファイルへの追加後、サーバーへの再読込を確認できませんでした。")
+                    listed, list_result = await rcon_client.execute("whitelist list")
+                    names = [name.strip().lower() for name in list_result.partition(":")[2].split(",")]
+                    if not listed or profile["name"].lower() not in names:
+                        raise RuntimeError("再読込後の登録を確認できませんでした。")
+                    result = f"公式プロフィールを照合し、{profile['name']} をホワイトリストに追加しました。"
+                except Exception as error:
+                    logging.exception("Official profile fallback failed for server %s", server)
+                    result = f"サーバー側で名前を確認できず、公式プロフィールを使った登録にも失敗しました: {error}"
+        # RCONの成功は通信の成功を意味する。登録成功かどうかは応答本文で判断する。
+        if not success:
+            message = f"[{server_instance.name}] サーバーへの問い合わせに失敗しました: {escape_discord_code_block(result)}"
+        elif result.strip():
+            message = f"[{server_instance.name}] ホワイトリスト登録の結果:\n```{escape_discord_code_block(result[:1500])}```"
         else:
-            await interaction.response.send_message(
-                f"[{server_instance.name}] ホワイトリスト追加に失敗しました: {result}",
-                ephemeral=True,
-            )
+            message = f"[{server_instance.name}] サーバーから応答がなかったため、登録結果を確認できませんでした。"
+        await interaction.edit_original_response(content=message, allowed_mentions=discord.AllowedMentions.none())
 
     @app_commands.command(name="status", description="サーバーのステータス(CPU, Memory, Uptime)を表示します")
     @app_commands.guild_only()
