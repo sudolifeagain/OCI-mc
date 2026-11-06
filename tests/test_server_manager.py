@@ -115,6 +115,34 @@ class ServerInstanceCommandTests(unittest.TestCase):
 
 
 class ServerManagerLifecycleTests(unittest.IsolatedAsyncioTestCase):
+    async def test_shared_ports_block_start_and_restart(self) -> None:
+        with tempfile.TemporaryDirectory() as runtime_dir:
+            manager = MultiServerManager({
+                'paper': {'cwd': '/tmp/paper', 'port': 25565, 'rcon_port': 25575},
+                'paper-new': {'cwd': '/tmp/new', 'port': 25565, 'rcon_port': 25575},
+            }, runtime_dir)
+            old, new = manager.servers['paper'], manager.servers['paper-new']
+            old.is_running = Mock(return_value=True)
+            new.is_running = Mock(return_value=False)
+            new.start = AsyncMock(return_value=True)
+            self.assertFalse(await manager.start_server('paper-new'))
+            self.assertIn('25565', new.last_error)
+            self.assertFalse(await manager.restart_server('paper-new'))
+            new.start.assert_not_awaited()
+
+    async def test_shared_rcon_port_blocks_start(self) -> None:
+        with tempfile.TemporaryDirectory() as runtime_dir:
+            manager = MultiServerManager({
+                'one': {'cwd': '/tmp/one', 'port': 25565, 'rcon_port': 25575},
+                'two': {'cwd': '/tmp/two', 'port': 25566, 'rcon_port': 25575},
+            }, runtime_dir)
+            manager.servers['one'].is_running = Mock(return_value=True)
+            manager.servers['two'].is_running = Mock(return_value=False)
+            manager.servers['two'].start = AsyncMock(return_value=True)
+            self.assertFalse(await manager.start_server('two'))
+            self.assertIn('25575', manager.servers['two'].last_error)
+            manager.servers['two'].start.assert_not_awaited()
+
     async def test_readiness_uses_rcon(self) -> None:
         server = ServerInstance(
             "paper",

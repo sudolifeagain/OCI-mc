@@ -83,6 +83,7 @@ CUSTOM_MAP_LOG_CHANNEL_ID = int(os.getenv('DISCORD_CUSTOM_MAP_LOG_CHANNEL_ID', 0
 CONFIG.setdefault('custom_maps', {})['channel_id'] = CUSTOM_MAP_CHANNEL_ID
 LOG_CHANNEL_IDS = {
     'paper': int(os.getenv('DISCORD_PAPER_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
+    'paper-new': int(os.getenv('DISCORD_AZB_LOG_CHANNEL_ID', 0)),
     'forge': int(os.getenv('DISCORD_FORGE_LOG_CHANNEL_ID', 0)) or CHANNEL_ID,
     'forge-alt': int(
         os.getenv(

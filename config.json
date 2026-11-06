@@ -71,6 +71,20 @@
 			"log_forwarding": true,
 			"rcon_port": 25579,
 			"rcon_password_env": "CUSTOM_MAP_2_RCON_PASSWORD"
+		},
+		"paper-new": {
+			"name": "azb",
+			"jar": "paper.jar",
+			"java_command": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+			"cwd": "/opt/minecraft/paper-new",
+			"memory": "4G",
+			"port": 25565,
+			"auto_start": false,
+			"run_as_user": "mc-paper",
+			"startup_timeout": 180,
+			"log_queue_size": 1000,
+			"rcon_port": 25575,
+			"rcon_password_env": "PAPER_RCON_PASSWORD"
 		}
 	},
 	"default_server": "paper",
@@ -128,6 +142,9 @@
 			],
 			"forge-alt": [
 				"world"
+			],
+			"paper-new": [
+				"world"
 			]
 		},
 		"schedule_time": "04:00"
@@ -172,6 +189,22 @@
 				"repo": "sudolifeagain/ExpBottleBoost",
 				"asset_pattern": "ExpBottleBoost-*.jar",
 				"filename_pattern": "ExpBottleBoost-*.jar"
+			}
+		},
+		"paper-new": {
+			"geyser": {
+				"source": "geysermc",
+				"project": "geyser",
+				"version": "2.12.1",
+				"platform": "spigot",
+				"filename": "Geyser-Spigot.jar"
+			},
+			"floodgate": {
+				"source": "geysermc",
+				"project": "floodgate",
+				"version": "2.2.5",
+				"platform": "spigot",
+				"filename": "floodgate-spigot.jar"
 			}
 		}
 	},

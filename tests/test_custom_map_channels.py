@@ -7,6 +7,10 @@ from utils.discord_security import is_custom_map_channel
 
 
 class CustomMapChannelTests(unittest.TestCase):
+    def test_azb_logs_never_fall_back_to_management_channel(self) -> None:
+        with patch.dict(settings.LOG_CHANNEL_IDS, {'paper-new': 0}), patch('settings.CHANNEL_ID', 123):
+            self.assertEqual(settings.get_log_channel_id('paper-new'), 0)
+
     def test_configured_channel_rejects_other_channels(self) -> None:
         with patch("utils.discord_security.CUSTOM_MAP_CHANNEL_ID", 123):
             self.assertTrue(is_custom_map_channel(SimpleNamespace(channel_id=123)))

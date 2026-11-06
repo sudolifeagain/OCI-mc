@@ -687,6 +687,10 @@ class MultiServerManager:
                 return False
             # 異なるサーバーの同時起動でも空きメモリ判定と予約を直列化する。
             async with self._start_admission_lock:
+                conflict = self._port_conflict(server_id)
+                if conflict:
+                    server.last_error = conflict
+                    return False
                 mem_ok, mem_msg = self.check_memory_for_start(server_id, custom_session=custom_session or maintenance)
                 if not mem_ok:
                     server.last_error = mem_msg
@@ -700,6 +704,18 @@ class MultiServerManager:
         """サーバーIDからRCONクライアントを取得"""
         config = self._servers_config.get(server_id, {})
         return get_rcon_client(config)
+
+    def _port_conflict(self, server_id: str) -> str | None:
+        server = self.servers[server_id]
+        for other_id, other in self.servers.items():
+            if other_id == server_id or not other.is_running():
+                continue
+            if other.port == server.port:
+                return f"ポート {server.port} は {other.name} で使用中である"
+            rcon_port = server.config.get('rcon_port')
+            if rcon_port and rcon_port == other.config.get('rcon_port'):
+                return f"RCONポート {rcon_port} は {other.name} で使用中である"
+        return None
 
     @staticmethod
     def _parse_player_count(list_response: str) -> int | None:
@@ -840,6 +856,10 @@ class MultiServerManager:
                     return False
 
             async with self._start_admission_lock:
+                conflict = self._port_conflict(server_id)
+                if conflict:
+                    server.last_error = conflict
+                    return False
                 mem_ok, mem_msg = self.check_memory_for_start(server_id)
                 if not mem_ok:
                     server.last_error = mem_msg
