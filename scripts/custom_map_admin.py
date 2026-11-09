@@ -113,6 +113,9 @@ def main() -> None:
                 evidence = json.loads(args.evidence.read_text())
                 if evidence.get("map_id") != item["id"] or not all(evidence.get(key) for key in ("rcon_ready", "save_resume", "multiple_players")):
                     raise ValueError("検証証跡が不足している")
+                resumed = evidence.get("resumed_content", {})
+                if evidence.get("datapack_errors") != [] or not evidence.get("content_permissions_verified") or resumed.get("datapack_errors") != [] or not resumed.get("content_permissions_verified") or not all(evidence.get(key, {}).get("permissions_verified") for key in ("first_clients", "resumed_clients")):
+                    raise ValueError("データパックとOP権限の検証証跡が不足している")
                 manifest = json.loads(manifest_file.read_text())
                 manifest.update(smoke_verified=True, verification=evidence)
                 manifest_file.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
