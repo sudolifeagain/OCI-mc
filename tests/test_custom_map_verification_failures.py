@@ -83,6 +83,7 @@ class VerificationFailureTests(unittest.IsolatedAsyncioTestCase):
                 patches.enter_context(patch.object(verify_custom_maps, "VerificationService", return_value=service))
                 clients = patches.enter_context(patch.object(verify_custom_maps, "clients", new_callable=AsyncMock, return_value={"rcon_players": True}))
                 patches.enter_context(patch.object(verify_custom_maps, "assert_saved_score"))
+                patches.enter_context(patch.object(verify_custom_maps, "assert_verified_content", return_value={"datapack_errors": [], "content_permissions_verified": True}))
                 patches.enter_context(contextlib.redirect_stdout(io.StringIO()))
                 await verify_custom_maps.verify(args)
 
