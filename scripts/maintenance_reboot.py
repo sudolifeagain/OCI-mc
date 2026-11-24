@@ -18,6 +18,7 @@ import urllib.request
 from importlib import import_module
 from pathlib import Path
 
+import psutil
 from dotenv import load_dotenv
 from collections import Counter
 
@@ -32,6 +33,7 @@ _rcon = import_module("utils.rcon")
 
 load_json = _capture_running_servers.load_json
 write_state = _capture_running_servers.write_state
+find_running_servers = _capture_running_servers.find_running_servers
 port_is_open = _graceful_shutdown.port_is_open
 stop_server = _graceful_shutdown.stop_server
 backup_is_acceptable = _backup_fingerprint.backup_is_acceptable
@@ -137,9 +139,65 @@ def ensure_backups(
             raise RuntimeError(f"{server_id}: 直近または現行データと一致するバックアップがない")
 
 
-async def running_servers(servers: dict) -> set[str]:
+def recorded_process_is_running(runtime_dir: Path, server_id: str, config: dict) -> bool:
+    """Botが起動時に記録したPIDのJavaプロセスが稼働中かを返す。
+
+    Botは起動したサーバーを `pids/<server_id>.json` (pid, create_time, cwd) に記録する。
+    起動時刻の照合でPID再利用を除外し、記録したcwdで同じポートを共有する設定を区別する。
+    別ユーザーで動くJavaプロセスのcwdを読む権限は不要である。
+    """
+    record = load_json(runtime_dir / "pids" / f"{server_id}.json")
+    pid = record.get("pid")
+    create_time = record.get("create_time")
+    if not isinstance(pid, int) or not isinstance(create_time, (int, float)):
+        return False
+    if os.path.normpath(str(record.get("cwd", ""))) != os.path.normpath(config["cwd"]):
+        return False
+    try:
+        process = psutil.Process(pid)
+        if abs(process.create_time() - float(create_time)) > 0.01:
+            return False
+        tree = [process, *process.children(recursive=True)]
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return False
+    for candidate in tree:
+        try:
+            if "java" in candidate.name().lower() and candidate.status() != psutil.STATUS_ZOMBIE:
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return False
+
+
+def process_running_servers(servers: dict, runtime_dir: Path) -> set[str]:
+    """プロセス情報から稼働中のサーバーIDを特定する。"""
+    running = {
+        server_id
+        for server_id, config in servers.items()
+        if recorded_process_is_running(runtime_dir, server_id, config)
+    }
+    try:
+        # cwdを読めるプロセスだけが対象になる。ubuntuでは別ユーザーのJavaは読めない。
+        running |= find_running_servers(servers)
+    except OSError:
+        pass
+    return running
+
+
+async def rcon_answering_servers(candidates: list[tuple[str, dict]]) -> list[str]:
+    answered = []
+    for server_id, config in candidates:
+        client = get_rcon_client(config)
+        ok, reply = await client.execute("list") if client else (False, "")
+        if ok and parse_player_count(reply) is not None:
+            answered.append(server_id)
+    return answered
+
+
+async def running_servers(servers: dict, runtime_dir: Path) -> set[str]:
     counts = Counter(int(server["port"]) for server in servers.values())
     running = set()
+    process_evidence: set[str] | None = None
     for port in counts:
         if not await asyncio.to_thread(port_is_open, port):
             continue
@@ -147,14 +205,22 @@ async def running_servers(servers: dict) -> set[str]:
         if len(candidates) == 1:
             running.add(candidates[0][0])
             continue
-        identified = []
-        for sid, cfg in candidates:
-            client = get_rcon_client(cfg)
-            ok, reply = await client.execute("list") if client else (False, "")
-            if ok and parse_player_count(reply) is not None:
-                identified.append(sid)
+        # 同じゲームポートの設定はRCONポートとパスワードも共有する場合があり、
+        # RCONの応答だけでは区別できない。プロセス情報で特定できない場合だけRCONを使う。
+        if process_evidence is None:
+            process_evidence = await asyncio.to_thread(process_running_servers, servers, runtime_dir)
+        identified = [sid for sid, _ in candidates if sid in process_evidence]
+        method = "プロセス"
+        if not identified:
+            identified = await rcon_answering_servers(candidates)
+            method = "RCON"
         if len(identified) != 1:
-            raise RuntimeError(f"共有ゲームポート {port} の稼働サーバーを特定できない")
+            raise RuntimeError(
+                f"共有ゲームポート {port} の稼働サーバーを特定できない"
+                f" (候補: {', '.join(sid for sid, _ in candidates)},"
+                f" {method}で該当: {', '.join(identified) or 'なし'})"
+            )
+        logging.info("共有ゲームポート %d の稼働サーバーを%sで特定: %s", port, method, identified[0])
         running.add(identified[0])
     return running
 
@@ -167,9 +233,11 @@ async def prepare_reboot(args: argparse.Namespace) -> int:
 
     config = load_json(args.config)
     servers = config.get("servers", {})
-    running = await running_servers(servers)
+    running = await running_servers(servers, args.state.parent)
+    logging.info("稼働サーバー: %s", ", ".join(sorted(running)) or "なし")
     existing_desired = set(load_json(args.state).get("servers", [])) & set(servers)
-    write_state(args.state, existing_desired | running)
+    if not args.dry_run:
+        write_state(args.state, existing_desired | running)
 
     player_counts = await asyncio.gather(
         *(get_player_count(server_id, servers[server_id]) for server_id in sorted(running))
